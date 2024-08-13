@@ -1,14 +1,16 @@
 package main
 
-import ("fmt"
-		_ "log"
-		)
+import (
+	_ "log"
+
+	"github.com/easy-cloud-Knet/KWS_Core.git/api"
+)
 
 
 
 
 func main(){
 
-	fmt.Println("hello")
+	api.Server(8080)
 
 }
