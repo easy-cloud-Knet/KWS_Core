@@ -4,13 +4,11 @@ import (
 	_ "log"
 
 	"github.com/easy-cloud-Knet/KWS_Core.git/api"
+	"github.com/easy-cloud-Knet/KWS_Core.git/api/router"
 )
 
+func main() {
 
-
-
-func main(){
-
-	api.Server(8080)
-
+	go api.Server(8080)
+	router.MakeNewConnect()
 }

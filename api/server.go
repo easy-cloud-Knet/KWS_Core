@@ -13,5 +13,21 @@ func Server(portNum int){
 	router.GET("/gin", func(c *gin.Context){
 		fmt.Println(c)
 	})
+
+	router.GET("/gin", func(c *gin.Context){
+		fmt.Println(c)
+	})
+	router.GET("/gin", func(c *gin.Context){
+		fmt.Println(c)
+	})
+	router.GET("/gin", func(c *gin.Context){
+		fmt.Println(c)
+	})
+	router.GET("/gin", func(c *gin.Context){
+		fmt.Println(c)
+	})
+	router.GET("/gin", func(c *gin.Context){
+		fmt.Println(c)
+	})
 	router.Run(":"+strconv.Itoa(portNum))
 }
