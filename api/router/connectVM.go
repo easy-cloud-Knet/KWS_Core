@@ -2,11 +2,10 @@ package router
 
 import (
 	"fmt"
-
-	"libvirt.org/go/libvirt"
+	libvirt "libvirt.org/go/libvirt"
 )
-
-func Makenewconnect(conn *libvirt.Connect) {
+func MakeNewConnect(conn *libvirt.Connect) {
+	
 	doms, err := conn.ListAllDomains(libvirt.CONNECT_LIST_DOMAINS_ACTIVE)
 	if err != nil {
 		panic(err)
@@ -23,10 +22,16 @@ func Makenewconnect(conn *libvirt.Connect) {
 	defer conn.Close()
 }
 
-func LibvirtConnection() *libvirt.Connect {
+
+func LibvirtConnection() *libvirt.Connect{
+	
 	conn, err := libvirt.NewConnect("qemu:///system")
-	if err != nil {
-		panic(err)
-	}
+		if err != nil {
+			panic(err)
+		
+}
+	
+
+
 	return conn
 }
