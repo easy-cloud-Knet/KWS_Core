@@ -3,20 +3,19 @@ package main
 import (
 	_ "log"
 	"fmt"
-	"github.com/easy-cloud-Knet/KWS_Core.git/api"
-	"github.com/easy-cloud-Knet/KWS_Core.git/api/router"
+	"github.com/easy-cloud-Knet/KWS_Core.git/api/server"
+	"github.com/easy-cloud-Knet/KWS_Core.git/api/conn"
 )
 
 func main() {
 	a:=make (chan int)
 	
-	libvirtInstance := router.LibvirtConnection()
+	libvirtInst := conn.LibvirtConnection()
 
-	go api.Server(8080)
-	router.MakeNewConnect(libvirtInstance)
+	go server.InitServer(8080, libvirtInst)
 	fmt.Println("working")	
 
-	defer libvirtInstance.Close()
+	defer libvirtInst.Close()
 
 
 	<-a
