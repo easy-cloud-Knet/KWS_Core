@@ -6,12 +6,8 @@ import (
 	libvirt "libvirt.org/libvirt-go"
 )
 
-func MakeNewConnect() {
-	conn, err := libvirt.NewConnect("qemu:///system")
-	if err != nil {
-		panic(err)
-	}
-
+func MakeNewConnect(libvirt.Conn) {
+	
 	doms, err := conn.ListAllDomains(libvirt.CONNECT_LIST_DOMAINS_ACTIVE)
 	if err != nil {
 		panic(err)
@@ -26,4 +22,15 @@ func MakeNewConnect() {
 		dom.Free()
 	}
 	defer conn.Close()
+}
+
+func LibvirtConnection() *libvirt.Connect{
+	
+	conn, err := libvirt.NewConnect("qemu:///system")
+		if err != nil {
+			panic(err)
+		
+}
+	defer conn
+
 }

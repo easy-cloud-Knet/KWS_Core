@@ -1,9 +1,11 @@
 kws :=KWS_Server
 
-build:
-	go build  -o $(kws) .
+.PHONY: build run clean
 
-run: build
+build: main.go
+	go build -o $(kws) .
+
+run:	build
 	chmod +x ./$(kws) 
 	./$(kws)
 

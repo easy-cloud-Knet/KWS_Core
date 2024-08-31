@@ -8,7 +8,14 @@ import (
 )
 
 func main() {
+	libvirtInstance := router.LibvirtConnection()
 
 	go api.Server(8080)
-	router.MakeNewConnect()
+	router.MakeNewConnect(libvirtInstance)
+	fmt.Println("working")	
+
+	defer libvirtInstance.Close()
+
+
+
 }
