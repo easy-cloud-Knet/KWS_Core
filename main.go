@@ -1,22 +1,22 @@
 package main
 
 import (
-	_ "log"
 	"fmt"
-	"github.com/easy-cloud-Knet/KWS_Core.git/api/server"
+	_ "log"
+
 	"github.com/easy-cloud-Knet/KWS_Core.git/api/conn"
+	"github.com/easy-cloud-Knet/KWS_Core.git/api/server"
 )
 
 func main() {
-	a:=make (chan int)
-	
-	libvirtInst := conn.LibvirtConnection()
+	libvirtInst :=conn.LibvirtConnection()
+	conn.SetLibvirtInst(libvirtInst)
 
 	go server.InitServer(8080, libvirtInst)
 	fmt.Println("working")	
 
-	defer libvirtInst.Close()
+	defer  libvirtInst.Close()
 
 
-	<-a
+	select {}
 }

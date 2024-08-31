@@ -2,20 +2,31 @@ package server
 
 import (
 	"fmt"
+	"net/http"
 	"strconv"
 
-	"libvirt.org/go/libvirt"
 	"github.com/easy-cloud-Knet/KWS_Core.git/api/conn"
-	"github.com/gin-gonic/gin"
+	"libvirt.org/go/libvirt"
 )
 
-func InitServer(portNum int, libvirtInst *libvirt.Connect){
-	router:=gin.Default()
 
+
+
+
+
+
+func InitServer(portNum int, libvirtInst *libvirt.Connect){
 	
-	router.GET("/getStatus", func(c *gin.Context){
-		fmt.Println("getStatus request income")
-		conn.ActiveDomain(libvirtInst)
-	})
-	router.Run(":"+strconv.Itoa(portNum))
+	http.HandleFunc("/getStatus",status)
+
+
+
+	http.ListenAndServe(":"+strconv.Itoa(portNum), nil)
 }
+
+
+func status(w http.ResponseWriter,r * http.Request){
+	fmt.Println("getStatus request income")
+	conn.ActiveDomain(conn.ReturnLibvirtInst().LibvirtInst)
+}
+
