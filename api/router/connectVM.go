@@ -2,24 +2,25 @@ package router
 
 import (
 	"fmt"
+
 	libvirt "libvirt.org/go/libvirt"
 )
 func Makenewconnect(conn *libvirt.Connect) {
 	
-	doms, err := conn.listalldomains(libvirt.connect_list_domains_active)
+	doms, err := conn.ListAllDomains(libvirt.CONNECT_LIST_DOMAINS_ACTIVE)
 	if err != nil {
 		panic(err)
 	}
 
 	fmt.Printf("%d running domains:\n", len(doms))
 	for _, dom := range doms {
-		name, err := dom.getname()
+		name, err := dom.GetName()
 		if err == nil {
 			fmt.Printf("  %s\n", name)
 		}
-		dom.free()
+		dom.Free()
 	}
-	defer conn.close()
+	defer conn.Close()
 }
 
 
