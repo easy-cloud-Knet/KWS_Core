@@ -4,7 +4,7 @@ go 1.22.6
 
 require (
 	github.com/gin-gonic/gin v1.10.0
-	libvirt.org/libvirt-go v7.4.0+incompatible
+	libvirt.org/go/libvirt v1.10006.0
 )
 
 require (
