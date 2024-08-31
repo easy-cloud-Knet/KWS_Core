@@ -6,7 +6,7 @@ import (
 	libvirt "libvirt.org/libvirt-go"
 )
 
-func MakeNewConnect(libvirt.Conn) {
+func MakeNewConnect(conn libvirt.Conn) {
 	
 	doms, err := conn.ListAllDomains(libvirt.CONNECT_LIST_DOMAINS_ACTIVE)
 	if err != nil {
@@ -31,6 +31,8 @@ func LibvirtConnection() *libvirt.Connect{
 			panic(err)
 		
 }
-	defer conn
+	
 
+
+	return conn
 }
