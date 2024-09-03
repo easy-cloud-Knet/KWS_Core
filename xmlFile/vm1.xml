@@ -9,7 +9,7 @@
   </os>
   <clock sync="localtime"/>
   <devices>
-    <emulator>/usr/bin/qemu-kvm</emulator>
+    <emulator>/usr/bin/kvm</emulator>
     <disk type='file' device='disk'>
       <source file='/home/kws/debian-12.6.0-amd64-netinst.iso'/>
       <target dev='hda'/>

@@ -3,8 +3,8 @@ package conn
 import (
 	"fmt"
 	"net/http"
-	"os"
-
+	
+	"log"
 	"libvirt.org/go/libvirt"
 )
 
@@ -21,7 +21,6 @@ func (i * InstHandler) ReturnStatus(w http.ResponseWriter,r * http.Request){
 func (i *InstHandler) CreateDomainWithXML(w http.ResponseWriter, r *http.Request) {
 
 	// 파일 포인터를 슬라이스에 담습니다.
-	files := []os.File{}
 	xmlConfig := `
 		<domain type='kvm'>
 			<name>demo2</name>
@@ -33,9 +32,9 @@ func (i *InstHandler) CreateDomainWithXML(w http.ResponseWriter, r *http.Request
 			</os>
 			<clock sync="localtime"/>
 			<devices>
-				<emulator>/usr/bin/qemu-kvm</emulator>
+				<emulator>/usr/bin/kvm</emulator>
 				<disk type='file' device='disk'>
-					<source file='/var/lib/libvirt/images/demo2.img'/>
+					<source file='/home/kws/debian-12.6.0-amd64-netinst.iso'/>
 					<target dev='hda'/>
 				</disk>
 				<interface type='network'>
@@ -50,10 +49,10 @@ func (i *InstHandler) CreateDomainWithXML(w http.ResponseWriter, r *http.Request
 	// 추가 파일이 없는 경우 빈 슬라이스를 전달합니다.
 
 	// DomainCreateXMLWithFiles를 호출하여 도메인을 생성합니다.
-	domain, err := i.LibvirtInst.DomainCreateXMLWithFiles(xmlConfig, files, libvirt.DOMAIN_START_FORCE_BOOT)
+	domain, err := i.LibvirtInst.DomainCreateXML(xmlConfig, libvirt.DOMAIN_NONE)
 	if err != nil {
-		http.Error(w, "Failed to create domain", http.StatusInternalServerError)
-		return
+		log.Fatal(err)
+		
 	}
 
 	fmt.Fprintf(w, "Domain created: %v", domain)

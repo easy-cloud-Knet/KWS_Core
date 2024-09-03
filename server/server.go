@@ -12,7 +12,7 @@ import (
 func InitServer(portNum int, libvirtInst *conn.InstHandler, domain *conn.Domain){
 	
 	http.HandleFunc("GET /getStatus", libvirtInst.ReturnStatus)
-	http.HandleFunc("POST /createVM", domain.CreateVM)
+	http.HandleFunc("POST /createVM", libvirtInst.CreateDomainWithXML)
 
 
 	log.Fatal(http.ListenAndServe(":"+strconv.Itoa(portNum), nil))
