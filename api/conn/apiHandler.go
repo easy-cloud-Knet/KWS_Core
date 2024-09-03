@@ -3,8 +3,9 @@ package conn
 import (
 	"fmt"
 	"net/http"
-	
+
 	"log"
+
 	"libvirt.org/go/libvirt"
 )
 
@@ -19,7 +20,6 @@ func (i * InstHandler) ReturnStatus(w http.ResponseWriter,r * http.Request){
 }
 
 func (i *InstHandler) CreateDomainWithXML(w http.ResponseWriter, r *http.Request) {
-
 	// 파일 포인터를 슬라이스에 담습니다.
 	xmlConfig := `
 		<domain type='kvm'>
