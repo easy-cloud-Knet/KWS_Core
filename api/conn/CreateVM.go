@@ -2,6 +2,7 @@ package conn
 
 import (
 	"log"
+	"net/http"
 
 	"libvirt.org/go/libvirt"
 )
@@ -14,6 +15,6 @@ type  BasicDomainControl interface{
 	createDomain()
 }
 
-func (d *Domain)CreateVM(){
+func (d *Domain)CreateVM(w *http.ResponseWriter, r * http.Request){
 	log.Fatal(d.Domain.Create())
 }
