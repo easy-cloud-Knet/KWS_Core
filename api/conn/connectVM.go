@@ -2,23 +2,29 @@ package conn
 
 import (
 	"fmt"
+	"sync"
 
-	libvirt "libvirt.org/go/libvirt"
+	"libvirt.org/go/libvirt"
 )
 
-type currentInst struct{
+type InstHandler struct{
 	LibvirtInst *libvirt.Connect
+	InstMu sync.Mutex
 }
 
-var currLibvirtInst currentInst
+type InstHandle interface{
+	LibvirtConnection()
+	ActiveDomain()
+	ReturnDomainList()
+}
 
-func ActiveDomain(libvirtInst *libvirt.Connect) {
-	
-	doms, err := libvirtInst.ListAllDomains(libvirt.CONNECT_LIST_DOMAINS_ACTIVE)
+
+func (i *InstHandler)ReturnDomainNameList(flag libvirt.ConnectListAllDomainsFlags) {
+
+	doms, err := i.LibvirtInst.ListAllDomains(flag)
 	if err != nil {
 		panic(err)
 	}
-
 	fmt.Printf("%d running domains:\n", len(doms))
 	for _, dom := range doms {
 		name, err := dom.GetName()
@@ -31,17 +37,14 @@ func ActiveDomain(libvirtInst *libvirt.Connect) {
 }
 
 
-func LibvirtConnection() *libvirt.Connect{
+func (i *InstHandler)LibvirtConnection(){
+	i.InstMu.Lock()
 	libvirtInst, err := libvirt.NewConnect("qemu:///system")
 		if err != nil {
 			panic(err)
 }
-	return libvirtInst
+	i.LibvirtInst = libvirtInst
+	defer i.InstMu.Unlock()
 }
 
-func SetLibvirtInst(libvirtInst *libvirt.Connect){
-	currLibvirtInst.LibvirtInst = libvirtInst
-}
-func ReturnLibvirtInst() currentInst{
-	return currLibvirtInst
-}
+

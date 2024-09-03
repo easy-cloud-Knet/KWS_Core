@@ -5,18 +5,17 @@ import (
 	_ "log"
 
 	"github.com/easy-cloud-Knet/KWS_Core.git/api/conn"
-	"github.com/easy-cloud-Knet/KWS_Core.git/api/server"
+	"github.com/easy-cloud-Knet/KWS_Core.git/server"
 )
 
 func main() {
-	libvirtInst :=conn.LibvirtConnection()
-	conn.SetLibvirtInst(libvirtInst)
+	var libvirtInst conn.InstHandler
+	libvirtInst.LibvirtConnection()
 
-	go server.InitServer(8080, libvirtInst)
+	go server.InitServer(8080, &libvirtInst)
 	fmt.Println("working")	
 
-	defer  libvirtInst.Close()
-
+	defer  libvirtInst.LibvirtInst.Close()
 
 	select {}
 }
