@@ -15,8 +15,12 @@ import (
 func (i * InstHandler) ReturnStatus(w http.ResponseWriter,r * http.Request){
 	fmt.Println("getStatus request income")
 
-	i.ReturnDomainNameList(libvirt.CONNECT_LIST_DOMAINS_ACTIVE)
+	Domlist,_:= i.ReturnDomainNameList(libvirt.CONNECT_LIST_DOMAINS_ACTIVE)
+	fmt.Println(Domlist[0])
 }
+
+
+
 
 func (i *InstHandler) CreateDomainWithXML(w http.ResponseWriter, r *http.Request) {
 

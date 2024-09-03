@@ -33,3 +33,14 @@ type InstHandle interface{
 	ActiveDomain()
 	ReturnDomainList()
 }
+
+
+type DomainInfo struct{
+		State libvirt.DomainState `json:"state"`
+		MaxMem uint64 `json:"maxmem"`
+		Memory uint64 `json:"memory"`
+		NrVirtCpu uint `json:"nrVirtCpu"`
+		CpuTime uint64 `json:"cpuTime"`
+		Name string `json:"name"`
+		Hwaddr string `json:"hwAddr"`	
+}
