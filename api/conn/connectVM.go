@@ -2,21 +2,11 @@ package conn
 
 import (
 	"fmt"
-	"sync"
 
 	"libvirt.org/go/libvirt"
 )
 
-type InstHandler struct{
-	LibvirtInst *libvirt.Connect
-	InstMu sync.Mutex
-}
 
-type InstHandle interface{
-	LibvirtConnection()
-	ActiveDomain()
-	ReturnDomainList()
-}
 
 
 func (i *InstHandler)ReturnDomainNameList(flag libvirt.ConnectListAllDomainsFlags) {
