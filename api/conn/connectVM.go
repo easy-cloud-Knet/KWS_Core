@@ -21,17 +21,20 @@ func (i *InstHandler)ReturnDomainNameList(flag libvirt.ConnectListAllDomainsFlag
 	fmt.Printf("%d running domains:\n", len(doms))
 	for _, dom := range doms {
 		info, err := dom.GetInfo()
-		fmt.Println(info)	
 		if  err!=nil {
 				log.Println(err)
 		}
-		
+		uuid, err := dom.GetUUIDString()
+		if err!= nil{
+			log.Panicln(err)
+		}
 		DomInfo:= &DomainInfo{
 				State :info.State,
 				MaxMem :info.MaxMem,
 				Memory : info.Memory,
 				NrVirtCpu :info.NrVirtCpu,
 				CpuTime :info.CpuTime,
+				UUID : uuid,
 
 		}
 		
