@@ -5,7 +5,8 @@ import (
 	"net/http"
 
 	"log"
-
+	
+	"encoding/json"
 	"libvirt.org/go/libvirt"
 )
 
@@ -17,7 +18,9 @@ func (i * InstHandler) ReturnStatus(w http.ResponseWriter,r * http.Request){
 	fmt.Println("getStatus request income")
 
 	Domlist,_:= i.ReturnDomainNameList(libvirt.CONNECT_LIST_DOMAINS_ACTIVE)
-	fmt.Println(Domlist[0])
+	encoder := json.NewEncoder(w)
+	encoder.Encode(&Domlist)
+
 }
 
 
