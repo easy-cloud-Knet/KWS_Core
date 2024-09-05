@@ -41,7 +41,6 @@ type DomainInfo struct{
 		Memory uint64 `json:"memory"`
 		NrVirtCpu uint `json:"nrVirtCpu"`
 		CpuTime uint64 `json:"cpuTime"`
-		Name string `json:"name"`
 		Hwaddr string `json:"hwAddr"`	
 		UUID string `json:uuid`
 }

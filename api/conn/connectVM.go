@@ -35,7 +35,6 @@ func (i *InstHandler)ReturnDomainNameList(flag libvirt.ConnectListAllDomainsFlag
 				NrVirtCpu :info.NrVirtCpu,
 				CpuTime :info.CpuTime,
 				UUID : uuid,
-
 		}
 		
 		Domains=append(Domains,DomInfo)
