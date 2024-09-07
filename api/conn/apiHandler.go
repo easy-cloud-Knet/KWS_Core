@@ -30,8 +30,8 @@ func (i *InstHandler) CreateDomainWithXML(w http.ResponseWriter, r *http.Request
 	// 파일 포인터를 슬라이스에 담습니다.
 	xmlConfig := `
 		<domain type='kvm'>
-			<name>demo2</name>
-			<uuid>4dea24b3-1d52-d8f3-2516-782e98a23fa0</uuid>
+			<name>demo3</name>
+			<uuid>4dea24b4-1d52-d8f3-2516-782e98a23fa0</uuid>
 			<memory>131072</memory>
 			<vcpu>1</vcpu>
 			<os>
@@ -41,7 +41,7 @@ func (i *InstHandler) CreateDomainWithXML(w http.ResponseWriter, r *http.Request
 			<devices>
 				<emulator>/usr/bin/kvm</emulator>
 				<disk type='file' device='disk'>
-					<source file='/home/kws/debian-12.6.0-amd64-netinst.iso'/>
+					<source file='/var/lib/libvirt/images/debian-12.7.0.iso'/>
 					<target dev='hda'/>
 				</disk>
 				<interface type='network'>
