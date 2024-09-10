@@ -5,8 +5,9 @@ import (
 	"net/http"
 
 	"log"
-	
+
 	"encoding/json"
+
 	"libvirt.org/go/libvirt"
 )
 
@@ -46,6 +47,7 @@ func (i *InstHandler) CreateDomainWithXML(w http.ResponseWriter, r *http.Request
 				</disk>
 				<interface type='network'>
 					<source network='default'/>
+					<model type='virtoi'/>
 					<mac address='24:42:53:21:52:45'/>
 				</interface>
 				<graphics type='vnc' port='-1' keymap='de'/>

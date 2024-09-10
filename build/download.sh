@@ -2,4 +2,5 @@ sudo apt install --no-install-recommends qemu-system libvirt-clients libvirt-dae
 sudo apt install gcc
 
 
-sudo wget -O /var/lib/libvirt/images/debain-12.7.0.iso  https://cdimage.debian.org/debian-cd/current/amd64/iso-cd/debian-12.7.0-amd64-netinst.iso
+sudo wget -O /var/lib/libvirt/images/debain-12.7.0.qcow2  https://cloud.debian.org/images/cloud/bookworm/20240901-1857/debian-12-generic-amd64-20240901-1857.qcow2
+sudo wget -O /var/lib/libvirt/image/ubuntu-cloud-24.04.img https://cloud-images.ubuntu.com/noble/20240822/noble-server-cloudimg-amd64.img
