@@ -1,28 +1,3 @@
-
-<domain type='kvm'>
-  <name>demo</name>
-  <uuid>4dea24b3-1d52-d8f3-2516-782e98a23fa0</uuid>
-  <memory>131072</memory>
-  <vcpu>1</vcpu>
-  <os>
-    <type arch="x86-64">hvm</type>
-  </os>
-  <clock sync="localtime"/>
-  <devices>
-    <emulator>/usr/bin/kvm</emulator>
-    <disk type='file' device='disk'>
-      <source file='/home/kws/debian-12.6.0-amd64-netinst.iso'/>
-      <target dev='hda'/>
-    </disk>
-    <interface type='network'>
-      <source network='default'/>
-      <mac address='24:42:53:21:52:45'/>
-    </interface>
-    <graphics type='vnc' port='-1' keymap='de'/>
-  </devices>
-</domain>
-
-
 <domain type='kvm'> 
   <name>test-vm</name>
   <uuid>4dea24b3-1d52-d8f3-2516-782e98a23fa0</uuid>
@@ -46,4 +21,4 @@
         <address type='pci' domain='0x0000' bus='0x00' slot='0x03' function='0x0'/>
       </interface> 
   </devices>
-  </domain>
+</domain>
