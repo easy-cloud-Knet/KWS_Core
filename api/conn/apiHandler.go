@@ -29,31 +29,36 @@ func (i * InstHandler) ReturnStatus(w http.ResponseWriter,r * http.Request){
 
 func (i *InstHandler) CreateDomainWithXML(w http.ResponseWriter, r *http.Request) {
 	// 파일 포인터를 슬라이스에 담습니다.
-	xmlConfig := `
-		<domain type='kvm'>
-			<name>demo3</name>
-			<uuid>4dea24b4-1d52-d8f3-2516-782e98a23fa0</uuid>
-			<memory>131072</memory>
-			<vcpu>1</vcpu>
-			<os>
-				<type arch="x86_64">hvm</type>
-			</os>
-			<clock sync="localtime"/>
-			<devices>
-				<emulator>/usr/bin/kvm</emulator>
-				<disk type='file' device='disk'>
-					<source file='/var/lib/libvirt/images/debian-12.7.0.iso'/>
-					<target dev='hda'/>
-				</disk>
-				<interface type='network'>
-					<source network='default'/>
-					<model type='virtoi'/>
-					<mac address='24:42:53:21:52:45'/>
-				</interface>
-				<graphics type='vnc' port='-1' keymap='de'/>
-			</devices>
-		</domain>
+	xmlConfig := `<domain type='kvm'>
+  <name>cloud-vm</name>
+  <memory unit='GiB'>2</memory>
+  <vcpu placement='static'>2</vcpu>
+  <os>
+    <type arch='x86_64' >hvm</type>
+    <boot dev='hd'/>
+  </os>
+  <devices>
+    <emulator>/usr/bin/kvm</emulator>
+    <disk type='file' device='disk'>
+      <driver name='qemu' type='qcow2'/>
+      <source file='/var/lib/libvirt/images/deb12Instance.img'/>
+      <target dev='vda' bus='virtio'/>
+    </disk>
+    <disk type='file' device='cdrom'>
+      <driver name='qemu' type='raw'/>
+      <source file='/var/lib/libvirt/images/cidataTest.iso'/>
+      <target dev='hda' bus='ide'/>
+      <readonly/>
+    </disk>
+    <interface type='network'>
+      <source network='default'/>
+      <model type='virtio'/>
+    </interface>
+    <graphics type='vnc' port='-1' autoport='yes'/>
+  </devices>
+</domain>
 	`
+	
 
 	// 추가 파일이 없는 경우 빈 슬라이스를 전달합니다.
 
