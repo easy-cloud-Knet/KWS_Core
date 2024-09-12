@@ -10,7 +10,7 @@
   <devices>
     <disk type='file' device='disk'>
       <driver name='qemu' type='qcow2'/>
-      <source file='/var/lib/libvirt/images/test-vm.qcow2'/>//여기에 vm 이미지 주소 저장 
+      <source file='/var/lib/libvirt/images/ubuntu-cloud-24.04.img'/>//여기에 vm 이미지 주소 저장 
       <target dev='vda' bus='virtio'/> 
       <address type='pci' domain='0x0000' bus='0x00' slot='0x04' function='0x0'/> 
     </disk>
