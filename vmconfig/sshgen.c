@@ -107,27 +107,27 @@ void configure_ssh(user_info *user) {
 }
 
 // 3. 사용자 매핑 XML 생성 함수
-void create_user_mapping(user_info *user) {
-    FILE *file = fopen("user-mapping.xml", "a");
+// void create_user_mapping(user_info *user) {
+//     FILE *file = fopen("user-mapping.xml", "a");
 
-    if (file == NULL) {
-        printf("Failed to open user-mapping.xml\n");
-        exit(1);
-    }
+//     if (file == NULL) {
+//         printf("Failed to open user-mapping.xml\n");
+//         exit(1);
+//     }
 
-    fprintf(file, "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
-    fprintf(file, "<user-mapping>\n");
-    fprintf(file, "    <authorize username=\"%s\">\n", user->username);
-    fprintf(file, "        <connection name=\"%s Server\">\n", user->hostname);
-    fprintf(file, "            <protocol>ssh</protocol>\n");
-    fprintf(file, "            <param name=\"hostname\">%s</param>\n", user->hostname);
-    fprintf(file, "        </connection>\n");
-    fprintf(file, "    </authorize>\n");
-    fprintf(file, "</user-mapping>\n");
+//     fprintf(file, "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
+//     fprintf(file, "<user-mapping>\n");
+//     fprintf(file, "    <authorize username=\"%s\">\n", user->username);
+//     fprintf(file, "        <connection name=\"%s Server\">\n", user->hostname);
+//     fprintf(file, "            <protocol>ssh</protocol>\n");
+//     fprintf(file, "            <param name=\"hostname\">%s</param>\n", user->hostname);
+//     fprintf(file, "        </connection>\n");
+//     fprintf(file, "    </authorize>\n");
+//     fprintf(file, "</user-mapping>\n");
 
-    fclose(file);
-    printf("user-mapping.xml created.\n");
-}
+//     fclose(file);
+//     printf("user-mapping.xml created.\n");
+// }
 
 int main() {
     user_info user = {
