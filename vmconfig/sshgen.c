@@ -3,7 +3,7 @@
 #include <libvirt/libvirt.h>
 #include <libvirt/virterror.h>
 
-// 사용자 정보 구조체 정의
+// Define user info structure
 typedef struct {
     char username[50];
     char hostname[100];
@@ -11,123 +11,123 @@ typedef struct {
     char ssh_priv_key[100];
 } user_info;
 
-
-void setup_network(){
-     system("sudo virsh net-start default");
-     system("sudo virsh net-autostart default");
-
-}
-
-void create_vm_user(const char *username, const char *hostname) {
+void create_directory(user_info *user){
     char buffer[256];
 
-    // SSH를 통해 VM에 접속해 계정 생성 명령 실행
-    snprintf(buffer, sizeof(buffer), "ssh root@%s 'sudo adduser --disabled-password --gecos \"\" %s'", hostname, username);
-    int status = system(buffer);
-
-    if (status == -1) {
-        printf("Failed to create user %s on the VM\n", username);
-    } else {
-        printf("User %s created successfully on the VM\n", username);
+    snprintf(buffer, sizeof(buffer), "mkdir -p /var/lib/libvirt/images/%s", user->username);
+    int dir_status = system(buffer);
+    if (dir_status == -1) {
+        printf("Failed to create directory for user: %s\n", user->username);
+        return;
     }
+
 }
 
 
+// Create and write meta_data file
+void meta_data_file(user_info *user){
+    char meta_filename[100];
 
-
-// create inner vm
-void create_vm(const char *xml_path) {
-    virConnectPtr conn;//connection libvirt to qemu
-    virDomainPtr dom;//domain of inner vm
-
-    conn = virConnectOpen("qemu:///system");
-
-    if (conn == NULL) {
-        printf("Failed to open connection to qemu:///system\n");
-        exit(1);
+    snprintf(meta_filename, sizeof(meta_filename), "/var/lib/libvirt/images/%s/meta_data", user->username);
+    FILE* meta_file = fopen(meta_filename, "a");
+    if (meta_file == NULL) {
+        printf("Failed to open meta_data file: %s\n", meta_filename);
+        return;
     }
+    fprintf(meta_file, "instance-id: %s\n", user->username);
+    fprintf(meta_file, "local-hostname: kws\n");
+    fclose(meta_file);
 
-    FILE *xml_file = fopen(xml_path, "r");//read .xml
-    if (!xml_file) {
-        printf("Could not open the VM XML file.\n");
-        virConnectClose(conn);
-        exit(1);
-    }
-
-    //check xml_file size
-    fseek(xml_file, 0, SEEK_END);
-    long xml_size = ftell(xml_file);
-    rewind(xml_file);
-
-
-
-    //read xml_file
-    char *xml_content = malloc(xml_size + 1);
-    fread(xml_content, 1, xml_size, xml_file);
-    xml_content[xml_size] = '\0';
-    fclose(xml_file);
-
-
-
-    //create inner vm
-    dom = virDomainCreateXML(conn, xml_content, 0);
-
-
-    //delete xml_content
-    free(xml_content);
-
-    if (dom == NULL) {
-        printf("Failed to create the VM from XML definition.\n");
-    } else {
-        printf("VM created successfully!\n");
-        virDomainFree(dom);
-    }
-
-    virConnectClose(conn);
 }
 
-
-// 2. SSH 설정 함수
-void configure_ssh(user_info *user) {
+// SSH key generation
+void ssh_key_gen(user_info *user){
     char buffer[256];
+
+    snprintf(buffer, sizeof(buffer), "ssh-keygen -t rsa -b 4096 -f /var/lib/libvirt/images/%s/ssh -N ''", user->username);
+    int keygen_status = system(buffer);
+    if (keygen_status == -1) {
+        printf("Failed to generate SSH keys for user: %s\n", user->username);
+        return;
+    }
+
+    // Transfer the public key to the remote server
+    snprintf(buffer, sizeof(buffer), "scp /var/lib/libvirt/images/%s/ssh.pub %s@%s:/home/%s/.ssh/authorized_keys", 
+             user->username, user->username, user->hostname, user->username);
+    int scp_status = system(buffer);
     
-    // SSH 키 생성
-    snprintf(buffer, sizeof(buffer), "ssh-keygen -t rsa -b 4096 -f ~/.ssh/%s", user->username);
-    system(buffer);
-    
-    // SSH 공개키 전송
-    snprintf(buffer, sizeof(buffer), "ssh-copy-id -i ~/.ssh/%s.pub %s@%s", user->username, user->username, user->hostname);
-    int status = system(buffer);
-    
-    if (status == -1) {
-        printf("SSH configuration failed\n");
+    if (scp_status == -1) {
+        printf("SSH key transfer failed\n");
     } else {
         printf("SSH keys configured successfully!\n");
     }
+
+
 }
 
-// 3. 사용자 매핑 XML 생성 함수
-void create_user_mapping(user_info *user) {
-    FILE *file = fopen("user-mapping.xml", "a");
+// Create and write user_data file
+void user_data_file(user_info *user){
+    char user_filename[100];
+    char pubkey_filename[150];
+    char public_key[4096];
 
-    if (file == NULL) {
-        printf("Failed to open user-mapping.xml\n");
-        exit(1);
+
+    snprintf(user_filename, sizeof(user_filename), "/var/lib/libvirt/images/%s/user_data", user->username);
+    FILE* user_file = fopen(user_filename, "a");
+    if (user_file == NULL) {
+        printf("Failed to open user_data file: %s\n", user_filename);
+        return;
     }
 
-    fprintf(file, "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
-    fprintf(file, "<user-mapping>\n");
-    fprintf(file, "    <authorize username=\"%s\">\n", user->username);
-    fprintf(file, "        <connection name=\"%s Server\">\n", user->hostname);
-    fprintf(file, "            <protocol>ssh</protocol>\n");
-    fprintf(file, "            <param name=\"hostname\">%s</param>\n", user->hostname);
-    fprintf(file, "        </connection>\n");
-    fprintf(file, "    </authorize>\n");
-    fprintf(file, "</user-mapping>\n");
+    // Read the public key from the generated ssh.pub file
+    snprintf(pubkey_filename, sizeof(pubkey_filename), "/var/lib/libvirt/images/%s/ssh.pub", user->username);
+    FILE* pubkey_file = fopen(pubkey_filename, "r");
+    if (pubkey_file == NULL) {
+        printf("Failed to open public key file: %s\n", pubkey_filename);
+        fclose(user_file);
+        return;
+    }
 
-    fclose(file);
-    printf("user-mapping.xml created.\n");
+    if (fgets(public_key, sizeof(public_key), pubkey_file) != NULL) {
+        // Write the public key to the user_data file
+        fprintf(user_file, "users:\n");
+        fprintf(user_file, "  - name: %s\n", user->username);
+        fprintf(user_file, "    ssh_authorized_keys:\n");
+        fprintf(user_file, "      - %s", public_key);
+    } else {
+        printf("Error occurred while reading the public key.\n");
+    }
+
+
+    fprintf(user_file,"    sudo: [\"ALL=(ALL) NOPASSWD:ALL\"]\n");
+    fprintf(user_file,"    groups: sudo\n");
+    fprintf(user_file,"    shell: /bin/bash");
+
+    fclose(pubkey_file);
+    fclose(user_file);
+
 }
+
+void make_img(user_info *user){
+    char buffer[256];
+    
+    snprintf(buffer, sizeof(buffer), "qemu-img create -b /var/lib/libvirt/images/baseimg/ubuntu-cloud-24.04.img -f qcow2 -F qcow2 /var/lib/libvirt/images/%s/debian-%s-qcow2.qcow2 10G",user->username,user->username);
+
+   // if(buffer == -1){ printf("error making make_img");}
+   // else{printf("success making make_img"); }
+}
+
+void make_iso(user_info *user){
+    char buffer[256];
+
+    snprintf(buffer,sizeof(buffer), "genisoimage --output cidata.iso -V cidata -r -J /var/lib/libvirt/images/%s/user_data /var/lib/libvirt/images/%s/meta_data",user->username,user->username);
+    
+    //if(buffer == -1){ printf("error making user_img");}
+    //else{printf("success making user_img"); }
+}
+
+
+
 
 int main() {
     user_info user = {
@@ -137,14 +137,13 @@ int main() {
         .ssh_priv_key = "~/.ssh/test-vm"
     };
 
-    // VM 생성 및 SSH 설정 자동화
-    create_vm("/home/debian/KWS_Core/xmlFile/vm1.xml"); 
-    create_vm_user(user.username, user.hostname);
-    configure_ssh(&user);             // SSH 설정
-    create_user_mapping(&user);       // XML 매핑 생성
-
-    setup_network();
-
+   // configure_ssh(&user);  // Configure SSH
+    create_directory(&user);
+    make_img(&user);
+    meta_data_file(&user);
+    ssh_key_gen(&user);
+    user_data_file(&user);
+    
     return 0;
 }
 
