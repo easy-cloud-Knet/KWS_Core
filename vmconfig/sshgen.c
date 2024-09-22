@@ -12,6 +12,7 @@ typedef struct {
 } user_info;
 
 void create_directory(user_info *user){
+    char buffer[256];
 
     snprintf(buffer, sizeof(buffer), "mkdir -p /var/lib/libvirt/images/%s", user->username);
     int dir_status = system(buffer);
@@ -108,11 +109,21 @@ void user_data_file(user_info *user){
 }
 
 void make_img(user_info *user){
-    system("qemu-img create -b /var/lib/libvirt/images/baseimg/ubuntu-cloud-24.04.img -f qcow2 -F qcow2 /var/lib/libvirt/images/%s/debian-%s-qcow2.qcow2 10G",user->username,user->username);
+    char buffer[256];
+    
+    snprintf(buffer, sizeof(buffer), "qemu-img create -b /var/lib/libvirt/images/baseimg/ubuntu-cloud-24.04.img -f qcow2 -F qcow2 /var/lib/libvirt/images/%s/debian-%s-qcow2.qcow2 10G",user->username,user->username);
+
+   // if(buffer == -1){ printf("error making make_img");}
+   // else{printf("success making make_img"); }
 }
 
 void make_iso(user_info *user){
-    system("genisoimage --output cidata.iso -V cidata -r -J /var/lib/libvirt/images/%s/user_data /var/lib/libvirt/images/%s/meta_data",user->username,user->username);
+    char buffer[256];
+
+    snprintf(buffer,sizeof(buffer), "genisoimage --output cidata.iso -V cidata -r -J /var/lib/libvirt/images/%s/user_data /var/lib/libvirt/images/%s/meta_data",user->username,user->username);
+    
+    //if(buffer == -1){ printf("error making user_img");}
+    //else{printf("success making user_img"); }
 }
 
 
@@ -126,7 +137,7 @@ int main() {
         .ssh_priv_key = "~/.ssh/test-vm"
     };
 
-    configure_ssh(&user);  // Configure SSH
+   // configure_ssh(&user);  // Configure SSH
     create_directory(&user);
     make_img(&user);
     meta_data_file(&user);
@@ -135,3 +146,4 @@ int main() {
     
     return 0;
 }
+
