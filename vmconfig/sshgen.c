@@ -128,7 +128,6 @@ void make_iso(user_info *user){
 
 
 
-
 int main() {
     user_info user = {
         .username = "test-vm",

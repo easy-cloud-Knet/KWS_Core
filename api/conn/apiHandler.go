@@ -31,6 +31,7 @@ func (i *InstHandler) CreateDomainWithXML(w http.ResponseWriter, r *http.Request
 	// 파일 포인터를 슬라이스에 담습니다.
 	xmlConfig := `<domain type='kvm'>
   <name>cloud-vm</name>
+  <uuid>saffa21-213219bcusa-12312gdhyad-219g2819e1</uuid>
   <memory unit='GiB'>2</memory>
   <vcpu placement='static'>2</vcpu>
   <os>
