@@ -38,19 +38,28 @@ func (i *InstHandler) CreateDomainWithXML(w http.ResponseWriter, r *http.Request
     <boot dev='hd'/>
   </os>
   <devices>
+    <features>
+	  <acpi/>
+	</features>
     <emulator>/usr/bin/kvm</emulator>
     <disk type='file' device='disk'>
       <driver name='qemu' type='qcow2'/>
-      <source file='/var/lib/libvirt/images/deb12Instance.img'/>
+      <source file='/var/lib/libvirt/vmList/user2/ubuntuInst.qcow2'/>
       <target dev='vda' bus='virtio'/>
     </disk>
     <disk type='file' device='cdrom'>
       <driver name='qemu' type='raw'/>
-      <source file='/var/lib/libvirt/images/cidataTest.iso'/>
+      <source file='/var/lib/libvirt/vmList/user2/cidata.iso'/>
       <target dev='hda' bus='ide'/>
       <readonly/>
     </disk>
-    <interface type='network'>
+   <serial type='pty'>
+		  <target port='0'/>
+		</serial>
+		<console type='pty'>
+		  <target type='serial' port='0'/>
+		</console>
+	<interface type='network'>
       <source network='default'/>
       <model type='virtio'/>
     </interface>
