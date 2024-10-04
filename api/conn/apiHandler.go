@@ -31,7 +31,7 @@ func (i *InstHandler) CreateDomainWithXML(w http.ResponseWriter, r *http.Request
 	// 파일 포인터를 슬라이스에 담습니다.
 	xmlConfig := `<domain type='kvm'>
   <name>cloud-vm</name>
-  <uuid>saffa21-213219bcusa-12312gdhyad-219g2819e1</uuid>
+  <uuid>6a21d302-e2b0-4a53-a9a5-4b08021cbba2</uuid>
   <memory unit='GiB'>2</memory>
   <vcpu placement='static'>2</vcpu>
   <os>
@@ -42,12 +42,12 @@ func (i *InstHandler) CreateDomainWithXML(w http.ResponseWriter, r *http.Request
     <emulator>/usr/bin/kvm</emulator>
     <disk type='file' device='disk'>
       <driver name='qemu' type='qcow2'/>
-      <source file='/var/lib/libvirt/images/deb12Instance.img'/>
+      <source file='/var/lib/libvirt/images/user1.qcow2'/>
       <target dev='vda' bus='virtio'/>
     </disk>
     <disk type='file' device='cdrom'>
       <driver name='qemu' type='raw'/>
-      <source file='/var/lib/libvirt/images/cidataTest.iso'/>
+      <source file='/var/lib/kws/userConf/user1/cidata.iso'/>
       <target dev='hda' bus='ide'/>
       <readonly/>
     </disk>
