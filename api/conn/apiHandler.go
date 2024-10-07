@@ -64,7 +64,7 @@ func (i *InstHandler) CreateDomainWithXML(w http.ResponseWriter, r *http.Request
 	// 추가 파일이 없는 경우 빈 슬라이스를 전달합니다.
 
 	// DomainCreateXMLWithFiles를 호출하여 도메인을 생성합니다.
-	domain, err := i.LibvirtInst.DomainCreateXML(xmlConfig, libvirt.DOMAIN_NONE)
+	domain, err := i.LibvirtInst.DomainDefineXML(xmlConfig)
 	if err != nil {
 		log.Fatal(err)
 		
