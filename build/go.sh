@@ -4,5 +4,4 @@ rm -rf /usr/local/go && tar -C /usr/local -xzf go1.22.6.linux-amd64.tar.gz
 
 
 
-go env -w CGO_ENABLED=1 
-
+rm go1.22.6.linux-amd64.tar.gz
