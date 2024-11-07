@@ -40,7 +40,7 @@ void meta_data_file(user_info *user){
 
 }
 
-// SSH key generation
+// SSH key generation, good
 void ssh_key_gen(user_info *user){
     char buffer[256];
 
