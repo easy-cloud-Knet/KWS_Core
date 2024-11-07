@@ -45,7 +45,7 @@ func (i *InstHandler) CreateDomainWithXML(w http.ResponseWriter, r *http.Request
     <emulator>/usr/bin/kvm</emulator>
     <disk type='file' device='disk'>
       <driver name='qemu' type='qcow2'/>
-      <source file='/var/lib/libvirt/images/user1.qcow2'/>
+      <source file='/var/lib/kws/user1/user1.qcow2'/>
       <target dev='vda' bus='virtio'/>
     </disk>
     <disk type='file' device='cdrom'>
