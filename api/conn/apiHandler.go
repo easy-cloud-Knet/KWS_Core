@@ -61,8 +61,8 @@ func (i *InstHandler) CreateDomainWithXML() (*libvirt.Domain, error) {
     <console type='pty'>
       <target type='serial' port='0'/>
     </console>
-    <interface type='network'>
-      <source network='default'/>
+    <interface type='bridge'>
+      <source bridge='virbr1'/>
       <model type='virtio'/>
     </interface>
     <graphics type='vnc' port='-1' autoport='yes'/>
