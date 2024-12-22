@@ -18,12 +18,3 @@ else
     echo "Unsupported shell: $shell_type"
 fi
 
-# 네트워크 상태 확인 및 조정
-network_state=$(virsh net-list --all | awk '/default/ {print $2}')
-
-if [ "$network_state" != "active" ]; then
-    virsh net-autostart default
-    virsh net-start default
-else
-    echo "The default network is already active."
-fi
