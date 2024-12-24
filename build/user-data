@@ -16,12 +16,12 @@ write_files:
     content: |
       [Match]
       Name=enp0s3
-      MACAddress=52:54:00:e4:7a:16
 
       [Network]
-      Address=192.168.122.2/24
-      Gateway=192.168.122.1
-      DNS=192.168.122.1
+      Address=10.5.12.3/24
+      Gateway=10.5.12.1
+      DNS=10.5.12.1
+      DHCP=no
 
 runcmd:
   - systemctl enable systemd-networkd
