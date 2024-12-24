@@ -22,7 +22,7 @@ type VM_Init_Info struct{
 	NetworkType string `json:"NetType"`
 	Memory int `json:"Memory"`
 	CPU int `json:"CPU"`
-	IPs []IP `json:"IP"`
+	IPs []IP `json:"IPs"`
 	Method Create_VM_Method `json:"METHOD"`
 }
 

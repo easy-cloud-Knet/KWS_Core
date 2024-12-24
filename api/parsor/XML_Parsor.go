@@ -6,7 +6,7 @@ import (
 )
 
 //
-func XML_Parsor(spec *VM_Init_Info) {
+func XML_Parsor(spec *VM_Init_Info) *VM_CREATE_XML {
 	vm := &VM_CREATE_XML{
 		Type:"kvm",
 		Name: spec.DomName,
@@ -100,4 +100,6 @@ func XML_Parsor(spec *VM_Init_Info) {
 
 	output, _ := xml.MarshalIndent(vm, "", "  ")
 	fmt.Println(string(output))
+
+	return vm
 }

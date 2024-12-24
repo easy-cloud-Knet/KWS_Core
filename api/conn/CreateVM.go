@@ -5,6 +5,7 @@ import (
 	_ "encoding/xml"
 	"fmt"
 	"net/http"
+	"os/exec"
 
 	"github.com/easy-cloud-Knet/KWS_Core.git/api/parsor"
 )
@@ -19,6 +20,14 @@ func (i *InstHandler)CreateVM(w http.ResponseWriter, r * http.Request){
 	
 	parsor.XML_Parsor(&param)
 
+	cmd:=exec.Command("bash", "./build/augoGen.sh", param.UUID, param.DomName, param.IP)
+
+	output,err:=cmd.CombinedOutput()
+	if err!=nil{
+		fmt.Println(err)
+	}
+
+	fmt.Println(output)
 	// domain,err:= i.CreateDomainWithXML()
 	// if err!=nil{
 	// 	fmt.Printf("error", err)
