@@ -19,22 +19,24 @@ func (i *InstHandler)CreateVM(w http.ResponseWriter, r * http.Request){
 	}
 	
 	parsor.XML_Parsor(&param)
+	shellPath:="/home/kws/kwsWorker/build/autoGen.sh"
 
-	cmd:=exec.Command("bash", "./build/augoGen.sh", param.UUID, param.DomName, param.IP)
+	cmd:=exec.Command("bash",shellPath, param.UUID, param.DomName, param.IPs[0])
 
 	output,err:=cmd.CombinedOutput()
 	if err!=nil{
+		fmt.Println(output)
 		fmt.Println(err)
 	}
 
 	fmt.Println(output)
-	// domain,err:= i.CreateDomainWithXML()
-	// if err!=nil{
-	// 	fmt.Printf("error", err)
-	// }
+	domain,err:= i.CreateDomainWithXML()
+	 if err!=nil{
+	 	fmt.Printf("error", err)
+	 }
 	//refer client's request,create vm with diffrent options
 
 
-	// fmt.Fprintf(w, "Domain created: %v", domain)
+	fmt.Fprintf(w, "Domain created: %v", domain)
 
 }

@@ -4,7 +4,7 @@ import (
 	"encoding/xml"
 )
 
-type IP []byte
+//type IP []byte
 
 type Create_VM_Method int8
 const (
@@ -22,7 +22,7 @@ type VM_Init_Info struct{
 	NetworkType string `json:"NetType"`
 	Memory int `json:"Memory"`
 	CPU int `json:"CPU"`
-	IPs []IP `json:"IPs"`
+	IPs []string `json:"IPs"`
 	Method Create_VM_Method `json:"METHOD"`
 }
 
