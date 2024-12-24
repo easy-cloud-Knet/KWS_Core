@@ -6,18 +6,18 @@ import (
 )
 
 //
-func XML_Parsor() {
+func XML_Parsor(spec *VM_Init_Info) {
 	vm := &VM_CREATE_XML{
-		Type: "kvm",
-		Name: "cloud-vm",
-		UUID: "6a21d302-e2b0-4a53-a9a5-4b08021cbba2",
+		Type:"kvm",
+		Name: spec.DomName,
+		UUID: spec.UUID,
 		Memory: Memory{
 			Unit: "GiB",
-			Size: 2,
+			Size: spec.Memory,
 		},
 		VCPU: VCPU{
 			Placement: "static",
-			Count:     2,
+			Count: spec.CPU,
 		},
 		Features: Features{
 			ACPI: ACPI{},
@@ -42,7 +42,7 @@ func XML_Parsor() {
 						Type: "qcow2",
 					},
 					Source: Source{
-						File: "/var/lib/kws/user1/user1.qcow2",
+						File : fmt.Sprintf("/var/lib/kws/%s/%s.qcow2", spec.UUID, spec.UUID),
 					},
 					Target: Target{
 						Dev: "vda",
@@ -57,7 +57,7 @@ func XML_Parsor() {
 						Type: "raw",
 					},
 					Source: Source{
-						File: "/var/lib/kws/user1/cidata.iso",
+						File: fmt.Sprintf("/var/lib/kws/%s/cidata.iso", spec.UUID),
 					},
 					Target: Target{
 						Dev: "sda",
@@ -81,9 +81,9 @@ func XML_Parsor() {
 			},
 			Interfaces: []Interface{
 				{
-					Type: "network",
+					Type: "bridge",
 					Source: NetworkSource{
-						Network: "default",
+						Bridge: "virbr1",
 					},
 					Model: InterfaceModel{
 						Type: "virtio",

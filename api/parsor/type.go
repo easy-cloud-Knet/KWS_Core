@@ -4,6 +4,30 @@ import (
 	"encoding/xml"
 )
 
+type IP []byte
+
+type Create_VM_Method int8
+const (
+	CREATE_WITH_XML Create_VM_Method = iota+1
+	type1
+	type2
+	type3
+)
+
+type VM_Init_Info struct{
+	DomType string `json:"DomType"`
+	DomName string `json:"DomName"`
+	UUID string `json:"UUID"`
+	OS string `json:"OS"`
+	NetworkType string `json:"NetType"`
+	Memory int `json:"Memory"`
+	CPU int `json:"CPU"`
+	IPs []IP `json:"IP"`
+	Method Create_VM_Method `json:"METHOD"`
+}
+
+
+
 type VM_CREATE_XML struct {
 	XMLName   xml.Name   `xml:"domain"`
 	Type      string     `xml:"type,attr"`
@@ -107,6 +131,7 @@ type Interface struct {
 
 type NetworkSource struct {
 	Network string `xml:"network,attr"`
+	Bridge string `xml:"bridge,attr"`
 }
 
 type InterfaceModel struct {

@@ -12,12 +12,13 @@ import (
 
 func (i *InstHandler)CreateVM(w http.ResponseWriter, r * http.Request){
 	
-	var param VM_Init_Info
+	var param parsor.VM_Init_Info
 	if err:= json.NewDecoder(r.Body).Decode(&param);err!=nil{
 		fmt.Printf("error",err)
 	}
 	
-	parsor.XML_Parsor()
+	parsor.XML_Parsor(&param)
+
 	// domain,err:= i.CreateDomainWithXML()
 	// if err!=nil{
 	// 	fmt.Printf("error", err)
