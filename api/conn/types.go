@@ -7,6 +7,8 @@ import (
 )
 
 
+type IP []byte
+
 
 type DomainList struct{
 	RequestType string `json:"requestType"` 
@@ -33,6 +35,23 @@ type InstHandle interface{
 	ActiveDomain()
 	ReturnDomainList()
 }
+
+type Create_VM_Method int8
+const (
+	CREATE_WITH_XML Create_VM_Method = iota+1
+	type1
+	type2
+	type3
+)
+
+
+type VM_Init_Info struct{
+	RAM int `json:"RAM"`
+	CPU int `json:"CPU"`
+	IP string `json:"IP"`
+	Method Create_VM_Method `json:"METHOD"`
+}
+
 
 
 type DomainInfo struct{

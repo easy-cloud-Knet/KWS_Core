@@ -27,21 +27,21 @@ func (i * InstHandler) ReturnStatus(w http.ResponseWriter,r * http.Request){
 
 
 
-func (i *InstHandler) CreateDomainWithXML(w http.ResponseWriter, r *http.Request) {
+func (i *InstHandler) CreateDomainWithXML() (*libvirt.Domain, error) {
 	// 파일 포인터를 슬라이스에 담습니다.
 	xmlConfig := `
 	<domain type='kvm'>
-  <name>cloud-vm</name>
-  <uuid>6a21d302-e2b0-4a53-a9a5-4b08021cbba2</uuid>
-  <memory unit='GiB'>2</memory>
-  <vcpu placement='static'>2</vcpu>
-  <features>
-    <acpi/>
-  </features>
-  <os>
-    <type arch='x86_64'>hvm</type>
-    <boot dev='hd'/>
-  </os>
+    <name>cloud-vm</name>
+    <uuid>6a21d302-e2b0-4a53-a9a5-4b08021cbba2</uuid>
+    <memory unit='GiB'>2</memory>
+    <vcpu placement='static'>2</vcpu>
+    <features>
+      <acpi/>
+    </features>
+    <os>
+      <type arch='x86_64'>hvm</type>
+      <boot dev='hd'/>
+    </os>
   <devices>
     <emulator>/usr/bin/kvm</emulator>
     <disk type='file' device='disk'>
@@ -79,5 +79,7 @@ func (i *InstHandler) CreateDomainWithXML(w http.ResponseWriter, r *http.Request
 		
 	}
 
-	fmt.Fprintf(w, "Domain created: %v", domain)
+
+  return domain ,err
+
 }
