@@ -12,19 +12,17 @@ users:
 
 write_files:
   - path: /etc/systemd/network/10-enp0s3.network
-    permissions: '0644'
+    permissions: "0644"
     content: |
       [Match]
       Name=enp0s3
-      MACAddress=52:54:00:e4:7a:16
 
       [Network]
-      Address=192.168.122.2/24
-      Gateway=192.168.122.1
-      DNS=192.168.122.1
+      Address=10.5.12.3/24
+      Gateway=10.5.12.1
+      DNS=10.5.12.1
+      DHCP=no
 
 runcmd:
   - systemctl enable systemd-networkd
   - systemctl start systemd-networkd
-  - cloud-init clean
-

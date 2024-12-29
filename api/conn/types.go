@@ -8,6 +8,7 @@ import (
 
 
 
+
 type DomainList struct{
 	RequestType string `json:"requestType"` 
 	// libvirt.ConnectListAllDomainsFlags
@@ -33,6 +34,10 @@ type InstHandle interface{
 	ActiveDomain()
 	ReturnDomainList()
 }
+
+
+
+
 
 
 type DomainInfo struct{
