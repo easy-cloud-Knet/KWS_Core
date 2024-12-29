@@ -7,7 +7,7 @@ import (
 	"log"
 
 	"encoding/json"
-	"github.com/easy-cloud-knet/KWS_Core.git/api/parsor"
+
 	"libvirt.org/go/libvirt"
 )
 
@@ -27,7 +27,7 @@ func (i * InstHandler) ReturnStatus(w http.ResponseWriter,r * http.Request){
 
 
 
-func (i *InstHandler) CreateDomainWithXML(config *parsor.VM_CREATE_XML) (*libvirt.Domain, error) {
+func (i *InstHandler) CreateDomainWithXML(config []byte) (*libvirt.Domain, error) {
 	// 파일 포인터를 슬라이스에 담습니다.
 
 	/*`
@@ -74,7 +74,7 @@ func (i *InstHandler) CreateDomainWithXML(config *parsor.VM_CREATE_XML) (*libvir
 	// 추가 파일이 없는 경우 빈 슬라이스를 전달합니다.
 
 	// DomainCreateXMLWithFiles를 호출하여 도메인을 생성합니다.
-	domain, err := i.LibvirtInst.DomainDefineXML(config)
+	domain, err := i.LibvirtInst.DomainDefineXML(string(config))
 	if err != nil {
 		log.Fatal(err)
 		

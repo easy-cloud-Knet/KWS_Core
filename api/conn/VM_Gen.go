@@ -18,7 +18,7 @@ func (i *InstHandler)CreateVM(w http.ResponseWriter, r * http.Request){
 		fmt.Printf("error",err)
 	}
 	
-	parsor.XML_Parsor(&param)
+	parsed:= parsor.XML_Parsor(&param)
 	shellPath:="/home/kws/kwsWorker/build/autoGen.sh"
 
 	cmd:=exec.Command("bash",shellPath, param.UUID, param.DomName, param.IPs[0])
@@ -30,7 +30,7 @@ func (i *InstHandler)CreateVM(w http.ResponseWriter, r * http.Request){
 	}
 
 	fmt.Println(output)
-	domain,err:= i.CreateDomainWithXML()
+	domain,err:= i.CreateDomainWithXML(parsed)
 	 if err!=nil{
 	 	fmt.Printf("error", err)
 	 }
