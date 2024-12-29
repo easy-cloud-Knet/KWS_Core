@@ -20,7 +20,7 @@ func (i *InstHandler)CreateVM(w http.ResponseWriter, r * http.Request){
 	
 	parsed:= parsor.XML_Parsor(&param)
 	shellPath:="/home/kws/kwsWorker/build/autoGen.sh"
-
+	fmt.Println(shellPath, param.UUID, param.DomName, param.IPs)
 	cmd:=exec.Command("bash",shellPath, param.UUID, param.DomName, param.IPs[0])
 
 	output,err:=cmd.CombinedOutput()
