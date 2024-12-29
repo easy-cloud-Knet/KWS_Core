@@ -1,6 +1,7 @@
 package conn
 
 import (
+	"bytes"
 	"encoding/json"
 	_ "encoding/xml"
 	"fmt"
@@ -22,10 +23,14 @@ func (i *InstHandler)CreateVM(w http.ResponseWriter, r * http.Request){
 	shellPath:="/home/kws/kwsWorker/build/autoGen.sh"
 	fmt.Println(shellPath, param.UUID, param.DomName, param.IPs)
 	cmd:=exec.Command("bash",shellPath, param.UUID, param.DomName, param.IPs[0])
-
-	output,err:=cmd.CombinedOutput()
+	var output bytes.Buffer
+	cmd.Stdout= &output
+	cmd.Stderr=&output
+	fmt.Printf("%s", output)
+	// output,
+	err:=cmd.Run()
 	if err!=nil{
-		fmt.Println(output)
+		// fmt.Println(output)
 		fmt.Println(err)
 	}
 
