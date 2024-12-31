@@ -30,13 +30,7 @@ func(u *User_data_yaml) Parse_data(param *VM_Init_Info){
 			File_Appendor = append(File_Appendor, User_write_file{
 			Path:fmt.Sprintf("/etc/systemd/network/10-enp%ds3.network",index),
 			Permissions:"0644",
-			Content:fmt.Sprintf(`[Match]
-      Name=enp%ds3
-      [Network]
-      Address=%s/24
-      Gateway=%s 
-      DNS=%s
-      DHCP=no`, index,ipAddress,Gateway,"8.8.8.8"),
+			Content:fmt.Sprintf("[Match]\nName=enp%ds3\n[Network]\nAddress=%s/24\nGateway=%s\nDNS=%s\nDHCP=no", index,ipAddress,Gateway,"8.8.8.8"),
 		})
 	}
 

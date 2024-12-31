@@ -19,22 +19,27 @@ func (i *InstHandler)CreateVM(w http.ResponseWriter, r * http.Request){
 		fmt.Printf("error",err)
 	}
 	
+	dirPath:= fmt.Sprintf("/var/lib/kws/%s", param.UUID)
+	os.MkdirAll(dirPath, 0755)
+	
 	// parsedXML:= parsor.XML_Parsor(&param)
 	//need to replace with go
+	
 	var parsed_User_Yaml parsor.User_data_yaml
 	var parsed_Meta_Yaml parsor.Meta_data_yaml
 	
 	parsed_User_Yaml.Parse_data(&param)
 	parsed_Meta_Yaml.Parse_data(&param)
 
-	data, err := yaml.Marshal(parsed_User_Yaml)
+	MarshalledUserData, err := yaml.Marshal(parsed_User_Yaml)
 	if err!=nil{
 		fmt.Println("error while unmarshaling struct")
 	}
-	fmt.Println(data)
-	
-	dirPath:= fmt.Sprintf("/var/lib/kws/%s", param.UUID)
-	os.MkdirAll(dirPath, 0755)
+	user_config:=[]byte("#cloud-config\n"+string(MarshalledUserData))
+	err= os.WriteFile(dirPath+"/user-data",user_config, 0644)
+	if err!=nil{
+		fmt.Println("error occured while writing config file")}
+
 
 	// shellPath:="/home/kws/kwsWorker/build/autoGen.sh"
 	// fmt.Println(shellPath, param.UUID, param.DomName, param.IPs)
