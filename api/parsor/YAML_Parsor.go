@@ -10,7 +10,8 @@ import (
 
 func(u *User_data_yaml) Parse_data(param *VM_Init_Info){
 	var Users_Detail []User_specific
-	
+
+	Users_Detail= append(Users_Detail, User_specific{Name:"default"})
 	for _,User := range param.Users{
 		output, err:= exec.Command("openssl", "passwd", "-6", User.PassWord).Output()
 		if err!= nil{

@@ -21,12 +21,12 @@ type Meta_data_yaml struct{
 
 type User_specific struct{
 	Name string `yaml:"name"`
-	Passwd string `yaml:"passwd"`
-	Lock_passwd bool `yaml:"lock_passwd"`
+	Passwd string `yaml:"passwd,omitempty"`
+	Lock_passwd bool `yaml:"lock_passwd,omitempty"`
 	Ssh_authorized_keys []string `yaml:"ssh_authorized_keys,omitempty`
-	Groups string `yaml:"groups"`
-	SuGroup string `yaml:"sudo"`
-	Shell string ` yaml:"shell"`
+	Groups string `yaml:"groups,omitempty"`
+	SuGroup string `yaml:"sudo,omitempty"`
+	Shell string ` yaml:"shell,omitempty"`
 }
 
 type User_write_file struct{
