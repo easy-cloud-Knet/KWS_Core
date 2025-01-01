@@ -7,9 +7,6 @@ import (
 
 
 
-
-
-
 func(u *User_data_yaml) Parse_data(param *VM_Init_Info){
 	var Users_Detail []User_specific
 	
@@ -42,8 +39,7 @@ func(u *User_data_yaml) Parse_data(param *VM_Init_Info){
 
 	
 }	
-
-
 func (m* Meta_data_yaml) Parse_data(param *VM_Init_Info){
-
+	m.Instance_ID=param.UUID
+	m.Local_Host_Id=param.DomName
 }

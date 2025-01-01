@@ -15,7 +15,8 @@ const (
 )
 
 type Meta_data_yaml struct{
-
+	Instance_ID string `yaml:"instance-id"`
+	Local_Host_Id string `yaml:"local-hostname"`
 }
 
 type User_specific struct{
