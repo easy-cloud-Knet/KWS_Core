@@ -31,7 +31,8 @@ func (i *InstHandler) CreateVM(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Parse user-data and meta-data
+	
+	parsedXML:= parsor.XML_Parsor(&param)
 	var parsedUserYaml parsor.User_data_yaml
 	var parsedMetaYaml parsor.Meta_data_yaml
 
@@ -114,10 +115,11 @@ func (i *InstHandler) CreateVM(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// (선택 사항) 추가적인 VM 생성 로직을 여기에 구현
-	// 예: libvirt를 사용하여 도메인 생성 등
-
-	// 성공 응답
+	dom , err := i.CreateDomainWithXML(parsedXML)
+	if err!= nil{
+		http.Error(w, "faild creating vm", http.StatusConflict)
+	}
+	fmt.Println(dom)
 	w.WriteHeader(http.StatusOK)
 	fmt.Fprintf(w, "VM with UUID %s created successfully.", param.UUID)
 }
