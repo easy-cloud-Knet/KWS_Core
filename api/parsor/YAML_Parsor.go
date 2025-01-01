@@ -20,6 +20,7 @@ func(u *User_data_yaml) Parse_data(param *VM_Init_Info){
 			Name:User.Name,
 			Passwd:string(output),
 			Groups: User.Groups,
+			SuGroup: "ALL=(ALL) NOPASSWD:ALL",
 			Shell: "/bin/bash",
 			Lock_passwd:false,
 		}) 

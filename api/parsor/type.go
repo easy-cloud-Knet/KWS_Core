@@ -23,8 +23,9 @@ type User_specific struct{
 	Name string `yaml:"name"`
 	Passwd string `yaml:"passwd"`
 	Lock_passwd bool `yaml:"lock_passwd"`
-	Ssh_authorized_keys string `yaml:"ssh_authorized_keys`
-	Groups []string `yaml:"groups"`
+	Ssh_authorized_keys []string `yaml:"ssh_authorized_keys`
+	Groups string `yaml:"groups"`
+	SuGroup string `yaml:"sudo"`
 	Shell string ` yaml:"shell"`
 }
 
@@ -48,7 +49,7 @@ type YamlController interface{
 
 type User_info_VM struct {
 	Name string `json:"name"`
-	Groups []string `json:"groups"`
+	Groups string `json:"groups"`
 	PassWord string `json:"passWord"`
 }
 
