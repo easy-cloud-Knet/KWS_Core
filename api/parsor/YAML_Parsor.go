@@ -20,6 +20,7 @@ func(u *User_data_yaml) Parse_data(param *VM_Init_Info){
 			Name:User.Name,
 			Passwd:string(output),
 			Groups: User.Groups,
+			Ssh_authorized_keys: []string{"ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQC/ywMjVatnszunIy8axe43sMkzJum+Rw81UibQAID7xZouNNpDADNiQNicBW8dcuj44ScGnMZJpNmEYHgVrSCDDiC8uBC1NgzSpeURQwiSGrXZh0/sowmJaAm8cWHdvhHqFUHsIEIgSSh13iNAam2TAhajtU9MwPZreMNwNpN/qHqKHpq4FCXKn441gs7mE/VcPOj8pau6jM/9Bb8Wg9kmjhF3y1vN1YgKIXLdm0CW1x11axUKvKY7v1D7BaVL618×Md+e4zsLOCObHYw9KEsn7asOKcfUwLXScjWXNVUexv06+voltUdSA976NGHZIGZqEzvMttH+6TQVNSa78kIUls71N1A9v4yiqx"},
 			SuGroup: "ALL=(ALL) NOPASSWD:ALL",
 			Shell: "/bin/bash",
 			Lock_passwd:false,
