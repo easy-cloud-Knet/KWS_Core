@@ -2,6 +2,7 @@ package parsor
 
 import (
 	"fmt"
+	"os/exec"
 	"strings"
 )
 
@@ -11,9 +12,13 @@ func(u *User_data_yaml) Parse_data(param *VM_Init_Info){
 	var Users_Detail []User_specific
 	
 	for _,User := range param.Users{
+		output, err:= exec.Command("openssl", "passwd", "-6", User.PassWord).Output()
+		if err!= nil{
+			fmt.Println(err)
+		}
 		Users_Detail=append(Users_Detail, User_specific{
 			Name:User.Name,
-			Passwd:User.PassWord,
+			Passwd:string(output),
 			Groups: User.Groups,
 			Shell: "/bin/bash",
 			Lock_passwd:false,
