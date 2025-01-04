@@ -25,7 +25,7 @@ func(u *User_data_yaml) Parse_data(param *VM_Init_Info){
 			Ssh_authorized_keys: []string{"ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQC/ywMjVatnszunIy8axe43sMkzJum+Rw81UibQAID7xZouNNpDADNiQNicBW8dcuj44ScGnMZJpNmEYHgVrSCDDiC8uBC1NgzSpeURQwiSGrXZh0/sowmJaAm8cWHdvhHqFUHsIEIgSSh13iNAam2TAhajtU9MwPZreMNwNpN/qHqKHpq4FCXKn441gs7mE/VcPOj8pau6jM/9Bb8Wg9kmjhF3y1vN1YgKIXLdm0CW1x11axUKvKY7v1D7BaVL618×Md+e4zsLOCObHYw9KEsn7asOKcfUwLXScjWXNVUexv06+voltUdSA976NGHZIGZqEzvMttH+6TQVNSa78kIUls71N1A9v4yiqx"},
 			SuGroup: "ALL=(ALL) NOPASSWD:ALL",
 			Shell: "/bin/bash",
-			Lock_passwd:false,
+			Lock_passwd:"false",
 		}) 
 	}
 	var File_Appendor []User_write_file
@@ -60,7 +60,6 @@ func PasswdEncryption (passwd string) (string ,error) {
 		var stdin bytes.Buffer
 		stdin.WriteString(passwd)
 		cmd.Stdin = &stdin
-		
 		var stdout bytes.Buffer
 		cmd.Stdout = &stdout
 		
@@ -72,5 +71,5 @@ func PasswdEncryption (passwd string) (string ,error) {
 			return "", fmt.Errorf("failed to hash password: %v, stderr: %s", err, stderr.String())
 		}
 		
-		return stdout.String(), nil
+		return strings.TrimSuffix(stdout.String(),"\n"), nil
 }
