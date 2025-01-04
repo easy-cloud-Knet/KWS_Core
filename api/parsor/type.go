@@ -14,16 +14,56 @@ const (
 	type3
 )
 
+type Meta_data_yaml struct{
+	Instance_ID string `yaml:"instance-id"`
+	Local_Host_Id string `yaml:"local-hostname"`
+}
+
+type User_specific struct{
+	Name string `yaml:"name,omitempty"`
+	Passwd string `yaml:"passwd,omitempty"`
+	Lock_passwd bool `yaml:"lock_passwd"`
+	Ssh_authorized_keys []string `yaml:"ssh_authorized_keys,omitempty"`
+	Groups string `yaml:"groups,omitempty"`
+	SuGroup string `yaml:"sudo,omitempty"`
+	Shell string ` yaml:"shell,omitempty"`
+}
+
+type User_write_file struct{
+	Path string `yaml:"path"`
+	Permissions string `yaml:"permissions"`
+	Content string `yaml:"content"`
+}
+type User_data_yaml struct{
+	Users []interface{}  `yaml: "users"`
+	Write_files []User_write_file `yaml:"write_files"`
+	Runcmd []string `yaml:"runcmd`
+}
+
+
+type YamlController interface{
+	Parse_data(*VM_Init_Info) 
+}
+
+
+
+type User_info_VM struct {
+	Name string `json:"name"`
+	Groups string `json:"groups"`
+	PassWord string `json:"passWord"`
+}
+
 type VM_Init_Info struct{
-	DomType string `json:"DomType"`
-	DomName string `json:"DomName"`
-	UUID string `json:"UUID"`
-	OS string `json:"OS"`
-	NetworkType string `json:"NetType"`
-	Memory int `json:"Memory"`
-	CPU int `json:"CPU"`
-	IPs []string `json:"IPs"`
-	Method Create_VM_Method `json:"METHOD"`
+	DomType string `json:"domType"`
+	DomName string `json:"domName"`
+	UUID string `json:"uuid"`
+	OS string `json:"os"`
+	NetworkType string `json:"netType"`
+	Memory int `json:"memory"`
+	CPU int `json:"cpu"`
+	IPs []string `json:"ips"`
+	Method Create_VM_Method `json:"method"`
+	Users []User_info_VM `json:"users"`
 }
 
 
