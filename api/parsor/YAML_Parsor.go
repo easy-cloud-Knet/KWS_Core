@@ -44,6 +44,7 @@ func(u *User_data_yaml) Parse_data(param *VM_Init_Info){
 	u.Write_files= File_Appendor
 	u.Runcmd= append(u.Runcmd, "systemctl enable systemd-networkd")
 	u.Runcmd= append(u.Runcmd, "systemctl start systemd-networkd")
+	u.Runcmd= append(u.Runcmd, "sudo netplan apply")
 
 
 	
