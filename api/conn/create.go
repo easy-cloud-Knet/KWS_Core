@@ -12,7 +12,10 @@ import (
 
 	"github.com/easy-cloud-Knet/KWS_Core.git/api/parsor"
 	"gopkg.in/yaml.v3"
+	"libvirt.org/go/libvirt"
 )
+
+
 
 func (i *InstHandler) CreateVM(w http.ResponseWriter, r *http.Request) {
 	var param parsor.VM_Init_Info
@@ -122,4 +125,20 @@ func (i *InstHandler) CreateVM(w http.ResponseWriter, r *http.Request) {
 	fmt.Println(dom)
 	w.WriteHeader(http.StatusOK)
 	fmt.Fprintf(w, "VM with UUID %s created successfully.", param.UUID)
+}
+
+
+
+func (i *InstHandler) CreateDomainWithXML(config []byte) (*libvirt.Domain, error) {
+ 
+	// DomainCreateXMLWithFiles를 호출하여 도메인을 생성합니다.
+	domain, err := i.LibvirtInst.DomainDefineXML(string(config))
+	if err != nil {
+		log.Fatal(err)
+		
+	}
+
+
+  return domain ,err
+
 }
