@@ -2,7 +2,7 @@
 
 # 현재 셸 타입을 확인하는 함수
 get_shell_type() {
-    ps -p $$ -o cmd= | awk '{print $1}'
+    ps -p $$ -o cmd= | awk '{print $1}'| xargs basename
 }
 
 shell_type=$(get_shell_type)

@@ -9,17 +9,11 @@ import (
 
 
 
-type DomainList struct{
-	RequestType string `json:"requestType"` 
-	// libvirt.ConnectListAllDomainsFlags
-}
-
-
 type Domain struct{
 	Domain *libvirt.Domain
 }
 
-type  BasicDomainControl interface{
+type  DomainControl interface{
 	createDomain()
 }
 
@@ -35,9 +29,9 @@ type InstHandle interface{
 	ReturnDomainList()
 }
 
-
-
-
+type SpecifiyUUID struct {
+	UUID string `json:"UUID"`
+}
 
 
 type DomainInfo struct{

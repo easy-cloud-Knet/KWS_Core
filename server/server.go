@@ -11,9 +11,10 @@ import (
 
 func InitServer(portNum int, libvirtInst *conn.InstHandler, domain *conn.Domain){
 	
-	http.HandleFunc("GET /getStatus", libvirtInst.ReturnStatus)
-	http.HandleFunc("POST /createVM", libvirtInst.CreateVM)
-
+	http.HandleFunc("/getStatus", libvirtInst.ReturnStatus) //get
+	http.HandleFunc("/createVM", libvirtInst.CreateVM) //post
+	http.HandleFunc("/getStatusUUID", libvirtInst.ReturnStatusUUID) //Get
+	http.HandleFunc("/forceShutDownUUID", libvirtInst.ForceShutDownVM) //Get
 
 	log.Fatal(http.ListenAndServe(":"+strconv.Itoa(portNum), nil))
 }
