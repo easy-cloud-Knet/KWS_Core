@@ -30,7 +30,7 @@ type InstHandle interface{
 }
 
 type SpecifiyUUID struct {
-	UUID string
+	UUID string `json:"UUID"`
 }
 
 
