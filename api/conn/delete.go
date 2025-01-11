@@ -11,7 +11,7 @@ import (
 
 
 func (i *InstHandler)ForceShutDownVM(w http.ResponseWriter, r *http.Request){
-	var param DomainSortingByUUID
+	var param DomainSortingByUUID[PredefinedStructures]
 	if err:= json.NewDecoder(r.Body).Decode(&param); err!=nil{
 		http.Error(w, "error decoding body", 1)
 	}

@@ -7,10 +7,7 @@ import (
 )
 type DomainDataType uint
 
-const (
-	PowerStaus DomainDataType =iota
-	BasicInfo 	
-)
+
 
 type Domain struct{
 	Domain *libvirt.Domain
@@ -28,30 +25,45 @@ type  DomainControl interface{
 	DomainStatus()
 }
 
-type DataType struct{
-	DataType DomainDataType `json:"type"`
-	LibvirtInst *libvirt.Connect
-}
+const (
+	PowerStaus DomainDataType =iota
+	BasicInfo
+	GuestInfoUser
+	GuestInfoOS
+	GuestInfoFS
+	GuestInfoDisk
+)
+
 type DataTypeHandle interface{
-	Setter()
+	Setter(DomainDataType, *libvirt.Connect)
 	Getter() (DomainDataType,*libvirt.Connect)
+	PowerStatus(*libvirt.Domain) 
+	ReturnBasicInfo([]*libvirt.Domain) ([]*libvirt.DomainInfo,error)
+	GuestInfo(*libvirt.Domain)
+	
 }
+
 type InstHandler struct{
 	LibvirtInst *libvirt.Connect
 }
 
-type DomainSortingByUUID struct{
-	TypeBase DataType 
+type DomainSortingByUUID[T PredefinedStructures] struct{
+	TypeBase *DataType[T]
 	UUID string `json:"UUID"`
 }
 
-type DomainSortingByStatus struct{
-	TypeBase DataType 
+type DomainSortingByStatus[T PredefinedStructures] struct{
+	TypeBase *DataType[T]
 	Status libvirt.ConnectListAllDomainsFlags `json:"Status Flag"`
 }
 
+type DataType[T PredefinedStructures] struct{
+	DataType DomainDataType `json:"type"`
+	LibvirtInst *libvirt.Connect
+}
+
 type DomainSeeker interface{
-	returnStatus() ([]*libvirt.Domain, error)
+	returnDomain() ([]*libvirt.Domain, error)
 }
 
 // type ConnectListAllDomainsFlags uint
@@ -87,5 +99,10 @@ type DomainInfo struct{
 		NrVirtCpu uint `json:"nrVirtCpu"`
 		CpuTime uint64 `json:"cpuTime"`
 		Hwaddr string `json:"hwAddr"`	
-		UUID string `json:"uuid"`
 }
+
+
+type PredefinedStructures interface{
+	isPredefined()
+}
+func (D *DomainInfo) isPredefined (){}
