@@ -7,8 +7,6 @@ import (
 )
 type DomainDataType uint
 
-
-
 type Domain struct{
 	Domain *libvirt.Domain
 	DomainMutex sync.Mutex
@@ -34,75 +32,67 @@ const (
 	GuestInfoDisk
 )
 
-type DataTypeHandle interface{
-	Setter(DomainDataType, *libvirt.Connect)
-	Getter() (DomainDataType,*libvirt.Connect)
-	PowerStatus(*libvirt.Domain) 
-	ReturnBasicInfo([]*libvirt.Domain) ([]*libvirt.DomainInfo,error)
-	GuestInfo(*libvirt.Domain)
-	
+type DataTypeHandler interface{
+	GetInfo(*Domain) error
+	// Generator(DomainDataType) err
+}
+type DomainState struct{
+	DomainState libvirt.DomainState `json:"currentState"`
+	//type reference 참고
+	UUID string `json:"UUID"`
+	Users []libvirt.DomainGuestInfoUser `json:"Guest Info"`
+
+}
+type DomainInfo struct{
+	State libvirt.DomainState `json:"state"`
+	MaxMem uint64 `json:"maxmem"`
+	Memory uint64 `json:"memory"`
+	NrVirtCpu uint `json:"nrVirtCpu"`
+	CpuTime uint64 `json:"cpuTime"`
+	Hwaddr string `json:"hwAddr"`	
 }
 
 type InstHandler struct{
 	LibvirtInst *libvirt.Connect
 }
 
-type DomainSortingByUUID[T PredefinedStructures] struct{
-	TypeBase *DataType[T]
-	UUID string `json:"UUID"`
+type DomainDetail struct{
+	DomainSeeker DomainSeeker
+	DataHandle []DataTypeHandler 
 }
 
-type DomainSortingByStatus[T PredefinedStructures] struct{
-	TypeBase *DataType[T]
-	Status libvirt.ConnectListAllDomainsFlags `json:"Status Flag"`
-}
-
-type DataType[T PredefinedStructures] struct{
-	DataType DomainDataType `json:"type"`
+type DomainSeekinggByUUID struct{
 	LibvirtInst *libvirt.Connect
+	UUID string 
+	Domain []*Domain
+}
+
+type DomainSeekingByStatus struct{
+	LibvirtInst *libvirt.Connect
+	Status libvirt.ConnectListAllDomainsFlags 
+	DomList []*Domain
 }
 
 type DomainSeeker interface{
-	returnDomain() ([]*libvirt.Domain, error)
+	SetDomain() (error)
+	returnDomain()([]*Domain,error)
 }
 
-// type ConnectListAllDomainsFlags uint
-// const (
-//	CONNECT_LIST_DOMAINS_ACTIVE         = ConnectListAllDomainsFlags(C.VIR_CONNECT_LIST_DOMAINS_ACTIVE)
-// 	CONNECT_LIST_DOMAINS_INACTIVE       = ConnectListAllDomainsFlags(C.VIR_CONNECT_LIST_DOMAINS_INACTIVE)
-// 	CONNECT_LIST_DOMAINS_PERSISTENT     = ConnectListAllDomainsFlags(C.VIR_CONNECT_LIST_DOMAINS_PERSISTENT)
-// 	CONNECT_LIST_DOMAINS_TRANSIENT      = ConnectListAllDomainsFlags(C.VIR_CONNECT_LIST_DOMAINS_TRANSIENT)
-// 	CONNECT_LIST_DOMAINS_RUNNING        = ConnectListAllDomainsFlags(C.VIR_CONNECT_LIST_DOMAINS_RUNNING)
-// 	CONNECT_LIST_DOMAINS_PAUSED         = ConnectListAllDomainsFlags(C.VIR_CONNECT_LIST_DOMAINS_PAUSED)
-// 	CONNECT_LIST_DOMAINS_SHUTOFF        = ConnectListAllDomainsFlags(C.VIR_CONNECT_LIST_DOMAINS_SHUTOFF)
-// 	CONNECT_LIST_DOMAINS_OTHER          = ConnectListAllDomainsFlags(C.VIR_CONNECT_LIST_DOMAINS_OTHER)
-// 	CONNECT_LIST_DOMAINS_MANAGEDSAVE    = ConnectListAllDomainsFlags(C.VIR_CONNECT_LIST_DOMAINS_MANAGEDSAVE)
-// 	CONNECT_LIST_DOMAINS_NO_MANAGEDSAVE = ConnectListAllDomainsFlags(C.VIR_CONNECT_LIST_DOMAINS_NO_MANAGEDSAVE)
-// 	CONNECT_LIST_DOMAINS_AUTOSTART      = ConnectListAllDomainsFlags(C.VIR_CONNECT_LIST_DOMAINS_AUTOSTART)
-// 	CONNECT_LIST_DOMAINS_NO_AUTOSTART   = ConnectListAllDomainsFlags(C.VIR_CONNECT_LIST_DOMAINS_NO_AUTOSTART)
-// 	CONNECT_LIST_DOMAINS_HAS_SNAPSHOT   = ConnectListAllDomainsFlags(C.VIR_CONNECT_LIST_DOMAINS_HAS_SNAPSHOT)
-// 	CONNECT_LIST_DOMAINS_NO_SNAPSHOT    = ConnectListAllDomainsFlags(C.VIR_CONNECT_LIST_DOMAINS_NO_SNAPSHOT)
-// 	CONNECT_LIST_DOMAINS_HAS_CHECKPOINT = ConnectListAllDomainsFlags(C.VIR_CONNECT_LIST_DOMAINS_HAS_CHECKPOINT)
-// 	CONNECT_LIST_DOMAINS_NO_CHECKPOINT  = ConnectListAllDomainsFlags(C.VIR_CONNECT_LIST_DOMAINS_NO_CHECKPOINT)
-// )
+type ReturnDomainFromStatus struct{ 
+	DataType DomainDataType `json:"type"`
+	Status libvirt.ConnectListAllDomainsFlags  `json:"Status Flag"`
+}
+
+type ReturnDomainFromUUID struct{ 
+	DataType DomainDataType `json:"type"`
+	UUID string  `json:"Status UUID"`
+}
+
 type InstHandle interface{
 	LibvirtConnection()
-	ReturnDomainList()
 }
+
+
+
 
  
-
-type DomainInfo struct{
-		State libvirt.DomainState `json:"state"`
-		MaxMem uint64 `json:"maxmem"`
-		Memory uint64 `json:"memory"`
-		NrVirtCpu uint `json:"nrVirtCpu"`
-		CpuTime uint64 `json:"cpuTime"`
-		Hwaddr string `json:"hwAddr"`	
-}
-
-
-type PredefinedStructures interface{
-	isPredefined()
-}
-func (D *DomainInfo) isPredefined (){}
