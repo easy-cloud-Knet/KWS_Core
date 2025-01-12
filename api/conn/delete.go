@@ -2,16 +2,16 @@ package conn
 
 import (
 	"encoding/json"
-	"net/http"
 	"fmt"
+	"net/http"
 
-	_ "libvirt.org/go/libvirt"
 	"github.com/google/uuid"
+	_ "libvirt.org/go/libvirt"
 )
 
 
 func (i *InstHandler)ForceShutDownVM(w http.ResponseWriter, r *http.Request){
-	var param SpecifiyUUID
+	var param DomainSeekinggByUUID
 	if err:= json.NewDecoder(r.Body).Decode(&param); err!=nil{
 		http.Error(w, "error decoding body", 1)
 	}

@@ -35,9 +35,9 @@ type User_write_file struct{
 	Content string `yaml:"content"`
 }
 type User_data_yaml struct{
-	Users []interface{}  `yaml: "users"`
+	Users []interface{}  `yaml:"users"`
 	Write_files []User_write_file `yaml:"write_files"`
-	Runcmd []string `yaml:"runcmd`
+	Runcmd []string `yaml:"runcmd"`
 }
 
 
@@ -117,6 +117,22 @@ type Devices struct {
 	Console    Console     `xml:"console"`
 	Interfaces []Interface `xml:"interface"`
 	Graphics   Graphics    `xml:"graphics"`
+	Channels   []Channel   `xml:"channel,omitempty"` // 새 필드 추가
+}
+
+type Channel struct {
+	Type   string          `xml:"type,attr"`
+	Source ChannelSource   `xml:"source"`
+	Target ChannelTarget   `xml:"target"`
+}
+
+type ChannelSource struct {
+	Mode string `xml:"mode,attr"`
+}
+
+type ChannelTarget struct {
+	Type string `xml:"type,attr"`
+	Name string `xml:"name,attr"`
 }
 
 type Disk struct {
