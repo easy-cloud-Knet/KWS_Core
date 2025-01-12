@@ -4,11 +4,9 @@ import (
 	"encoding/xml"
 	"fmt"
 )
-
-//
 func XML_Parsor(spec *VM_Init_Info) []byte {
 	vm := &VM_CREATE_XML{
-		Type:"kvm",
+		Type: "kvm",
 		Name: spec.DomName,
 		UUID: spec.UUID,
 		Memory: Memory{
@@ -17,7 +15,7 @@ func XML_Parsor(spec *VM_Init_Info) []byte {
 		},
 		VCPU: VCPU{
 			Placement: "static",
-			Count: spec.CPU,
+			Count:     spec.CPU,
 		},
 		Features: Features{
 			ACPI: ACPI{},
@@ -42,7 +40,7 @@ func XML_Parsor(spec *VM_Init_Info) []byte {
 						Type: "qcow2",
 					},
 					Source: Source{
-						File : fmt.Sprintf("/var/lib/kws/%s/%s.qcow2", spec.UUID, spec.UUID),
+						File: fmt.Sprintf("/var/lib/kws/%s/%s.qcow2", spec.UUID, spec.UUID),
 					},
 					Target: Target{
 						Dev: "vda",
@@ -95,6 +93,18 @@ func XML_Parsor(spec *VM_Init_Info) []byte {
 				Port:     -1,
 				AutoPort: "yes",
 			},
+			Channels: []Channel{ // QEMU Guest Agent 설정 추가
+				{
+					Type: "unix",
+					Source: ChannelSource{
+						Mode: "bind",
+					},
+					Target: ChannelTarget{
+						Type: "virtio",
+						Name: "org.qemu.guest_agent.0",
+					},
+				},
+			},
 		},
 	}
 
@@ -103,3 +113,4 @@ func XML_Parsor(spec *VM_Init_Info) []byte {
 
 	return output
 }
+ 

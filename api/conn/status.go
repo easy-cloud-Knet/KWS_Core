@@ -10,7 +10,7 @@ import (
 	"github.com/google/uuid"
 	"libvirt.org/go/libvirt"
 )
- 
+
 func (DI *DomainInfo) GetInfo(domain *Domain) error{
 		info, err:= domain.Domain.GetInfo()
 		if err!=nil{
@@ -24,6 +24,7 @@ func (DI *DomainInfo) GetInfo(domain *Domain) error{
 		//basic info can be added
 	return nil
 }
+
 func (DP *DomainState) GetInfo(domain *Domain)error{
 	info,_,err:= domain.Domain.GetState()
 	//searching for coresponding second parameter, "Reason"
@@ -31,9 +32,11 @@ func (DP *DomainState) GetInfo(domain *Domain)error{
 		log.Println(err)
 		return err
 	}
-	uuid,_ := domain.Domain.GetUUID()
+	uuidBytes,_ := domain.Domain.GetUUID()
+	uuidParsed,_:=uuid.FromBytes(uuidBytes)
+	fmt.Println(uuidParsed.String())
 	DP.DomainState = info
-	DP.UUID= string(uuid)
+	DP.UUID= string(uuidParsed.String())
 
 	userInfo,err:= domain.Domain.GetGuestInfo(libvirt.DOMAIN_GUEST_INFO_USERS,0)
 	if err!= nil{
@@ -89,9 +92,15 @@ func (i * InstHandler) ReturnDomainByStatus(w http.ResponseWriter,r * http.Reque
 		// outputStruct.GetInfo(list[i])
 		domainSorter.DataHandle=append(domainSorter.DataHandle, outputInfo)
 	}
-	encoder := json.NewEncoder(w)
 	
-	encoder.Encode(domainSorter.DataHandle)
+	data, _ := json.Marshal(domainSorter.DataHandle)
+	if err != nil {
+		http.Error(w, "failed to marshal JSON", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.Write(data)
 }
 
 func (i *InstHandler)ReturnStatusUUID(w http.ResponseWriter, r * http.Request){
@@ -103,7 +112,7 @@ func (i *InstHandler)ReturnStatusUUID(w http.ResponseWriter, r * http.Request){
 		DataHandle: make([]DataTypeHandler,0,1),
 		DomainSeeker: &DomainSeekinggByUUID{
 			LibvirtInst: i.LibvirtInst,
-			UUID: param.UUID,
+			UUID: string(param.UUID),
 			Domain: make([]*Domain,1),
 		},
 	}		
@@ -114,11 +123,18 @@ func (i *InstHandler)ReturnStatusUUID(w http.ResponseWriter, r * http.Request){
 		fmt.Print("error occured while returning status ")
 		http.Error(w, "there is no such VM with that UUID", 1)
 	}
-	encoder:=json.NewEncoder(w)
 	dom,_:=domainSorter.DomainSeeker.returnDomain()
 	outputStruct.GetInfo(dom[0])
+	fmt.Println(domainSorter.DataHandle)
 	domainSorter.DataHandle=append(domainSorter.DataHandle, outputStruct)
-	encoder.Encode(domainSorter.DataHandle)
+	data, _ := json.Marshal(domainSorter.DataHandle)
+	if err != nil {
+		http.Error(w, "failed to marshal JSON", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.Write(data)
 }
 
 func (DSU *DomainSeekinggByUUID)returnDomain()([]*Domain,error){
@@ -139,11 +155,12 @@ func (DSU *DomainSeekinggByUUID)SetDomain()(error){
 	if err != nil {
         return  fmt.Errorf("invalid uuid format: %w", err)
 	}
-	Dom:=make([]*Domain,0,1)
+	Dom:=make([]*Domain,1)
 	Dom[0]=&Domain{
 		Domain:domain,
 		DomainMutex: sync.Mutex{},
 	}
+	fmt.Println(Dom)
 	DSU.Domain=Dom
 	return nil
 }
@@ -159,84 +176,10 @@ func (DSS *DomainSeekingByStatus)SetDomain()(error){
 	for i:= range doms{
 		Domains = append(Domains, &Domain{Domain:&doms[i], DomainMutex: sync.Mutex{}})
 	}
+	fmt.Println(Domains)
+
 	DSS.DomList=Domains
 	return  nil
 }
 //******************** this to function allocate domain struct inside memory 
 //all domain needed to be freed after certain operation done. *****************
-
-
-
-// func (DT *DomainDetail) ReturnBasicInfo(doms []*libvirt.Domain)([]*T, error){
-// 	var domInfos []*T
-// 	for i :=range doms{
-// 		info, err:= doms[i].GetInfo()
-// 		if err!=nil{
-// 			log.Println(err)
-// 		}
-// 		DomInfo:= &DomainInfo{
-// 			State :info.State,
-// 			MaxMem :info.MaxMem,
-// 			Memory : info.Memory,
-// 			NrVirtCpu :info.NrVirtCpu,
-// 			CpuTime :info.CpuTime,
-// 		}
-// 		//basic info can be added
-// 		domInfos = append(domInfos, any(DomInfo).(*T))
-// 	}
-// 	return domInfos,nil
-// }
- 
-
-// func (DSS *DomainDetail)ReturnDomainSpecification(doms []*libvirt.Domain)([]*T,error) {
-// 	DomainInfo:=make([]*T,0,5)
-// 	var err error
-
-// 	if err!= nil{
-// 		fmt.Printf("error occured whild retreiving infos from Dom Spec, %v", err)
-// 		return DomainInfo, err
-// 	}
-// 	return DomainInfo, nil
-// }
-
-// func (DSU *DomainDetail)ReturnDomainSpecification(doms []*libvirt.Domain)([]*T,error) {
-// 	DomainInfo:=make([]*T,0,1)
-// 	var err error
-// 	switch(DSU.TypeBase.DataType){
-// 		case PowerStaus:
-// 			DomainInfo, err = DSU.TypeBase.PowerStatus(doms)
-// 		case BasicInfo:
-// 			DomainInfo, err =DSU.TypeBase.ReturnBasicInfo(doms)
-// 		case GuestInfoUser:
-// 		case GuestInfoOS:
-// 		case GuestInfoFS:
-// 		case GuestInfoDisk:
-// 	}
-// 	if err!= nil{
-// 		fmt.Printf("error occured whild retreiving infos from Dom Spec, %v", err)
-// 		return DomainInfo, err
-// 	}
-// 	return DomainInfo, nil
-// }
-
-
-// func (DT *DomainDetail) Setter(dataType DomainDataType,LibvirtInst *libvirt.Connect){
-	
-// }
-
-// func (DT *DomainDetail) PowerStatus(doms []*libvirt.Domain)([]*T, error){
-// 	infos := make([]*T, 0,5)
-	
-// 	for i:= range doms{
-// 		info, err:= doms[i].GetInfo()
-// 		if err!=nil{
-// 			log.Println(err)
-// 		}
-// 		infos=append(infos, T(info))
-// 	}
-	
-// 	return infos,nil
-// }
-
-
- 

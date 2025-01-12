@@ -24,13 +24,22 @@ type  DomainControl interface{
 }
 
 const (
-	PowerStaus DomainDataType =iota
-	BasicInfo
+	PowerStaus DomainDataType =iota //0
+	BasicInfo	//1 ....
 	GuestInfoUser
 	GuestInfoOS
 	GuestInfoFS
 	GuestInfoDisk
 )
+type ReturnDomainFromStatus struct{ 
+	DataType DomainDataType `json:"dataType"`
+	Status libvirt.ConnectListAllDomainsFlags  `json:"Flag"`
+}
+
+type ReturnDomainFromUUID struct{ 
+	DataType DomainDataType `json:"dataType"`
+	UUID string  `json:"UUID"`
+}
 
 type DataTypeHandler interface{
 	GetInfo(*Domain) error
@@ -49,7 +58,6 @@ type DomainInfo struct{
 	Memory uint64 `json:"memory"`
 	NrVirtCpu uint `json:"nrVirtCpu"`
 	CpuTime uint64 `json:"cpuTime"`
-	Hwaddr string `json:"hwAddr"`	
 }
 
 type InstHandler struct{
@@ -72,21 +80,12 @@ type DomainSeekingByStatus struct{
 	Status libvirt.ConnectListAllDomainsFlags 
 	DomList []*Domain
 }
-
 type DomainSeeker interface{
 	SetDomain() (error)
 	returnDomain()([]*Domain,error)
 }
 
-type ReturnDomainFromStatus struct{ 
-	DataType DomainDataType `json:"type"`
-	Status libvirt.ConnectListAllDomainsFlags  `json:"Status Flag"`
-}
 
-type ReturnDomainFromUUID struct{ 
-	DataType DomainDataType `json:"type"`
-	UUID string  `json:"Status UUID"`
-}
 
 type InstHandle interface{
 	LibvirtConnection()
