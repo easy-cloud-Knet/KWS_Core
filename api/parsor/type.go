@@ -35,6 +35,8 @@ type User_write_file struct{
 	Content string `yaml:"content"`
 }
 type User_data_yaml struct{
+	PackageUpdatable bool `yaml:"package_update"`
+	PredownProjects []string `yaml:"packages"`
 	Users []interface{}  `yaml:"users"`
 	Write_files []User_write_file `yaml:"write_files"`
 	Runcmd []string `yaml:"runcmd"`

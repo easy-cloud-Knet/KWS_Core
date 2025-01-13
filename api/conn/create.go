@@ -38,7 +38,6 @@ func (i *InstHandler) CreateVM(w http.ResponseWriter, r *http.Request) {
 	parsedXML:= parsor.XML_Parsor(&param)
 	var parsedUserYaml parsor.User_data_yaml
 	var parsedMetaYaml parsor.Meta_data_yaml
-
 	parsedUserYaml.Parse_data(&param)
 	parsedMetaYaml.Parse_data(&param)
 
@@ -56,6 +55,7 @@ func (i *InstHandler) CreateVM(w http.ResponseWriter, r *http.Request) {
 		log.Printf("Error marshaling meta data: %v", err)
 		return
 	}
+	fmt.Println(parsedUserYaml)
 
 	// Write user-data file
 	userConfig := bytes.Buffer{}
@@ -122,7 +122,13 @@ func (i *InstHandler) CreateVM(w http.ResponseWriter, r *http.Request) {
 	if err!= nil{
 		http.Error(w, "faild creating vm", http.StatusConflict)
 	}
+	err = dom.Create()
+	if err!= nil{
+		http.Error(w, "faild starting vm", http.StatusConflict)
+	}
 	fmt.Println(dom)
+	domainInfo,_:= dom.GetInfo()
+	fmt.Println(domainInfo)
 	w.WriteHeader(http.StatusOK)
 	fmt.Fprintf(w, "VM with UUID %s created successfully.", param.UUID)
 }
@@ -135,10 +141,7 @@ func (i *InstHandler) CreateDomainWithXML(config []byte) (*libvirt.Domain, error
 	domain, err := i.LibvirtInst.DomainDefineXML(string(config))
 	if err != nil {
 		log.Fatal(err)
-		
 	}
-
-
   return domain ,err
 
 }

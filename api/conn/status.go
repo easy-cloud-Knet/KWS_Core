@@ -110,7 +110,7 @@ func (i *InstHandler)ReturnStatusUUID(w http.ResponseWriter, r * http.Request){
 	}
 	domainSorter:=&DomainDetail{
 		DataHandle: make([]DataTypeHandler,0,1),
-		DomainSeeker: &DomainSeekinggByUUID{
+		DomainSeeker: &DomainSeekingByUUID{
 			LibvirtInst: i.LibvirtInst,
 			UUID: string(param.UUID),
 			Domain: make([]*Domain,1),
@@ -137,7 +137,9 @@ func (i *InstHandler)ReturnStatusUUID(w http.ResponseWriter, r * http.Request){
 	w.Write(data)
 }
 
-func (DSU *DomainSeekinggByUUID)returnDomain()([]*Domain,error){
+
+
+func (DSU *DomainSeekingByUUID)returnDomain()([]*Domain,error){
 	return DSU.Domain,nil
 }
 
@@ -145,12 +147,20 @@ func (DSS *DomainSeekingByStatus)returnDomain()([]*Domain,error){
 	return DSS.DomList,nil
 }
 
-func (DSU *DomainSeekinggByUUID)SetDomain()(error){
+
+func (DSU *DomainSeekingByUUID)ReturnUUID()(uuid.UUID,error){
+	UUID, err := uuid.Parse(DSU.UUID)
+	if err!=nil{
+		return uuid.UUID{}, err
+	}
+	return UUID,nil
+}
+
+func (DSU *DomainSeekingByUUID)SetDomain()(error){
 	parsedUUID, err:= uuid.Parse(DSU.UUID)
 	if err != nil {
         return  fmt.Errorf("invalid uuid format: %w", err)
 	}
-
 	domain,err := DSU.LibvirtInst.LookupDomainByUUID(parsedUUID[:])
 	if err != nil {
         return  fmt.Errorf("invalid uuid format: %w", err)
