@@ -15,6 +15,8 @@ func InitServer(portNum int, libvirtInst *conn.InstHandler, domain *conn.Domain)
 	http.HandleFunc("/createVM", libvirtInst.CreateVM) //post
 	http.HandleFunc("/getStatusUUID", libvirtInst.ReturnStatusUUID) //Get
 	http.HandleFunc("/forceShutDownUUID", libvirtInst.ForceShutDownVM) //Get
+	http.HandleFunc("/DeleteVM", libvirtInst.DeleteVM) //Get
+
 
 	log.Fatal(http.ListenAndServe(":"+strconv.Itoa(portNum), nil))
 }
