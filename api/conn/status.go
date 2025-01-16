@@ -14,8 +14,7 @@ import (
 func (DI *DomainInfo) GetInfo(domain *Domain) error{
 		info, err:= domain.Domain.GetInfo()
 		if err!=nil{
-			log.Println(err)
-		}
+			log.Println(err)}
 		DI.State=info.State
 		DI.MaxMem=info.MaxMem
 		DI.Memory= info.Memory
@@ -37,18 +36,24 @@ func (DP *DomainState) GetInfo(domain *Domain)error{
 	fmt.Println(uuidParsed.String())
 	DP.DomainState = info
 	DP.UUID= string(uuidParsed.String())
-
 	userInfo,err:= domain.Domain.GetGuestInfo(libvirt.DOMAIN_GUEST_INFO_USERS,0)
 	if err!= nil{
 		log.Println(err)
 		return err
 	}
+
 	DP.Users=userInfo.Users
-	
 	return nil
 }
 
-func Generator(types DomainDataType)(DataTypeHandler,error){
+func DomainDetailFactory (Handler DataTypeHandler, Seeker DomainSeeker) *DomainDetail{
+	return &DomainDetail{
+		DataHandle: make([]DataTypeHandler,1),
+		DomainSeeker: Seeker,
+	}
+}
+
+func DataTypeRouter(types DomainDataType)(DataTypeHandler,error){
 	switch(types){
 	case PowerStaus:
 		return &DomainState{},nil
@@ -65,74 +70,71 @@ func Generator(types DomainDataType)(DataTypeHandler,error){
 	return &DomainInfo{},fmt.Errorf("error")
 }
 
+
+
 func (i * InstHandler) ReturnDomainByStatus(w http.ResponseWriter,r * http.Request){
 	var param ReturnDomainFromStatus
 	if err:= json.NewDecoder(r.Body).Decode(&param);err != nil{
 		http.Error(w, "invalid parameter", http.StatusBadRequest)
 	}
-	domainSorter:=&DomainDetail{
-		DataHandle: []DataTypeHandler{},
-		DomainSeeker: &DomainSeekingByStatus{
-			LibvirtInst: i.LibvirtInst,
-			Status: param.Status,
-			DomList: make([]*Domain,5),
-		},
+	DataHandle,_:= DataTypeRouter(param.DataType)
+	DomainSeeker:= &DomainSeekingByStatus{
+		LibvirtInst: i.LibvirtInst,
+		Status: param.Status,
+		DomList: make([]*Domain,5),
 	}
-	// Domain Detail로 채우는 객체 생성
-	err:= domainSorter.DomainSeeker.SetDomain()
+	doms:=DomainDetailFactory(DataHandle,DomainSeeker)
+ 	// Domain Detail로 채우는 객체 생성
+	err:= doms.DomainSeeker.SetDomain()
 	if err!= nil{
 		http.Error(w, "error while fetcing domain list", http.StatusBadRequest)
 	}
 	//domain freeing need to be added
-	list,_:=domainSorter.DomainSeeker.returnDomain()
+	list,_:=doms.DomainSeeker.returnDomain()
 	for i := range list{
-		outputStruct, _ := Generator(param.DataType)
-		outputInfo:= outputStruct
-		outputInfo.GetInfo(list[i])
-		// outputStruct.GetInfo(list[i])
-		domainSorter.DataHandle=append(domainSorter.DataHandle, outputInfo)
+		DataHandle.GetInfo(list[i])
+		doms.DataHandle=append(doms.DataHandle, DataHandle)
 	}
-	
-	data, _ := json.Marshal(domainSorter.DataHandle)
+
+	data, _ := json.Marshal(doms.DataHandle)
 	if err != nil {
 		http.Error(w, "failed to marshal JSON", http.StatusInternalServerError)
 		return
 	}
-
 	w.Header().Set("Content-Type", "application/json")
 	w.Write(data)
 }
+
+
 
 func (i *InstHandler)ReturnStatusUUID(w http.ResponseWriter, r * http.Request){
 	var param ReturnDomainFromUUID
 	if err:= json.NewDecoder(r.Body).Decode(&param); err!=nil{
 		http.Error(w, "invalid parameter", http.StatusBadRequest)
 	}
-	domainSorter:=&DomainDetail{
-		DataHandle: make([]DataTypeHandler,0,1),
-		DomainSeeker: &DomainSeekingByUUID{
-			LibvirtInst: i.LibvirtInst,
-			UUID: string(param.UUID),
-			Domain: make([]*Domain,1),
-		},
-	}		
-	outputStruct, _ := Generator(param.DataType)
-
-	err:=domainSorter.DomainSeeker.SetDomain()
+	DomainSeeker:= &DomainSeekingByUUID{
+		LibvirtInst: i.LibvirtInst,
+		UUID: string(param.UUID),
+		Domain: make([]*Domain,1),
+	}
+	outputStruct, _ := DataTypeRouter(param.DataType)
+	domain:=DomainDetailFactory(outputStruct,DomainSeeker)
+	
+	err:=domain.DomainSeeker.SetDomain()
 	if err!=nil{
 		fmt.Print("error occured while returning status ")
 		http.Error(w, "there is no such VM with that UUID", 1)
 	}
-	dom,_:=domainSorter.DomainSeeker.returnDomain()
+
+	dom,_:=domain.DomainSeeker.returnDomain()
 	outputStruct.GetInfo(dom[0])
-	fmt.Println(domainSorter.DataHandle)
-	domainSorter.DataHandle=append(domainSorter.DataHandle, outputStruct)
-	data, _ := json.Marshal(domainSorter.DataHandle)
+	fmt.Println(domain.DataHandle)
+	domain.DataHandle=append(domain.DataHandle, outputStruct)
+	data, _ := json.Marshal(domain.DataHandle)
 	if err != nil {
 		http.Error(w, "failed to marshal JSON", http.StatusInternalServerError)
 		return
 	}
-
 	w.Header().Set("Content-Type", "application/json")
 	w.Write(data)
 }
@@ -148,12 +150,12 @@ func (DSS *DomainSeekingByStatus)returnDomain()([]*Domain,error){
 }
 
 
-func (DSU *DomainSeekingByUUID)ReturnUUID()(uuid.UUID,error){
-	UUID, err := uuid.Parse(DSU.UUID)
+func ReturnUUID(UUID string)(uuid.UUID,error){
+	uuidParsed, err := uuid.Parse(UUID)
 	if err!=nil{
 		return uuid.UUID{}, err
 	}
-	return UUID,nil
+	return uuidParsed,nil
 }
 
 func (DSU *DomainSeekingByUUID)SetDomain()(error){
@@ -170,7 +172,6 @@ func (DSU *DomainSeekingByUUID)SetDomain()(error){
 		Domain:domain,
 		DomainMutex: sync.Mutex{},
 	}
-	fmt.Println(Dom)
 	DSU.Domain=Dom
 	return nil
 }

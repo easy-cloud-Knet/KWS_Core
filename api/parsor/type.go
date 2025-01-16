@@ -6,7 +6,17 @@ import (
 
 //type IP []byte
 
-type Create_VM_Method int8
+type Create_VM_Method uint
+
+
+type DomainGenerator struct{
+	YamlParsor YamlController 
+	DeviceDefiner VM_CREATE_XML
+}
+// struct for detailed generation config
+
+
+
 const (
 	CREATE_WITH_XML Create_VM_Method = iota+1
 	type1
