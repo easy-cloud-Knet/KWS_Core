@@ -25,9 +25,9 @@ type DomainDeviceManager struct{
 // managing attachable devices for vm, vcpu,internet interface ... 
 type DomainStatusManager struct{
 	DomainState libvirt.DomainState
-	FilePath string 
-
+	UUID string
 }
+
 // managing domain status, deleting, shutting down.... 
 // need to add advanced feature like updating state, 
 // or setting call back for state update
@@ -102,13 +102,21 @@ type DataTypeHandler interface{
 ////////////////////////interface uniformed function for various infoType 
 
 type DomainDetail struct{
-	DomainSeeker DomainSeeker
 	DataHandle []DataTypeHandler 
+	DomainSeeker DomainSeeker
 }
 
 type DomainController struct{
 	DomainSeeker *DomainSeekingByUUID
-	DomainStatusManager DomainStatusManager
+}
+
+type DomainTerminator struct{
+	DomainSeeker DomainSeeker
+}
+type DomainDeleter struct{
+	DomainSeeker DomainSeeker
+	DomainStatusManager *DomainStatusManager
+	DeletionType DomainDeleteType
 }
 
 ////////////////////////////////////////////////////service structures for 
