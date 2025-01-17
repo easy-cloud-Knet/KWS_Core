@@ -1,10 +1,8 @@
 package conn
 
 import (
-	"encoding/json"
 	"fmt"
 	"log"
-	"net/http"
 	"sync"
 
 	"github.com/google/uuid"
@@ -72,80 +70,12 @@ func DataTypeRouter(types DomainDataType)(DataTypeHandler,error){
 
 
 
-func (i * InstHandler) ReturnDomainByStatus(w http.ResponseWriter,r * http.Request){
-	var param ReturnDomainFromStatus
-	if err:= json.NewDecoder(r.Body).Decode(&param);err != nil{
-		http.Error(w, "invalid parameter", http.StatusBadRequest)
-	}
-	DataHandle,_:= DataTypeRouter(param.DataType)
-	DomainSeeker:= &DomainSeekingByStatus{
-		LibvirtInst: i.LibvirtInst,
-		Status: param.Status,
-		DomList: make([]*Domain,5),
-	}
-	doms:=DomainDetailFactory(DataHandle,DomainSeeker)
- 	// Domain Detail로 채우는 객체 생성
-	err:= doms.DomainSeeker.SetDomain()
-	if err!= nil{
-		http.Error(w, "error while fetcing domain list", http.StatusBadRequest)
-	}
-	//domain freeing need to be added
-	list,_:=doms.DomainSeeker.returnDomain()
-	for i := range list{
-		DataHandle.GetInfo(list[i])
-		doms.DataHandle=append(doms.DataHandle, DataHandle)
-	}
 
-	data, _ := json.Marshal(doms.DataHandle)
-	if err != nil {
-		http.Error(w, "failed to marshal JSON", http.StatusInternalServerError)
-		return
-	}
-	w.Header().Set("Content-Type", "application/json")
-	w.Write(data)
-}
-
-
-
-func (i *InstHandler)ReturnStatusUUID(w http.ResponseWriter, r * http.Request){
-	var param ReturnDomainFromUUID
-	if err:= json.NewDecoder(r.Body).Decode(&param); err!=nil{
-		http.Error(w, "invalid parameter", http.StatusBadRequest)
-	}
-	DomainSeeker:= &DomainSeekingByUUID{
-		LibvirtInst: i.LibvirtInst,
-		UUID: string(param.UUID),
-		Domain: make([]*Domain,1),
-	}
-	outputStruct, _ := DataTypeRouter(param.DataType)
-	domain:=DomainDetailFactory(outputStruct,DomainSeeker)
-	
-	err:=domain.DomainSeeker.SetDomain()
-	if err!=nil{
-		fmt.Print("error occured while returning status ")
-		http.Error(w, "there is no such VM with that UUID", 1)
-	}
-
-	dom,_:=domain.DomainSeeker.returnDomain()
-	outputStruct.GetInfo(dom[0])
-	fmt.Println(domain.DataHandle)
-	domain.DataHandle=append(domain.DataHandle, outputStruct)
-	data, _ := json.Marshal(domain.DataHandle)
-	if err != nil {
-		http.Error(w, "failed to marshal JSON", http.StatusInternalServerError)
-		return
-	}
-	w.Header().Set("Content-Type", "application/json")
-	w.Write(data)
-}
-
-
-
-func (DSU *DomainSeekingByUUID)returnDomain()([]*Domain,error){
+func (DSU *DomainSeekingByUUID)ReturnDomain()([]*Domain,error){
 	return DSU.Domain,nil
 }
 
-func (DSS *DomainSeekingByStatus)returnDomain()([]*Domain,error){
+func (DSS *DomainSeekingByStatus)ReturnDomain()([]*Domain,error){
 	return DSS.DomList,nil
 }
 
@@ -175,6 +105,8 @@ func (DSU *DomainSeekingByUUID)SetDomain()(error){
 	DSU.Domain=Dom
 	return nil
 }
+
+
 
 func (DSS *DomainSeekingByStatus)SetDomain()(error){
 	doms, err := DSS.LibvirtInst.ListAllDomains(DSS.Status)

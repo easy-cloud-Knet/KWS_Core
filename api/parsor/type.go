@@ -15,7 +15,10 @@ type DomainGenerator struct{
 }
 // struct for detailed generation config
 
-
+type YamlController interface{
+	Parse_data(*VM_Init_Info) 
+	FileConfig(string) error
+}
 
 const (
 	CREATE_WITH_XML Create_VM_Method = iota+1
@@ -53,9 +56,7 @@ type User_data_yaml struct{
 }
 
 
-type YamlController interface{
-	Parse_data(*VM_Init_Info) 
-}
+
 
 
 
