@@ -3,10 +3,42 @@ package parsor
 import (
 	"bytes"
 	"fmt"
+	"log"
+	"os"
 	"os/exec"
+	"path/filepath"
 	"strings"
+
+	"gopkg.in/yaml.v3"
 )
 
+func(u *User_data_yaml) FileConfig(dirPath string) error{
+	marshalledData, err := yaml.Marshal(u)
+	if err!=nil{
+		return err
+	}
+	Writer := bytes.Buffer{}
+	Writer.WriteString("#cloud-config\n")
+	Writer.Write(marshalledData)
+	if err := os.WriteFile(filepath.Join(dirPath, "user-data"), Writer.Bytes(), 0644); err != nil {
+		log.Printf("Error writing user-data file: %v", err)
+		return err
+	}
+	return nil
+}
+func(u *Meta_data_yaml) FileConfig(dirPath string)error{
+	marshalledData, err := yaml.Marshal(u)
+	if err!=nil{
+		return err
+	}
+	Writer := bytes.Buffer{}
+	Writer.Write(marshalledData)
+	if err := os.WriteFile(filepath.Join(dirPath, "meta-data"), Writer.Bytes(), 0644); err != nil {
+		log.Printf("Error writing meta-data file: %v", err)
+		return err
+	}
+	return nil
+}
 
 
 func(u *User_data_yaml) Parse_data(param *VM_Init_Info){

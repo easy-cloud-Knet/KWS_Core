@@ -3,17 +3,11 @@ package conn
 import (
 	"sync"
 
+	"github.com/easy-cloud-Knet/KWS_Core.git/api/parsor"
 	"libvirt.org/go/libvirt"
 )
 
-
-type InstHandler struct{
-	LibvirtInst *libvirt.Connect
-}
-
-type InstHandle interface{
-	LibvirtConnection()
-}
+type LibvirtInst = *libvirt.Connect
 
 type Domain struct{
 	Domain *libvirt.Domain
@@ -56,29 +50,6 @@ const (
 	SoftDelete 	
 )
 
-type DeleteDomain struct{
-	UUID string `json:"UUID"`
-	DeletionType DomainDeleteType `json:"DeleteType"`
-}
-type ShutDownDomain struct{
-	UUID string `json:"UUID"`
-}
-type StartDomain struct{
-	UUID string `json:"UUID"`
-}
-
-type ReturnDomainFromStatus struct{ 
-	DataType DomainDataType `json:"dataType"`
-	Status libvirt.ConnectListAllDomainsFlags  `json:"Flag"`
-}
-
-type ReturnDomainFromUUID struct{ 
-	DataType DomainDataType `json:"dataType"`
-	UUID string  `json:"UUID"`
-}
-
-
-////////////////////////////////api Marshalling structures
 
 type DomainState struct{
 	DomainState libvirt.DomainState `json:"currentState"`
@@ -96,7 +67,6 @@ type DomainInfo struct{
 }
 type DataTypeHandler interface{
 	GetInfo(*Domain) error
-	// Generator(DomainDataType) err
 }
 
 ////////////////////////interface uniformed function for various infoType 
@@ -108,6 +78,12 @@ type DomainDetail struct{
 
 type DomainController struct{
 	DomainSeeker *DomainSeekingByUUID
+}
+
+type DomainGeneratorLocal struct{
+	DomainStatusManager *DomainStatusManager
+	DataParsor parsor.DomainGenerator
+	OS string
 }
 
 type DomainTerminator struct{
@@ -136,7 +112,7 @@ type DomainSeekingByStatus struct{
 
 type DomainSeeker interface{
 	SetDomain() (error)
-	returnDomain()([]*Domain,error)
+	ReturnDomain()([]*Domain,error)
 }
 /////////////////////////////interface seeking certain Domain
 
