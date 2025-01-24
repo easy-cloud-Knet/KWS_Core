@@ -86,9 +86,6 @@ func(u *User_data_yaml) Parse_data(param *VM_Init_Info){
 	u.Runcmd= append(u.Runcmd, "sudo netplan apply")
 	u.Runcmd= append(u.Runcmd, "sudo systemctl start qemu-guest-agent")
 	u.Runcmd= append(u.Runcmd, "sudo systemctl enable qemu-guest-agent")
-
-
-
 	
 }	
 func (m* Meta_data_yaml) Parse_data(param *VM_Init_Info){
