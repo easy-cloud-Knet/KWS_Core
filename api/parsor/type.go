@@ -79,6 +79,13 @@ type VM_Init_Info struct{
 	Users []User_info_VM `json:"users"`
 }
 
+type HardwareInfo struct{
+	CPU int `json:"cpu"`
+	Memory int `json:"memory"`
+}
+// gonna replace fields in VM_Init_Info
+//structure,need to modify parsor when implement this
+
 
 
 type VM_CREATE_XML struct {
