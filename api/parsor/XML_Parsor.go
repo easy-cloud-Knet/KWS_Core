@@ -11,11 +11,11 @@ func XML_Parsor(spec *VM_Init_Info) []byte {
 		UUID: spec.UUID,
 		Memory: Memory{
 			Unit: "GiB",
-			Size: spec.Memory,
+			Size: spec.HardwardInfo.Memory,
 		},
 		VCPU: VCPU{
 			Placement: "static",
-			Count:     spec.CPU,
+			Count:     spec.HardwardInfo.CPU,
 		},
 		Features: Features{
 			ACPI: ACPI{},
