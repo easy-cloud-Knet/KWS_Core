@@ -21,7 +21,6 @@ type DomainStatusManager struct{
 	DomainState libvirt.DomainState
 	UUID string
 }
-
 // managing domain status, deleting, shutting down.... 
 // need to add advanced feature like updating state, 
 // or setting call back for state update

@@ -39,14 +39,14 @@ func (DP *DomainState) GetInfo(domain *Domain)error{
 		log.Println(err)
 		return err
 	}
-
 	DP.Users=userInfo.Users
 	return nil
 }
 
+
 func DomainDetailFactory (Handler DataTypeHandler, Seeker DomainSeeker) *DomainDetail{
 	return &DomainDetail{
-		DataHandle: make([]DataTypeHandler,1),
+		DataHandle: make([]DataTypeHandler,0),
 		DomainSeeker: Seeker,
 	}
 }

@@ -68,7 +68,7 @@ func(u *User_data_yaml) Parse_data(param *VM_Init_Info){
 		}) 
 	}
 	var File_Appendor []User_write_file
-	for index, IP := range param.IPs{
+	for index, IP := range param.NetConf.Ips{
 		ipCon:= strings.Split(IP, ".")
 			ipAddress:=strings.Join([]string{ipCon[0],ipCon[1],ipCon[2], ipCon[3]},".")
 			Gateway:= strings.Join([]string{ipCon[0],ipCon[1],ipCon[2],"1"},".")

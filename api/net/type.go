@@ -1,4 +1,4 @@
-package net
+package network
 
 
 type NetType uint
@@ -11,11 +11,11 @@ type NetType uint
 const (
 	Bridge = iota
 	Nat
-
+ 
 )
 type NetDefine struct{
-	NetType NetType  `json:"NetType"`
 	Ips []string `json:"ips"`
+	NetType NetType  `json:"NetType"`
 }
 // gonna replace fields in VM_Init_Info
 //structure,need to modify parsor when implement this 
