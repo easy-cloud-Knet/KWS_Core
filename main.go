@@ -14,9 +14,9 @@ func main() {
 	libvirtInst.LibvirtConnection()
 
 	go server.InitServer(8080, &libvirtInst)
-	fmt.Println("working")	
+	fmt.Println("working")
 
-	defer  libvirtInst.LibvirtInst.Close()
+	defer libvirtInst.LibvirtInst.Close()
 
 	select {}
 }

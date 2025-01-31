@@ -85,7 +85,9 @@ func (i *InstHandler) CreateVM(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	w.WriteHeader(http.StatusOK)
+
 	w.Write(data)
+
 }
 
 
