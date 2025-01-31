@@ -71,6 +71,7 @@ func (i *InstHandler) CreateVM(w http.ResponseWriter, r *http.Request) {
 	domainInfo,_:= dom.GetInfo()
 	w.WriteHeader(http.StatusOK)
 	fmt.Fprintf(w, "VM with UUID %s created successfully., %v", param.UUID,domainInfo)
+	GetSystemInfo()
 }
 
 
