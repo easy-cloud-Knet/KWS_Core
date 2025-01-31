@@ -12,9 +12,13 @@ import (
 
 
 func (i * InstHandler) ReturnDomainByStatus(w http.ResponseWriter,r * http.Request){
+	w.Header().Set("Content-Type", "application/json")
+
 	var param ReturnDomainFromStatus
 	if err:= json.NewDecoder(r.Body).Decode(&param);err != nil{
-		http.Error(w, "invalid parameter", http.StatusBadRequest)
+		w.WriteHeader(http.StatusBadRequest)
+		fmt.Fprintf(w,"error Decoding parameters %v", err)
+		return
 	}
 	DataHandle,_:= conn.DataTypeRouter(param.DataType)
 	DomainSeeker:= &conn.DomainSeekingByStatus{
@@ -26,30 +30,47 @@ func (i * InstHandler) ReturnDomainByStatus(w http.ResponseWriter,r * http.Reque
  	// Domain Detail로 채우는 객체 생성
 	err:= doms.DomainSeeker.SetDomain()
 	if err!= nil{
-		http.Error(w, "error while fetcing domain list", http.StatusBadRequest)
+		w.WriteHeader(http.StatusInternalServerError)
+		fmt.Fprintf(w,"error while setting Domain %v", err)
+		return
 	}
 	//domain freeing need to be added
-	list,_:=doms.DomainSeeker.ReturnDomain()
+	list,err:=doms.DomainSeeker.ReturnDomain()
+	if err!= nil{
+		w.WriteHeader(http.StatusInternalServerError)
+		fmt.Fprintf(w,"error while retreving Domain %v", err)
+		return
+	}
 	for i := range list{
+		if list[i] == nil{
+			w.WriteHeader(http.StatusInternalServerError)
+			fmt.Fprintf(w,"invalid Domain Object contained %v", err)
+			return
+		}
 		DataHandle.GetInfo(list[i])
 		doms.DataHandle=append(doms.DataHandle, DataHandle)
 	}
 
-	data, _ := json.Marshal(doms.DataHandle)
+	data, err := json.Marshal(doms.DataHandle)
 	if err != nil {
-		http.Error(w, "failed to marshal JSON", http.StatusInternalServerError)
+		w.WriteHeader(http.StatusInternalServerError)
+		fmt.Fprintf(w,"failed marshalling data %v", err)
 		return
 	}
-	w.Header().Set("Content-Type", "application/json")
+
+	w.WriteHeader(http.StatusOK)
 	w.Write(data)
 }
 
 
 
 func (i *InstHandler)ReturnStatusUUID(w http.ResponseWriter, r * http.Request){
+	w.Header().Set("Content-Type", "application/json")
+
 	var param ReturnDomainFromUUID
 	if err:= json.NewDecoder(r.Body).Decode(&param); err!=nil{
-		http.Error(w, "invalid parameter", http.StatusBadRequest)
+		CommonErrorHelper(w,err,http.StatusBadRequest, "Invalid Parameter")
+
 	}
 	DomainSeeker:= &conn.DomainSeekingByUUID{
 		LibvirtInst: i.LibvirtInst,
@@ -62,22 +83,25 @@ func (i *InstHandler)ReturnStatusUUID(w http.ResponseWriter, r * http.Request){
 	
 	err:=DomainDetail.DomainSeeker.SetDomain()
 	if err!=nil{
-		fmt.Print("error occured while returning status ")
-		http.Error(w, "there is no such VM with that UUID", 1)
+		fmt.Println("doamin error %w",err)
+		CommonErrorHelper(w,err,http.StatusInternalServerError, "error occured while returning status")
+		return
 	}
 	
-	dom,_:=DomainDetail.DomainSeeker.ReturnDomain()
-	fmt.Println(dom)
-
+	dom,err:=DomainDetail.DomainSeeker.ReturnDomain()
+	if err!=nil{
+		CommonErrorHelper(w,err,http.StatusBadRequest, "error occured while returning status")
+		return
+	}
 	outputStruct.GetInfo(dom[0])
 
 	DomainDetail.DataHandle=append(DomainDetail.DataHandle, outputStruct)
 	data, _ := json.Marshal(DomainDetail.DataHandle)
 	if err != nil {
-		http.Error(w, "failed to marshal JSON", http.StatusInternalServerError)
+		CommonErrorHelper(w,err,http.StatusInternalServerError, "failed to marshal JSON")
 		return
 	}
-	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
 	w.Write(data)
 }
 

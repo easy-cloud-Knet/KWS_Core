@@ -36,12 +36,12 @@ type DomainDataType uint
 
 const (
 	PowerStaus DomainDataType =iota //0
-	BasicInfo	//1 ....
-	GuestInfoUser
-	GuestInfoOS
-	GuestInfoFS
+	BasicInfo	//1 .... 
+	GuestInfoUser // 2
+	GuestInfoOS// 3
+	GuestInfoFS//4  이 숫자랑만 맞춰주면 됨 
 	GuestInfoDisk
-)
+)	
 type DomainDeleteType uint 
 
 const (

@@ -40,7 +40,13 @@ type ReturnDomainFromUUID struct{
 	UUID string  `json:"UUID"`
 }
 
+type ErrorType uint32
 
+const (
+	valid ErrorType =iota
+	NotValidUUID 
+
+)
 
 
 // type ConnectListAllDomainsFlags uint
