@@ -36,30 +36,6 @@ type ReturnDomainFromUUID struct {
 	UUID     string              `json:"UUID"`
 }
 
-type SystemInfo struct {
-	Memory MemoryInfo `json:"memory"`
-	Disks  []DiskInfo `json:"disks"`
-}
-
-type MemoryInfo struct {
-	Total       uint64  `json:"total_gb"`
-	Used        uint64  `json:"used_gb"`
-	Available   uint64  `json:"available_gb"`
-	UsedPercent float64 `json:"used_percent"`
-}
-
-type DiskInfo struct {
-	Mountpoint  string  `json:"mountpoint"`
-	Total       uint64  `json:"total_gb"`
-	Used        uint64  `json:"used_gb"`
-	Free        uint64  `json:"free_gb"`
-	UsedPercent float64 `json:"used_percent"`
-}
-
-///
-// 잠시만요.
-///
-
 // type ConnectListAllDomainsFlags uint
 //     const (
 //     CONNECT_LIST_DOMAINS_ACTIVE         = ConnectListAllDomainsFlags(C.VIR_CONNECT_LIST_DOMAINS_ACTIVE)
