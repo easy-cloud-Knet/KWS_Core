@@ -5,44 +5,38 @@ import (
 	"libvirt.org/go/libvirt"
 )
 
-
-type InstHandler struct{
+type InstHandler struct {
 	LibvirtInst conn.LibvirtInst
 }
 
-type InstHandle interface{
+type InstHandle interface {
 	LibvirtConnection()
 }
 
-
-
-
 //// income api Structures
 
-type DeleteDomain struct{
-	UUID string `json:"UUID"`
+type DeleteDomain struct {
+	UUID         string                `json:"UUID"`
 	DeletionType conn.DomainDeleteType `json:"DeleteType"`
 }
-type ShutDownDomain struct{
+type ShutDownDomain struct {
 	UUID string `json:"UUID"`
 }
-type StartDomain struct{
+type StartDomain struct {
 	UUID string `json:"UUID"`
 }
 
-type ReturnDomainFromStatus struct{ 
-	DataType conn.DomainDataType `json:"dataType"`
-	Status libvirt.ConnectListAllDomainsFlags  `json:"Flag"`
+type ReturnDomainFromStatus struct {
+	DataType conn.DomainDataType                `json:"dataType"`
+	Status   libvirt.ConnectListAllDomainsFlags `json:"Flag"`
 }
 
-type ReturnDomainFromUUID struct{ 
+type ReturnDomainFromUUID struct {
 	DataType conn.DomainDataType `json:"dataType"`
-	UUID string  `json:"UUID"`
+	UUID     string              `json:"UUID"`
 }
-
-
-
-
+ 
+ 
 // type ConnectListAllDomainsFlags uint
 //     const (
 //     CONNECT_LIST_DOMAINS_ACTIVE         = ConnectListAllDomainsFlags(C.VIR_CONNECT_LIST_DOMAINS_ACTIVE)
@@ -62,8 +56,6 @@ type ReturnDomainFromUUID struct{
 //     CONNECT_LIST_DOMAINS_HAS_CHECKPOINT = ConnectListAllDomainsFlags(C.VIR_CONNECT_LIST_DOMAINS_HAS_CHECKPOINT)
 //     CONNECT_LIST_DOMAINS_NO_CHECKPOINT  = ConnectListAllDomainsFlags(C.VIR_CONNECT_LIST_DOMAINS_NO_CHECKPOINT)
 // )
-
-
 
 // const (
 // 	DOMAIN_NOSTATE     = DomainState(C.VIR_DOMAIN_NOSTATE)

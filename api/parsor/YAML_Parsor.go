@@ -22,10 +22,12 @@ func(u *User_data_yaml) FileConfig(dirPath string) error{
 	Writer.Write(marshalledData)
 	if err := os.WriteFile(filepath.Join(dirPath, "user-data"), Writer.Bytes(), 0644); err != nil {
 		log.Printf("Error writing user-data file: %v", err)
-		return err
+		return fmt.Errorf("error Writing user-data file %w", err)
 	}
 	return nil
 }
+//parsing user-data >> file Config >> done writing user data
+
 func(u *Meta_data_yaml) FileConfig(dirPath string)error{
 	marshalledData, err := yaml.Marshal(u)
 	if err!=nil{
@@ -35,27 +37,24 @@ func(u *Meta_data_yaml) FileConfig(dirPath string)error{
 	Writer.Write(marshalledData)
 	if err := os.WriteFile(filepath.Join(dirPath, "meta-data"), Writer.Bytes(), 0644); err != nil {
 		log.Printf("Error writing meta-data file: %v", err)
-		return err
+		return fmt.Errorf("error Writing Meta-data file %w", err)
 	}
 	return nil
 }
 
 
-func(u *User_data_yaml) Parse_data(param *VM_Init_Info){
+func(u *User_data_yaml) Parse_data(param *VM_Init_Info) error {
 
 	u.PackageUpdatable=true 
 	
 	u.PredownProjects= []string{"qemu-guest-agent"}
 	// add more packages needed
-
-
-
 	Users_Detail:= []interface{}{"default",}
 
-	for _,User := range param.Users{
+	for i,User := range param.Users{
 		outputPasswd, err:= PasswdEncryption(User.PassWord)
 		if err!= nil{
-			fmt.Println(err)
+			return fmt.Errorf("error Encrypting password %w of User index %d", err, i)
 		}
 		Users_Detail=append(Users_Detail, User_specific{
 			Name:User.Name,
@@ -68,7 +67,7 @@ func(u *User_data_yaml) Parse_data(param *VM_Init_Info){
 		}) 
 	}
 	var File_Appendor []User_write_file
-	for index, IP := range param.IPs{
+	for index, IP := range param.NetConf.Ips{
 		ipCon:= strings.Split(IP, ".")
 			ipAddress:=strings.Join([]string{ipCon[0],ipCon[1],ipCon[2], ipCon[3]},".")
 			Gateway:= strings.Join([]string{ipCon[0],ipCon[1],ipCon[2],"1"},".")
@@ -87,10 +86,12 @@ func(u *User_data_yaml) Parse_data(param *VM_Init_Info){
 	u.Runcmd= append(u.Runcmd, "sudo systemctl start qemu-guest-agent")
 	u.Runcmd= append(u.Runcmd, "sudo systemctl enable qemu-guest-agent")
 	
+	return nil
 }	
-func (m* Meta_data_yaml) Parse_data(param *VM_Init_Info){
+func (m* Meta_data_yaml) Parse_data(param *VM_Init_Info) error {
 	m.Instance_ID=param.UUID
 	m.Local_Host_Id=param.DomName
+	return nil
 }
 
 

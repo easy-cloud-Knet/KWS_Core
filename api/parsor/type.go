@@ -2,6 +2,8 @@ package parsor
 
 import (
 	"encoding/xml"
+
+	network "github.com/easy-cloud-Knet/KWS_Core.git/api/net"
 )
 
 //type IP []byte
@@ -16,8 +18,8 @@ type DomainGenerator struct{
 // struct for detailed generation config
 
 type YamlController interface{
-	Parse_data(*VM_Init_Info) 
-	FileConfig(string) error
+	Parse_data(*VM_Init_Info)  error
+	FileConfig(string) error 
 }
 
 const (
@@ -72,8 +74,8 @@ type VM_Init_Info struct{
 	UUID string `json:"uuid"`
 	OS string `json:"os"`
 	NetworkType string `json:"netType"`
-	Memory int `json:"memory"`
-	CPU int `json:"cpu"`
+	HardwardInfo HardwareInfo `json:"HWInfo"`
+	NetConf network.NetDefine `json:"network"`
 	IPs []string `json:"ips"`
 	Method Create_VM_Method `json:"method"`
 	Users []User_info_VM `json:"users"`

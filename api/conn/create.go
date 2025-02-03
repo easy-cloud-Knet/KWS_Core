@@ -15,18 +15,21 @@ func (DGL DomainGeneratorLocal) CreateFolder()error{
 	dirPath := fmt.Sprintf("/var/lib/kws/%s", DGL.DomainStatusManager.UUID)
 	if err := os.MkdirAll(dirPath, 0755); err != nil {
 		
-		return err
+		return fmt.Errorf("making Directory Failed, may have Duplicated folder %w", err)
 	}
 	return nil
 }
 
 
 func (DGL DomainGeneratorLocal) CloudInitConf(param *parsor.VM_Init_Info)error{
-	DGL.DataParsor.YamlParsor.Parse_data(param)
+	err :=DGL.DataParsor.YamlParsor.Parse_data(param)
+	if err!= nil{
+		return err
+	}
 	
 	dirPath := fmt.Sprintf("/var/lib/kws/%s", DGL.DomainStatusManager.UUID)
 	if err:= DGL.DataParsor.YamlParsor.FileConfig(dirPath); err!=nil{
-		return err
+		return fmt.Errorf("%w Writing Cloud Init Config File Failed, may Have Duplicated File in %s,", err, dirPath)
 	}
 
 	return nil
@@ -48,8 +51,8 @@ func (DGL DomainGeneratorLocal) CreateDiskImage() error{
 
 	log.Println("Creating disk image...")
 	if err := qemuImgCmd.Run(); err != nil {
-		log.Printf("qemu-img command failed: %v", err)
-		return err
+		
+		return fmt.Errorf("%w failed creating qemu-img, check if OS Images validity or Disk Size",err)
 	}
 	return nil
 }
@@ -74,7 +77,7 @@ func (DGL DomainGeneratorLocal) CreateISOFile()error{
 	log.Println("Generating ISO image...")
 	if err := genisoCmd.Run(); err != nil {
 		log.Printf("genisoimage command failed: %v", err)
-		return err
+		return fmt.Errorf("generating ISO Image for cloud-init failed %w", err )
 	}
 	return nil
 }
