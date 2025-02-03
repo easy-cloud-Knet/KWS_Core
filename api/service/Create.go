@@ -96,7 +96,7 @@ func (i *InstHandler) CreateDomainWithXML(config []byte) (*libvirt.Domain, error
 	domain, err := i.LibvirtInst.DomainDefineXML(string(config))
 	if err != nil {
 		return nil, fmt.Errorf("error generating XML File %v",err)
- 
+	} 
 	//이전까지 생성 된 파일 삭제 해야됨.
   return domain ,err
 }
