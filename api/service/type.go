@@ -36,7 +36,6 @@ type ReturnDomainFromUUID struct {
 	UUID     string              `json:"UUID"`
 }
  
-
  
 // type ConnectListAllDomainsFlags uint
 //     const (

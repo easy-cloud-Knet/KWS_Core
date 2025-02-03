@@ -11,7 +11,6 @@ import (
 	"libvirt.org/go/libvirt"
 )
 
-
 func (i *InstHandler) CreateVM(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	var param parsor.VM_Init_Info
@@ -22,9 +21,9 @@ func (i *InstHandler) CreateVM(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	//생성 방법에 따라 다른 Generator 선언 필요
-	DomainFromLocal:= &conn.DomainGeneratorLocal{
+	DomainFromLocal := &conn.DomainGeneratorLocal{
 		DomainStatusManager: &conn.DomainStatusManager{
-			UUID:param.UUID,
+			UUID: param.UUID,
 		},
 		OS: param.OS,
 	}
@@ -43,7 +42,7 @@ func (i *InstHandler) CreateVM(w http.ResponseWriter, r *http.Request) {
 		CommonErrorHelper(w,err, http.StatusInternalServerError,"Error writing XML file ")
 		return 
 	}
-	DomainFromLocal.DataParsor.YamlParsor=&parsor.Meta_data_yaml{}
+	DomainFromLocal.DataParsor.YamlParsor = &parsor.Meta_data_yaml{}
 
 	err=DomainFromLocal.CloudInitConf(&param)
 	if err!=nil{
@@ -51,8 +50,9 @@ func (i *InstHandler) CreateVM(w http.ResponseWriter, r *http.Request) {
 		log.Printf("Error writing Meta data  %v", err)
 		return 
 	}
-	parsedXML:= parsor.XML_Parsor(&param)
+	parsedXML := parsor.XML_Parsor(&param)
 
+ 
 	if err:= DomainFromLocal.CreateDiskImage();err!=nil{
 		CommonErrorHelper(w,err, http.StatusInternalServerError,"Error Creating DiskImage")
 		log.Printf("Error writing XML file  %v", err)
@@ -90,15 +90,13 @@ func (i *InstHandler) CreateVM(w http.ResponseWriter, r *http.Request) {
 
 }
 
-
-
 func (i *InstHandler) CreateDomainWithXML(config []byte) (*libvirt.Domain, error) {
- 
+
 	// DomainCreateXMLWithFiles를 호출하여 도메인을 생성합니다.
 	domain, err := i.LibvirtInst.DomainDefineXML(string(config))
 	if err != nil {
 		return nil, fmt.Errorf("error generating XML File %v",err)
-	}
+ 
 	//이전까지 생성 된 파일 삭제 해야됨.
   return domain ,err
 
