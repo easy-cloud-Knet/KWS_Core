@@ -56,9 +56,10 @@ func (DP *DomainState) GetInfo(domain *Domain) error {
 		log.Println(err)
 		return err
 	}
-	uuidBytes, _ := domain.Domain.GetUUID()
-	uuidParsed, _ := uuid.FromBytes(uuidBytes)
-	fmt.Println(uuidParsed.String())
+ 
+	uuidBytes,_ := domain.Domain.GetUUID()
+	uuidParsed,_:=uuid.FromBytes(uuidBytes)
+ 
 	DP.DomainState = info
 	DP.UUID = string(uuidParsed.String())
 	userInfo, err := domain.Domain.GetGuestInfo(libvirt.DOMAIN_GUEST_INFO_USERS, 0)
@@ -94,15 +95,25 @@ func DataTypeRouter(types DomainDataType) (DataTypeHandler, error) {
 	case HostInfo:
 		return &SystemInfo{}, nil
 	}
-	return &DomainInfo{}, fmt.Errorf("error")
+	return &DomainInfo{},fmt.Errorf("not valid parameters for DomainDataType provided")
 }
 
-func (DSU *DomainSeekingByUUID) ReturnDomain() ([]*Domain, error) {
-	return DSU.Domain, nil
+
+
+
+func (DSU *DomainSeekingByUUID)ReturnDomain()([]*Domain,error){
+	fmt.Println((DSU))
+	if len(DSU.Domain)==0{
+		return nil, fmt.Errorf("no such Domain exists")
+	}
+	return DSU.Domain,nil
 }
 
-func (DSS *DomainSeekingByStatus) ReturnDomain() ([]*Domain, error) {
-	return DSS.DomList, nil
+func (DSS *DomainSeekingByStatus)ReturnDomain()([]*Domain,error){
+	if len(DSS.DomList)==0{
+		return nil, fmt.Errorf("no such Domain exists")
+	}
+	return DSS.DomList,nil
 }
 
 func ReturnUUID(UUID string) (uuid.UUID, error) {

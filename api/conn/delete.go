@@ -2,7 +2,6 @@ package conn
 
 import (
 	"fmt"
-	"log"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -29,14 +28,18 @@ func DomainDeleterFactory(DomainSeek DomainSeeker, DelType DomainDeleteType, uui
 
 func (DD *DomainDeleter) DeleteDomain() (*libvirt.DomainInfo, error){
 	if err :=DD.DomainSeeker.SetDomain(); err!=nil{
-		return &libvirt.DomainInfo{},err
+		return nil,err
 	}
-	dom,_ := DD.DomainSeeker.ReturnDomain()
+	dom,err := DD.DomainSeeker.ReturnDomain(); 
+	if err!=nil{
+		return nil,err
+	}
 
 	isRunning, _ :=dom[0].Domain.IsActive()
 	if isRunning&& DD.DeletionType==SoftDelete {
-		return &libvirt.DomainInfo{},fmt.Errorf("Domain Is Running %w", nil)
+		return &libvirt.DomainInfo{},fmt.Errorf("Domain Is Running %w, cannot softDelete running Domain", nil)
 	}else if isRunning&&DD.DeletionType==HardDelete{
+
 		domShut:=&DomainTerminator{DomainSeeker: DD.DomainSeeker}
 		_,err := domShut.ShutDownDomain()
 		if(err!=nil){
@@ -44,7 +47,10 @@ func (DD *DomainDeleter) DeleteDomain() (*libvirt.DomainInfo, error){
 		}
 	}
 	basicFilePath:= "/var/lib/kws/"
-	DomainPath,_:=ReturnUUID(DD.DomainStatusManager.UUID)
+	DomainPath,err:=ReturnUUID(DD.DomainStatusManager.UUID)
+	if err!= nil{
+		return nil,fmt.Errorf("error Occured while decoding UUID in DeleteDom, %w",err)
+	}
 	FilePath := filepath.Join(basicFilePath,DomainPath.String())
 	deleteCmd := exec.Command("rm", "-rf", FilePath)
 	deleteCmd.Stdout = os.Stdout
@@ -52,21 +58,19 @@ func (DD *DomainDeleter) DeleteDomain() (*libvirt.DomainInfo, error){
 
 
 	if err := deleteCmd.Run(); err !=nil{
-		log.Printf("qemu-img command failed: %v", err)
-		return &libvirt.DomainInfo{},nil
+		return &libvirt.DomainInfo{},fmt.Errorf("%w failed deleteing files in %s", err,FilePath)
 	}
+	
 	domainInfo,err:= dom[0].Domain.GetInfo()
+	if err!=nil{
+		return &libvirt.DomainInfo{}, fmt.Errorf("%w Error Retreving DomInfo in After Deleting Domain", err)
+	}  // 다른 정보 추가 고려
+
 	if err:= dom[0].Domain.Undefine(); err!=nil{
-		fmt.Println("error occured while deleting Domain")
-		return &libvirt.DomainInfo{},nil
+		return &libvirt.DomainInfo{},fmt.Errorf("%w, failed deleting Domain in libvirt Instance, ",err)
 	}
 	defer dom[0].Domain.Free()
-	
-	if err!=nil{
-		fmt.Println(err)	
-		//error handler needed
-		return &libvirt.DomainInfo{}, nil
-	}
+
 	return domainInfo,nil
 }
 
@@ -78,14 +82,15 @@ func (DD *DomainTerminator) ShutDownDomain() (*libvirt.DomainInfo,error){
 	dom,_ := DD.DomainSeeker.ReturnDomain()
 	isRunning, _ :=dom[0].Domain.IsActive()
 	if !isRunning {
-		return &libvirt.DomainInfo{},fmt.Errorf("Domain Is Not Running %w", nil)
+		return &libvirt.DomainInfo{},fmt.Errorf("requested Domain to shutdown is already Dead ")
 	}
 
 	if err:= dom[0].Domain.Destroy(); err!=nil{
 		fmt.Println("error occured while deleting Domain")
-		return &libvirt.DomainInfo{},err
+		return &libvirt.DomainInfo{},fmt.Errorf("internal Error in Libvirt occured while shutting down domain")
 	}
 	defer dom[0].Domain.Free()
+	
 	domainInfo,err:= dom[0].Domain.GetInfo()
 	if err!=nil{
 		fmt.Println(err)	

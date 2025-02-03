@@ -35,7 +35,8 @@ type ReturnDomainFromUUID struct {
 	DataType conn.DomainDataType `json:"dataType"`
 	UUID     string              `json:"UUID"`
 }
-
+ 
+ 
 // type ConnectListAllDomainsFlags uint
 //     const (
 //     CONNECT_LIST_DOMAINS_ACTIVE         = ConnectListAllDomainsFlags(C.VIR_CONNECT_LIST_DOMAINS_ACTIVE)

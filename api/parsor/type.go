@@ -18,8 +18,8 @@ type DomainGenerator struct{
 // struct for detailed generation config
 
 type YamlController interface{
-	Parse_data(*VM_Init_Info) 
-	FileConfig(string) error
+	Parse_data(*VM_Init_Info)  error
+	FileConfig(string) error 
 }
 
 const (
