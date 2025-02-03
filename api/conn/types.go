@@ -36,11 +36,11 @@ type DomainControl interface {
 type DomainDataType uint
 
 const (
-	PowerStaus DomainDataType = iota //0
-	BasicInfo                        //1 ....
-	GuestInfoUser
-	GuestInfoOS
-	GuestInfoFS
+	DomState DomainDataType =iota //0
+	BasicInfo	//1 .... 
+	GuestInfoUser // 2
+	GuestInfoOS// 3
+	GuestInfoFS//4  이 숫자랑만 맞춰주면 됨 
 	GuestInfoDisk
 	HostInfo // -ing
 )
@@ -130,7 +130,7 @@ type DomainSeekingByUUID struct {
 	Domain      []*Domain
 }
 
-type DomainSeekingByStatus struct {
+type DomainSeekingByStatus struct{
 	LibvirtInst *libvirt.Connect
 	Status      libvirt.ConnectListAllDomainsFlags
 	DomList     []*Domain

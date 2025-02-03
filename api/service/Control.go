@@ -53,8 +53,7 @@ func (i *InstHandler)DeleteVM(w http.ResponseWriter, r *http.Request){
 	w.Header().Set("Content-Type", "application/json")
 	var param DeleteDomain
 	if err:= json.NewDecoder(r.Body).Decode(&param);err != nil{
-		w.WriteHeader(http.StatusInternalServerError)
-		fmt.Fprintf(w,"Error while decoding deletion parameter, %v", err)
+		CommonErrorHelper(w,err,http.StatusInternalServerError, "Error while decoding deletion parameter")
 		return
 	}
 	DomainSeeker:= &conn.DomainSeekingByUUID{
@@ -66,9 +65,8 @@ func (i *InstHandler)DeleteVM(w http.ResponseWriter, r *http.Request){
 	
 	domainInfo, err:=DomainDeleter.DeleteDomain()
 	if err!=nil{
+		CommonErrorHelper(w,err,http.StatusInternalServerError, "Error while deleting Domain")
 		fmt.Println(err)
-		w.WriteHeader(http.StatusInternalServerError)
-		fmt.Fprintf(w,"Error while deleting Domain %v", err)
 		return
 	}
 		//uuid unparsing 중 에러, undefine,destroyDom 에서 에러, 켜져 있지만 softdelete가 
@@ -81,8 +79,7 @@ func (i *InstHandler)DeleteVM(w http.ResponseWriter, r *http.Request){
 	
 	resp, err:=json.Marshal(response)
 	if err!= nil{
-		w.WriteHeader(http.StatusInternalServerError)
-		fmt.Fprintf(w,"error while Marshaling response %v",err)
+		CommonErrorHelper(w,err,http.StatusInternalServerError, "error while Marshaling response")
 	}
 
 	w.WriteHeader(http.StatusOK)

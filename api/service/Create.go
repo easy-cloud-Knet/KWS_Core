@@ -74,7 +74,7 @@ func (i *InstHandler) CreateVM(w http.ResponseWriter, r *http.Request) {
 	err = dom.Create()
 	if err!= nil{
 		CommonErrorHelper(w,err, http.StatusInternalServerError,"Error starting VM, check for Host Capacity")
-		log.Printf("Error starting VM, check for Host Capacity  %v", err)
+		log.Printf("Error starting VM, check for Host's Ram Capacity  %v", err)
 		return 
 	}
 
@@ -99,5 +99,9 @@ func (i *InstHandler) CreateDomainWithXML(config []byte) (*libvirt.Domain, error
  
 	//이전까지 생성 된 파일 삭제 해야됨.
   return domain ,err
+}
+
+
+func DomainCleanUp(){
 
 }
