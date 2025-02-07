@@ -24,9 +24,6 @@ func DomainDeleterFactory(DomainSeek DomainSeeker, DelType DomainDeleteType, uui
 }
 
 func (DD *DomainDeleter) DeleteDomain() (*libvirt.DomainInfo, error) {
-	if err := DD.DomainSeeker.SetDomain(); err != nil {
-		return nil, err
-	}
 	dom, err := DD.DomainSeeker.ReturnDomain()
 	if err != nil {
 		return nil, err
@@ -34,13 +31,13 @@ func (DD *DomainDeleter) DeleteDomain() (*libvirt.DomainInfo, error) {
 
 	isRunning, _ := dom[0].Domain.IsActive()
 	if isRunning && DD.DeletionType == SoftDelete {
-		return &libvirt.DomainInfo{}, fmt.Errorf("Domain Is Running %w, cannot softDelete running Domain", nil)
+		return nil, fmt.Errorf("Domain Is Running %w, cannot softDelete running Domain", nil)
 	} else if isRunning && DD.DeletionType == HardDelete {
 
 		domShut := &DomainTerminator{DomainSeeker: DD.DomainSeeker}
 		_, err := domShut.ShutDownDomain()
 		if err != nil {
-			return &libvirt.DomainInfo{}, err
+			return nil, err
 		}
 	}
 	basicFilePath := "/var/lib/kws/"
@@ -71,26 +68,23 @@ func (DD *DomainDeleter) DeleteDomain() (*libvirt.DomainInfo, error) {
 }
 
 func (DD *DomainTerminator) ShutDownDomain() (*libvirt.DomainInfo, error) {
-	if err := DD.DomainSeeker.SetDomain(); err != nil {
-		return &libvirt.DomainInfo{}, err
-	}
+ 
 	dom, _ := DD.DomainSeeker.ReturnDomain()
 	isRunning, _ := dom[0].Domain.IsActive()
 	if !isRunning {
-		return &libvirt.DomainInfo{}, fmt.Errorf("requested Domain to shutdown is already Dead ")
+		return nil, fmt.Errorf("requested Domain to shutdown is already Dead ")
 	}
 
 	if err := dom[0].Domain.Destroy(); err != nil {
 		fmt.Println("error occured while deleting Domain")
-		return &libvirt.DomainInfo{}, fmt.Errorf("internal Error in Libvirt occured while shutting down domain")
+		return nil, fmt.Errorf("internal Error in Libvirt occured while shutting down domain")
 	}
 	defer dom[0].Domain.Free()
 
 	domainInfo, err := dom[0].Domain.GetInfo()
 	if err != nil {
 		fmt.Println(err)
-		//error handler needed
-		return &libvirt.DomainInfo{}, err
+		return nil, err
 	}
 	return domainInfo, nil
 }

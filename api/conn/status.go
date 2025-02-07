@@ -98,17 +98,27 @@ func DataTypeRouter(types DomainDataType) (DataTypeHandler, error) {
 	return &DomainInfo{}, fmt.Errorf("not valid parameters for DomainDataType provided")
 }
 
+
+
 func (DSU *DomainSeekingByUUID) ReturnDomain() ([]*Domain, error) {
 	fmt.Println((DSU))
 	if len(DSU.Domain) == 0 {
-		return nil, fmt.Errorf("no such Domain exists")
+		err :=DSU.SetDomain()
+		if err!=nil{
+			return nil, fmt.Errorf("no such Domain exists")
+		}
 	}
 	return DSU.Domain, nil
 }
 
+
+
 func (DSS *DomainSeekingByStatus) ReturnDomain() ([]*Domain, error) {
 	if len(DSS.DomList) == 0 {
-		return nil, fmt.Errorf("no such Domain exists")
+		err :=DSS.SetDomain()
+		if err!=nil{
+			return nil, fmt.Errorf("no such Domain exists")
+		}
 	}
 	return DSS.DomList, nil
 }
@@ -153,4 +163,20 @@ func (DSS *DomainSeekingByStatus) SetDomain() error {
 
 	DSS.DomList = Domains
 	return nil
+}
+
+func DomSeekStatusFactory(LibInstance *libvirt.Connect,flag libvirt.ConnectListAllDomainsFlags)*DomainSeekingByStatus{
+	return &DomainSeekingByStatus{
+		LibvirtInst: LibInstance,
+		Status: flag,
+		DomList: make([]*Domain, 0),
+	}
+}
+
+func DomSeekUUIDFactory(LibInstance *libvirt.Connect,UUID string)*DomainSeekingByUUID{
+	return &DomainSeekingByUUID{ 
+		LibvirtInst: LibInstance,
+		UUID:        UUID,
+		Domain:      make([]*Domain, 1),
+	}
 }

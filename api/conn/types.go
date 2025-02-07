@@ -13,10 +13,6 @@ type Domain struct {
 	Domain      *libvirt.Domain
 	DomainMutex sync.Mutex
 }
-
-type DomainDeviceManager struct {
-}
-
 // managing attachable devices for vm, vcpu,internet interface ...
 type DomainStatusManager struct {
 	DomainState libvirt.DomainState
@@ -27,9 +23,7 @@ type DomainStatusManager struct {
 // need to add advanced feature like updating state,
 // or setting call back for state update
 
-type DomainControl interface {
-	DomainStatus()
-}
+
 
 ///////////////////////////////////////////////////
 
@@ -54,7 +48,6 @@ const (
 
 type DomainState struct {
 	DomainState libvirt.DomainState `json:"currentState"`
-	//type reference 참고
 	UUID  string                        `json:"UUID"`
 	Users []libvirt.DomainGuestInfoUser `json:"Guest Info"`
 }
@@ -66,8 +59,6 @@ type DomainInfo struct {
 	NrVirtCpu uint                `json:"nrVirtCpu"`
 	CpuTime   uint64              `json:"cpuTime"`
 }
-
-// -ing
 
 type MemoryInfo struct {
 	Total       uint64  `json:"total_gb"`
@@ -95,16 +86,11 @@ type DataTypeHandler interface {
 	GetInfo(*Domain) error
 }
 
-////////////////////////interface uniformed function for various infoType
-
 type DomainDetail struct {
 	DataHandle   []DataTypeHandler
 	DomainSeeker DomainSeeker
 }
-
-type DomainController struct {
-	DomainSeeker *DomainSeekingByUUID
-}
+////////////////////////interface uniformed function for various infoType
 
 type DomainGeneratorLocal struct {
 	DomainStatusManager *DomainStatusManager

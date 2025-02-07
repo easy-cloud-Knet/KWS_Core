@@ -108,11 +108,7 @@ func HostDataTypeRouter(types HostDataType) (HostDataTypeHandler, error) {
 	return &HostSystemInfo{}, fmt.Errorf("not valid parameters for HostDataType provided")
 }
 
-// func HostDetailFactory(Handler HostDataTypeHandler) *HostDetail {
-// 	return &HostDetail{
-// 		HostDataHandle: make([]HostDataTypeHandler, 0),
-// 	}
-// }
+
 
 func HostDetailFactory(handler HostDataTypeHandler) *HostDetail {
 	if err := handler.GetHostInfo(); err != nil {
