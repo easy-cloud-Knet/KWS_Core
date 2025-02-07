@@ -36,11 +36,11 @@ type DomainControl interface {
 type DomainDataType uint
 
 const (
-	DomState DomainDataType =iota //0
-	BasicInfo	//1 .... 
-	GuestInfoUser // 2
-	GuestInfoOS// 3
-	GuestInfoFS//4  이 숫자랑만 맞춰주면 됨 
+	DomState      DomainDataType = iota //0
+	BasicInfo                           //1 ....
+	GuestInfoUser                       // 2
+	GuestInfoOS                         // 3
+	GuestInfoFS                         //4  이 숫자랑만 맞춰주면 됨
 	GuestInfoDisk
 	HostInfo // -ing
 )
@@ -89,7 +89,7 @@ type SystemInfo struct {
 	Disks  DiskInfo   `json:"disks"`
 }
 
-// 잉잉
+//
 
 type DataTypeHandler interface {
 	GetInfo(*Domain) error
@@ -130,7 +130,7 @@ type DomainSeekingByUUID struct {
 	Domain      []*Domain
 }
 
-type DomainSeekingByStatus struct{
+type DomainSeekingByStatus struct {
 	LibvirtInst *libvirt.Connect
 	Status      libvirt.ConnectListAllDomainsFlags
 	DomList     []*Domain
@@ -142,3 +142,49 @@ type DomainSeeker interface {
 }
 
 /////////////////////////////interface seeking certain Domain
+
+//hostinfo_
+
+type HostDetail struct {
+	HostDataHandle []HostDataTypeHandler
+}
+
+type HostDataTypeHandler interface {
+	GetHostInfo() error
+}
+
+type HostDataType uint
+
+const (
+	CpuInfo HostDataType = iota //0
+	MemInfo                     //1 ....
+	DiskInfoHi
+	SystemInfoHi
+)
+
+type HostCpuInfo struct {
+	System float64 `json:"system_time"`
+	Idle   float64 `json:"idle_time"`
+	Usage  float64 `json:"usage_percent"`
+}
+
+type HostMemoryInfo struct {
+	Total       uint64  `json:"total_gb"`
+	Used        uint64  `json:"used_gb"`
+	Available   uint64  `json:"available_gb"`
+	UsedPercent float64 `json:"used_percent"`
+}
+
+type HostDiskInfo struct {
+	Total       uint64  `json:"total_gb"`
+	Used        uint64  `json:"used_gb"`
+	Free        uint64  `json:"free_gb"`
+	UsedPercent float64 `json:"used_percent"`
+}
+
+type HostSystemInfo struct {
+	Uptime   uint64  `json:"uptime_seconds"`
+	BootTime uint64  `json:"boot_time_epoch"`
+	CPU_Temp float64 `json:"cpu_temperature,omitempty"` // no
+	RAM_Temp float64 `json:"ram_temperature,omitempty"` // no
+}

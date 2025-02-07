@@ -23,7 +23,7 @@ func (SI *SystemInfo) GetInfo(domain *Domain) error {
 
 	usage, err := disk.Usage("/")
 	if err != nil {
-		fmt.Printf("disk error: %v\n", err)
+		fmt.Println(err)
 		return err
 	}
 
@@ -56,10 +56,10 @@ func (DP *DomainState) GetInfo(domain *Domain) error {
 		log.Println(err)
 		return err
 	}
- 
-	uuidBytes,_ := domain.Domain.GetUUID()
-	uuidParsed,_:=uuid.FromBytes(uuidBytes)
- 
+
+	uuidBytes, _ := domain.Domain.GetUUID()
+	uuidParsed, _ := uuid.FromBytes(uuidBytes)
+
 	DP.DomainState = info
 	DP.UUID = string(uuidParsed.String())
 	userInfo, err := domain.Domain.GetGuestInfo(libvirt.DOMAIN_GUEST_INFO_USERS, 0)
@@ -78,10 +78,10 @@ func DomainDetailFactory(Handler DataTypeHandler, Seeker DomainSeeker) *DomainDe
 	}
 }
 
-func DataTypeRouter(types DomainDataType)(DataTypeHandler,error){
-	switch(types){
+func DataTypeRouter(types DomainDataType) (DataTypeHandler, error) {
+	switch types {
 	case DomState:
-		return &DomainState{},nil
+		return &DomainState{}, nil
 	case BasicInfo:
 		return &DomainInfo{}, nil
 	case GuestInfoUser:
@@ -95,25 +95,22 @@ func DataTypeRouter(types DomainDataType)(DataTypeHandler,error){
 	case HostInfo:
 		return &SystemInfo{}, nil
 	}
-	return &DomainInfo{},fmt.Errorf("not valid parameters for DomainDataType provided")
+	return &DomainInfo{}, fmt.Errorf("not valid parameters for DomainDataType provided")
 }
 
-
-
-
-func (DSU *DomainSeekingByUUID)ReturnDomain()([]*Domain,error){
+func (DSU *DomainSeekingByUUID) ReturnDomain() ([]*Domain, error) {
 	fmt.Println((DSU))
-	if len(DSU.Domain)==0{
+	if len(DSU.Domain) == 0 {
 		return nil, fmt.Errorf("no such Domain exists")
 	}
-	return DSU.Domain,nil
+	return DSU.Domain, nil
 }
 
-func (DSS *DomainSeekingByStatus)ReturnDomain()([]*Domain,error){
-	if len(DSS.DomList)==0{
+func (DSS *DomainSeekingByStatus) ReturnDomain() ([]*Domain, error) {
+	if len(DSS.DomList) == 0 {
 		return nil, fmt.Errorf("no such Domain exists")
 	}
-	return DSS.DomList,nil
+	return DSS.DomList, nil
 }
 
 func ReturnUUID(UUID string) (uuid.UUID, error) {
@@ -157,4 +154,3 @@ func (DSS *DomainSeekingByStatus) SetDomain() error {
 	DSS.DomList = Domains
 	return nil
 }
-
