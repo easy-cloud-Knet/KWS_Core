@@ -11,7 +11,7 @@ import (
 func (i *InstHandler) ReturnDomainByStatus(w http.ResponseWriter, r *http.Request) {
 	param:=&ReturnDomainFromStatus{}
 	resp:=ResponseGen("domain status with Status")
-	if err:=HttpDecoder(w,r,param); err!=nil{
+	if err:=HttpDecoder(r,param); err!=nil{
 		resp.ResponseWriteErr(w,fmt.Errorf("%w error booting vm",err), http.StatusInternalServerError)
 		return
 	}

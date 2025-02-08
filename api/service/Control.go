@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/easy-cloud-Knet/KWS_Core.git/api/conn"
+	"libvirt.org/go/libvirt"
 )
 
 
@@ -12,8 +13,8 @@ import (
 func (i *InstHandler)ForceShutDownVM(w http.ResponseWriter, r *http.Request){
 	
 	param:= &DeleteDomain{}
-	resp:=ResponseGen("Force Shutdown VM")
-	if err:=HttpDecoder(w,r,param); err!=nil{
+	resp:=ResponseGen[libvirt.DomainInfo]("Force Shutdown VM")
+	if err:=HttpDecoder(r,param); err!=nil{
 		resp.ResponseWriteErr(w,fmt.Errorf("%w error booting vm",err), http.StatusInternalServerError)
 		return
 	}
@@ -39,8 +40,8 @@ func (i *InstHandler)ForceShutDownVM(w http.ResponseWriter, r *http.Request){
 
 func (i *InstHandler)DeleteVM(w http.ResponseWriter, r *http.Request){
 	param:=&DeleteDomain{}
-	resp:= ResponseGen("Deleting Vm")
-	if err:=HttpDecoder(w,r,param); err!=nil{
+	resp:= ResponseGen[libvirt.DomainInfo]("Deleting Vm")
+	if err:=HttpDecoder(r,param); err!=nil{
 		resp.ResponseWriteErr(w,fmt.Errorf("%w error booting vm",err), http.StatusInternalServerError)
 		return
 	}

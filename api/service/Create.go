@@ -11,10 +11,9 @@ import (
 )
 
 func (i *InstHandler) CreateVM(w http.ResponseWriter, r *http.Request) {
+	resp:=ResponseGen[libvirt.DomainInfo]("CreateVm")
 	param:=&parsor.VM_Init_Info{}
-	resp:=ResponseGen("CreateVm")
-
-	if err:=HttpDecoder(w,r,param); err!=nil{
+	if err:=HttpDecoder(r,param); err!=nil{
 		http.Error(w, "error decoding parameters", http.StatusBadRequest)
 		return
 	}
