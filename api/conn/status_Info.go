@@ -1,6 +1,7 @@
 package conn
 
 import (
+	"errors"
 	"fmt"
 	"log"
 	"time"
@@ -15,13 +16,13 @@ func (CI *HostCpuInfo) GetHostInfo() error {
 	t, err := cpu.Times(false) //time
 	if err != nil {
 		log.Println(err)
-		return err
+		return ErrorGen(HostStatusError, err)
 	}
 
 	p, err := cpu.Percent(time.Second, false)
 	if err != nil {
 		log.Println(err)
-		return err
+		return ErrorGen(HostStatusError, err)
 	}
 
 	if len(t) > 0 {
@@ -37,7 +38,8 @@ func (MI *HostMemoryInfo) GetHostInfo() error {
 	v, err := mem.VirtualMemory()
 	if err != nil {
 		log.Println(err)
-		return err
+		return ErrorGen(HostStatusError, err)
+
 	}
 
 	MI.Total = v.Total / 1024 / 1024 / 1024
@@ -52,7 +54,8 @@ func (HDI *HostDiskInfo) GetHostInfo() error {
 	d, err := disk.Usage("/")
 	if err != nil {
 		log.Println(err)
-		return err
+		return ErrorGen(HostStatusError, err)
+
 	}
 
 	HDI.Total = d.Total / 1024 / 1024 / 1024
@@ -67,13 +70,15 @@ func (HSI *HostSystemInfo) GetHostInfo() error {
 	u, err := host.Uptime()
 	if err != nil {
 		log.Println(err)
-		return err
+		return ErrorGen(HostStatusError, err)
+
 	}
 
 	b, err := host.BootTime()
 	if err != nil {
 		log.Println(err)
-		return err
+		return ErrorGen(HostStatusError, err)
+
 	}
 
 	HSI.Uptime = u
@@ -88,7 +93,7 @@ func (HSI *HostSystemInfo) GetHostInfo() error {
 				HSI.RAM_Temp = t.Temperature
 			}
 		}
-	}
+	}// 에러가 발생했을때 대처가 부족한거 같음
 
 	return nil
 }
@@ -105,16 +110,18 @@ func HostDataTypeRouter(types HostDataType) (HostDataTypeHandler, error) {
 	case SystemInfoHi:
 		return &HostSystemInfo{}, nil
 	}
-	return &HostSystemInfo{}, fmt.Errorf("not valid parameters for HostDataType provided")
+		
+		return nil, ErrorGen(HostStatusError, errors.New("not valid parameters for HostDataType provided"))
 }
 
 
 
-func HostDetailFactory(handler HostDataTypeHandler) *HostDetail {
+func HostDetailFactory(handler HostDataTypeHandler) (*HostDetail, error) {
 	if err := handler.GetHostInfo(); err != nil {
 		fmt.Println(err)
+		return nil, err
 	}
 	return &HostDetail{
 		HostDataHandle: handler,
-	}
+	}, nil
 }
