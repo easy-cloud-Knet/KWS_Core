@@ -49,7 +49,7 @@ const (
 type DomainState struct {
 	DomainState libvirt.DomainState `json:"currentState"`
 	UUID  string                        `json:"UUID"`
-	Users []libvirt.DomainGuestInfoUser `json:"Guest Info"`
+	Users []libvirt.DomainGuestInfoUser `json:"Guest Info,omitempty"`
 }
 
 type DomainInfo struct {

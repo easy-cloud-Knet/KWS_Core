@@ -1,7 +1,7 @@
 package conn
 
 import (
-	"fmt"
+	"errors"
 	"log"
 	"sync"
 
@@ -15,6 +15,7 @@ func (SI *SystemInfo) GetInfo(domain *Domain) error {
 	v, err := mem.VirtualMemory()
 	if err != nil {
 		log.Println(err)
+		return ErrorGen(HostStatusError,err)
 	}
 	SI.Memory.Total = v.Total / 1024 / 1024 / 1024
 	SI.Memory.Used = v.Used / 1024 / 1024 / 1024
@@ -23,8 +24,7 @@ func (SI *SystemInfo) GetInfo(domain *Domain) error {
 
 	usage, err := disk.Usage("/")
 	if err != nil {
-		fmt.Println(err)
-		return err
+		return ErrorGen(HostStatusError, err)
 	}
 
 	SI.Disks.Total = usage.Total / 1024 / 1024 / 1024
@@ -38,7 +38,7 @@ func (SI *SystemInfo) GetInfo(domain *Domain) error {
 func (DI *DomainInfo) GetInfo(domain *Domain) error {
 	info, err := domain.Domain.GetInfo()
 	if err != nil {
-		log.Println(err)
+		return ErrorGen(DomainStatusError, err)
 	}
 	DI.State = info.State
 	DI.MaxMem = info.MaxMem
@@ -53,18 +53,23 @@ func (DP *DomainState) GetInfo(domain *Domain) error {
 	info, _, err := domain.Domain.GetState()
 	//searching for coresponding second parameter, "Reason"
 	if err != nil {
-		log.Println(err)
-		return err
+		return ErrorGen(DomainStatusError, err)
 	}
 
-	uuidBytes, _ := domain.Domain.GetUUID()
-	uuidParsed, _ := uuid.FromBytes(uuidBytes)
+	uuidBytes,err := domain.Domain.GetUUID()
+	if err!= nil{
+		return ErrorGen(InvalidUUID, err)
+	}
+	uuidParsed, err := uuid.FromBytes(uuidBytes)
+	if err!= nil{
+		return ErrorGen(InvalidUUID, err)
+	}
 
 	DP.DomainState = info
 	DP.UUID = string(uuidParsed.String())
 	userInfo, err := domain.Domain.GetGuestInfo(libvirt.DOMAIN_GUEST_INFO_USERS, 0)
 	if err != nil {
-		log.Println(err)
+		log.Println("error retreving guest info")
 		return err
 	}
 	DP.Users = userInfo.Users
@@ -95,17 +100,18 @@ func DataTypeRouter(types DomainDataType) (DataTypeHandler, error) {
 	case HostInfo:
 		return &SystemInfo{}, nil
 	}
-	return &DomainInfo{}, fmt.Errorf("not valid parameters for DomainDataType provided")
+	return nil, ErrorGen(InvalidParameter, errors.New("invalid flag for DataRoute entereed "))
 }
 
 
 
 func (DSU *DomainSeekingByUUID) ReturnDomain() ([]*Domain, error) {
-	fmt.Println((DSU))
 	if len(DSU.Domain) == 0 {
 		err :=DSU.SetDomain()
 		if err!=nil{
-			return nil, fmt.Errorf("no such Domain exists")
+			if errors.Is(err, ErrorDescriptor{}){
+				return nil, ErrorJoin(err, errors.New("serching uuid from Return Domain Err"))
+			}
 		}
 	}
 	return DSU.Domain, nil
@@ -117,7 +123,9 @@ func (DSS *DomainSeekingByStatus) ReturnDomain() ([]*Domain, error) {
 	if len(DSS.DomList) == 0 {
 		err :=DSS.SetDomain()
 		if err!=nil{
-			return nil, fmt.Errorf("no such Domain exists")
+			if errors.Is(err,ErrorDescriptor{}){
+				return nil, ErrorJoin(err, errors.New("serching status from Return Domain Err"))
+			}
 		}
 	}
 	return DSS.DomList, nil
@@ -134,13 +142,13 @@ func ReturnUUID(UUID string) (uuid.UUID, error) {
 func (DSU *DomainSeekingByUUID) SetDomain() error {
 	parsedUUID, err := uuid.Parse(DSU.UUID)
 	if err != nil {
-		return fmt.Errorf("invalid uuid format: %w", err)
+		return ErrorGen(InvalidUUID, err)
 	}
 	domain, err := DSU.LibvirtInst.LookupDomainByUUID(parsedUUID[:])
 	if err != nil {
-		return fmt.Errorf("invalid uuid format: %w", err)
+		return ErrorGen(DomainSearchError, err)
 	}else if domain==nil {
-		return fmt.Errorf("no such Domain For operation exists")
+		return ErrorGen(NoSuchDomain, err)
 	}
 
 	Dom := make([]*Domain, 1)
@@ -155,10 +163,9 @@ func (DSU *DomainSeekingByUUID) SetDomain() error {
 func (DSS *DomainSeekingByStatus) SetDomain() error {
 	doms, err := DSS.LibvirtInst.ListAllDomains(DSS.Status)
 	if err != nil {
-		fmt.Println("error while retrieving domain List with status")
-		return fmt.Errorf("invalid uuid format: %w", err)
+		return ErrorGen(DomainSearchError, err)
 	}else if len(doms)==0{
-		return fmt.Errorf("no such Domain For operation exists")
+		return ErrorGen(NoSuchDomain, err)
 	}
 	Domains := make([]*Domain, 0, len(doms))
 

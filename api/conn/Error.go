@@ -1,7 +1,6 @@
 package conn
 
 import (
-	"errors"
 	"fmt"
 )
 
@@ -9,15 +8,23 @@ import (
 type VirError string
 
 const (
-	ErrNotFound      VirError = "Error Not Found"
+	FaildDeEncoding     VirError = "Error Not Found"
 	DomainSearchError VirError = "Error Serching Domain"
 	NoSuchDomain     VirError = "Domain Not Found"  
+	
+	DomainGenerationError VirError ="error Generating Domain"
 	LackCapacityRAM  VirError = "Not enough RAM"   // control
 	LackCapacityCPU  VirError = "Not Enough CPU" // 
 	LackCapacityHD   VirError = "Not Enough HardDisk" // 
+	
 	InvalidUUID      VirError = "Invalid UUID Provided"
+	
+	InvalidParameter VirError= "Invalid parameter entered"
 	WrongParameter VirError= "Not validated parameter In"
-	DomainStatusError  VirError ="Error Retreving Status"
+	
+	DomainStatusError  VirError ="Error Retreving Domain Status"
+	HostStatusError  VirError ="Error Retreving Host Status"
+
 	DeletionDomainError VirError= "Error Deleting Domain"
 	DomainShutdownError VirError= "failed in Deleting domain"
 )
@@ -65,10 +72,9 @@ func ErrorGen(baseError VirError, detailError error) error{
 func ErrorJoin(baseError error ,appendingError error) error{
 	v,ok := baseError.(*ErrorDescriptor)
 	if !ok{
-		return errors.Join(baseError, appendingError)
+		return ErrorGen(VirError(baseError.Error()), appendingError)
 	}
-	v.Detail=errors.Join(v.Detail, appendingError)
-
+	v.Detail=fmt.Errorf("%w %w", v.Detail, appendingError)
 	return v
 }
 
