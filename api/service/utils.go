@@ -5,13 +5,15 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+
+	"github.com/easy-cloud-Knet/KWS_Core.git/api/conn"
 )
 
 // BaseResponse를 제네릭으로 변경
 type BaseResponse[T any] struct {
 	Information *T      `json:"information,omitempty"`
 	Message     string `json:"message"`
-	Errors      error `json:"errors,omitempty"`
+	Errors      conn.ErrorDescriptor `json:"errors,omitempty"`
 }
 
 // 메시지를 생성하는 함수
@@ -19,7 +21,7 @@ func ResponseGen[T any](message string) *BaseResponse[T] {
 	return &BaseResponse[T]{
 		Information: nil, // 기본값 설정
 		Message:     fmt.Sprintf("%s operation", message),
-		Errors:      nil,
+
 	}
 }
 
@@ -40,14 +42,20 @@ func HttpDecoder[T any](r *http.Request, param *T) error {
 // 실패 응답 처리
 func (br *BaseResponse[T]) ResponseWriteErr(w http.ResponseWriter, err error, statusCode int) {
 	br.Message += " failed"
-	br.Errors = err
+	errDesc, ok:= err.(conn.ErrorDescriptor)
+	if !ok{
+		http.Error(w, "fasdfdfsde", http.StatusInternalServerError)
+		return
+	}
+	br.Errors = errDesc
 
 	data, marshalErr := json.Marshal(br)
 	if marshalErr != nil {
+		fmt.Println(marshalErr)
 		http.Error(w, "failed to marshal error response", http.StatusInternalServerError)
 		return
 	}
-
+	fmt.Println("error occured in RESPONSE ERR ", br)
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(statusCode)
 	w.Write(data)

@@ -33,11 +33,10 @@ func (DD *DomainDeleter) DeleteDomain() (*libvirt.DomainInfo, error) {
 	if isRunning && DD.DeletionType == SoftDelete {
 		return nil, fmt.Errorf("Domain Is Running %w, cannot softDelete running Domain", nil)
 	} else if isRunning && DD.DeletionType == HardDelete {
-
 		domShut := &DomainTerminator{DomainSeeker: DD.DomainSeeker}
 		_, err := domShut.ShutDownDomain()
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("%w, failed deleting Domain in libvirt Instance, ", err)
 		}
 	}
 	basicFilePath := "/var/lib/kws/"
@@ -69,7 +68,11 @@ func (DD *DomainDeleter) DeleteDomain() (*libvirt.DomainInfo, error) {
 
 func (DD *DomainTerminator) ShutDownDomain() (*libvirt.DomainInfo, error) {
  
-	dom, _ := DD.DomainSeeker.ReturnDomain()
+	dom, err := DD.DomainSeeker.ReturnDomain()
+	if err!=nil{
+		return nil, fmt.Errorf("%w, failed deleting Domain in libvirt Instance, ", err)
+
+	}
 	isRunning, _ := dom[0].Domain.IsActive()
 	if !isRunning {
 		return nil, fmt.Errorf("requested Domain to shutdown is already Dead ")

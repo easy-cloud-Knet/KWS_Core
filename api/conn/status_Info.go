@@ -115,6 +115,6 @@ func HostDetailFactory(handler HostDataTypeHandler) *HostDetail {
 		fmt.Println(err)
 	}
 	return &HostDetail{
-		HostDataHandle: []HostDataTypeHandler{handler},
+		HostDataHandle: handler,
 	}
 }

@@ -132,7 +132,7 @@ type DomainSeeker interface {
 //hostinfo_
 
 type HostDetail struct {
-	HostDataHandle []HostDataTypeHandler
+	HostDataHandle HostDataTypeHandler
 }
 
 type HostDataTypeHandler interface {
