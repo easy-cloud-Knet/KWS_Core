@@ -1,117 +1,79 @@
 package service
 
 import (
-	"encoding/json"
 	"fmt"
-	"io"
 	"net/http"
 
 	"github.com/easy-cloud-Knet/KWS_Core.git/api/conn"
 )
 
-func (i *InstHandler) ReturnDomainByStatus(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
 
-	var param ReturnDomainFromStatus
-	if err := json.NewDecoder(r.Body).Decode(&param); err != nil {
-		CommonErrorHelper(w, err, http.StatusBadRequest, "error Decoding parameters ")
+func (i *InstHandler) ReturnDomainByStatus(w http.ResponseWriter, r *http.Request) {
+	param:=&ReturnDomainFromStatus{}
+	resp:=ResponseGen[[]conn.DataTypeHandler]("domain status with Status")
+	if err:=HttpDecoder(r,param); err!=nil{
+		resp.ResponseWriteErr(w,fmt.Errorf("%w error booting vm",err), http.StatusInternalServerError)
 		return
 	}
-
+	
+	DomainSeeker:=conn.DomSeekStatusFactory(i.LibvirtInst, param.Status)
 	DataHandle, _ := conn.DataTypeRouter(param.DataType)
-	DomainSeeker := &conn.DomainSeekingByStatus{
-		LibvirtInst: i.LibvirtInst,
-		Status:      param.Status,
-		DomList:     make([]*conn.Domain, 5),
-	}
 	doms := conn.DomainDetailFactory(DataHandle, DomainSeeker)
 	// Domain Detail로 채우는 객체 생성
-	err := doms.DomainSeeker.SetDomain()
-	if err != nil {
-		CommonErrorHelper(w, err, http.StatusInternalServerError, "error while setting Domain")
-		return
-	}
-	//domain freeing need to be added
+ 
 	list, err := doms.DomainSeeker.ReturnDomain()
 	if err != nil {
-		CommonErrorHelper(w, err, http.StatusInternalServerError, "error while retreving Domain")
+		resp.ResponseWriteErr(w,fmt.Errorf("%w error booting vm",err), http.StatusInternalServerError)
 		return
 	}
 	for i := range list {
 		if list[i] == nil {
-			CommonErrorHelper(w, err, http.StatusInternalServerError, "invalid Domain Object contained ")
+			resp.ResponseWriteErr(w,fmt.Errorf("%w error booting vm",err), http.StatusInternalServerError)
 			return
 		}
 		DataHandle.GetInfo(list[i])
 		doms.DataHandle = append(doms.DataHandle, DataHandle)
 	}
-
-	data, err := json.Marshal(doms.DataHandle)
-	if err != nil {
-		CommonErrorHelper(w, err, http.StatusInternalServerError, "failed marshalling data ")
-		return
-	}
-
-	w.WriteHeader(http.StatusOK)
-	w.Write(data)
+	resp.ResponseWriteOK(w, &doms.DataHandle)
+	//slice를 포인터로 넘기는 문제가 있음, 타입 어설션 등 고민,, 
 }
 
 func (i *InstHandler) ReturnStatusUUID(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
+	param:=&ReturnDomainFromUUID{}
+	resp:=ResponseGen[[]conn.DataTypeHandler]("domain Status UUID")
 
-	var param ReturnDomainFromUUID
-	if err := json.NewDecoder(r.Body).Decode(&param); err != nil {
-		CommonErrorHelper(w, err, http.StatusBadRequest, "Invalid Parameter")
-		return
-	}
-	DomainSeeker := &conn.DomainSeekingByUUID{
-		LibvirtInst: i.LibvirtInst,
-		UUID:        string(param.UUID),
-		Domain:      make([]*conn.Domain, 1),
-	}
-	outputStruct, _ := conn.DataTypeRouter(param.DataType)
-
-	DomainDetail := conn.DomainDetailFactory(outputStruct, DomainSeeker)
-
-	err := DomainDetail.DomainSeeker.SetDomain()
-	if err != nil {
-		fmt.Println("doamin error %w", err)
-		CommonErrorHelper(w, err, http.StatusInternalServerError, "error occured while returning status")
-		return
-	}
-
-	dom, err := DomainDetail.DomainSeeker.ReturnDomain()
-	if err != nil {
-		CommonErrorHelper(w, err, http.StatusBadRequest, "error occured while returning status")
-		return
-	}
-	outputStruct.GetInfo(dom[0])
-
-	DomainDetail.DataHandle = append(DomainDetail.DataHandle, outputStruct)
-	data, err := json.Marshal(DomainDetail.DataHandle)
-	if err != nil {
-		CommonErrorHelper(w, err, http.StatusInternalServerError, "failed to marshal JSON")
-		return
-	}
-	w.WriteHeader(http.StatusOK)
-	w.Write(data)
-}
-
-func (i *InstHandler) ReturnStatusHost(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-
-	body, err := io.ReadAll(r.Body)
-	if err != nil {
-		http.Error(w, "error read body", http.StatusBadRequest)
-		return
-	}
-	var param ReturnHostFromStatus
-
-	if err := json.Unmarshal(body, &param); err != nil {
+	if err:=HttpDecoder(r,param); err!=nil{
 		http.Error(w, "error decoding parameters", http.StatusBadRequest)
 		return
 	}
 
+	DomainSeeker:= conn.DomSeekUUIDFactory(i.LibvirtInst, param.UUID)
+	outputStruct, _ := conn.DataTypeRouter(param.DataType)
+
+	DomainDetail := conn.DomainDetailFactory(outputStruct, DomainSeeker)
+
+	dom, err := DomainDetail.DomainSeeker.ReturnDomain()
+	if err != nil {
+		resp.ResponseWriteErr(w,fmt.Errorf("%w error booting vm",err), http.StatusInternalServerError)
+		return
+	}
+	fmt.Println(dom)
+	outputStruct.GetInfo(dom[0])
+	DomainDetail.DataHandle = append(DomainDetail.DataHandle, outputStruct)
+
+	resp.ResponseWriteOK(w, &DomainDetail.DataHandle)
+
+}
+
+func (i *InstHandler) ReturnStatusHost(w http.ResponseWriter, r *http.Request) {
+	param:=&ReturnHostFromStatus{}
+	resp:=ResponseGen[conn.HostDataTypeHandler]("Host Status Return")
+
+	if err:=HttpDecoder(r,param); err!=nil{
+		http.Error(w, "error decoding parameters", http.StatusBadRequest)
+		return
+	}
+ 
 	dataHandle, err := conn.HostDataTypeRouter(param.HostDataType)
 	if err != nil {
 		http.Error(w, "fail host data type", http.StatusInternalServerError)
@@ -119,12 +81,7 @@ func (i *InstHandler) ReturnStatusHost(w http.ResponseWriter, r *http.Request) {
 	}
 
 	host := conn.HostDetailFactory(dataHandle)
+	
+	resp.ResponseWriteOK(w, &host.HostDataHandle)
 
-	data, err := json.Marshal(host.HostDataHandle)
-	if err != nil {
-		CommonErrorHelper(w, err, http.StatusInternalServerError, "failed marshalling data")
-		return
-	}
-	w.WriteHeader(http.StatusOK)
-	w.Write(data)
 }

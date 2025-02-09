@@ -98,17 +98,27 @@ func DataTypeRouter(types DomainDataType) (DataTypeHandler, error) {
 	return &DomainInfo{}, fmt.Errorf("not valid parameters for DomainDataType provided")
 }
 
+
+
 func (DSU *DomainSeekingByUUID) ReturnDomain() ([]*Domain, error) {
 	fmt.Println((DSU))
 	if len(DSU.Domain) == 0 {
-		return nil, fmt.Errorf("no such Domain exists")
+		err :=DSU.SetDomain()
+		if err!=nil{
+			return nil, fmt.Errorf("no such Domain exists")
+		}
 	}
 	return DSU.Domain, nil
 }
 
+
+
 func (DSS *DomainSeekingByStatus) ReturnDomain() ([]*Domain, error) {
 	if len(DSS.DomList) == 0 {
-		return nil, fmt.Errorf("no such Domain exists")
+		err :=DSS.SetDomain()
+		if err!=nil{
+			return nil, fmt.Errorf("no such Domain exists")
+		}
 	}
 	return DSS.DomList, nil
 }
@@ -129,7 +139,10 @@ func (DSU *DomainSeekingByUUID) SetDomain() error {
 	domain, err := DSU.LibvirtInst.LookupDomainByUUID(parsedUUID[:])
 	if err != nil {
 		return fmt.Errorf("invalid uuid format: %w", err)
+	}else if domain==nil {
+		return fmt.Errorf("no such Domain For operation exists")
 	}
+
 	Dom := make([]*Domain, 1)
 	Dom[0] = &Domain{
 		Domain:      domain,
@@ -144,6 +157,8 @@ func (DSS *DomainSeekingByStatus) SetDomain() error {
 	if err != nil {
 		fmt.Println("error while retrieving domain List with status")
 		return fmt.Errorf("invalid uuid format: %w", err)
+	}else if len(doms)==0{
+		return fmt.Errorf("no such Domain For operation exists")
 	}
 	Domains := make([]*Domain, 0, len(doms))
 
@@ -153,4 +168,20 @@ func (DSS *DomainSeekingByStatus) SetDomain() error {
 
 	DSS.DomList = Domains
 	return nil
+}
+
+func DomSeekStatusFactory(LibInstance *libvirt.Connect,flag libvirt.ConnectListAllDomainsFlags)*DomainSeekingByStatus{
+	return &DomainSeekingByStatus{
+		LibvirtInst: LibInstance,
+		Status: flag,
+		DomList: make([]*Domain, 0),
+	}
+}
+
+func DomSeekUUIDFactory(LibInstance *libvirt.Connect,UUID string)*DomainSeekingByUUID{
+	return &DomainSeekingByUUID{ 
+		LibvirtInst: LibInstance,
+		UUID:        UUID,
+		Domain:      make([]*Domain, 0),
+	}
 }
