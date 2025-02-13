@@ -125,3 +125,4 @@ func HostDetailFactory(handler HostDataTypeHandler) (*HostDetail, error) {
 		HostDataHandle: handler,
 	}, nil
 }
+

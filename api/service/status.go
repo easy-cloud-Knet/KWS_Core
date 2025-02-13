@@ -2,7 +2,9 @@ package service
 
 import (
 	"errors"
+	"fmt"
 	"net/http"
+	"reflect"
 
 	"github.com/easy-cloud-Knet/KWS_Core.git/api/conn"
 )
@@ -20,6 +22,7 @@ func (i *InstHandler) ReturnDomainByStatus(w http.ResponseWriter, r *http.Reques
 
 	DomainSeeker:=conn.DomSeekStatusFactory(i.LibvirtInst, param.Status)
 	DataHandle, err := conn.DataTypeRouter(param.DataType)
+
 	if err!=nil{
 		resp.ResponseWriteErr(w, err, http.StatusBadRequest)
 		return
@@ -102,7 +105,7 @@ func (i *InstHandler) ReturnStatusHost(w http.ResponseWriter, r *http.Request) {
 		resp.ResponseWriteErr(w,err,http.StatusInternalServerError)
 		return
 	}
-	
+	fmt.Println("data sending", reflect.TypeOf(dataHandle))
 	host,err := conn.HostDetailFactory(dataHandle)
 	if err!= nil{
 		resp.ResponseWriteErr(w,err,http.StatusInternalServerError)

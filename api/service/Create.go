@@ -2,6 +2,7 @@ package service
 
 import (
 	"errors"
+	"fmt"
 	"log"
 	"net/http"
 
@@ -53,6 +54,7 @@ func (i *InstHandler) CreateVM(w http.ResponseWriter, r *http.Request) {
  
 	if err:= DomainFromLocal.CreateDiskImage();err!=nil{
 		resp.ResponseWriteErr(w,err, http.StatusInternalServerError)
+		fmt.Println("ASfdafdafsd f ", err)
 		log.Printf("Error writing XML file  %v", err)
 		return 
 	}

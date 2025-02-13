@@ -6,16 +6,22 @@ import (
 	"strconv"
 
 	"github.com/easy-cloud-Knet/KWS_Core.git/api/service"
+	timeCal "github.com/easy-cloud-Knet/KWS_Core.git/server/test.go"
 )
 
 func InitServer(portNum int, libvirtInst *service.InstHandler) {
 
-	http.HandleFunc("/getStatus", libvirtInst.ReturnDomainByStatus)    //get
-	http.HandleFunc("/createVM", libvirtInst.CreateVM)                 //post
-	http.HandleFunc("/getStatusUUID", libvirtInst.ReturnStatusUUID)    //Get
-	http.HandleFunc("/forceShutDownUUID", libvirtInst.ForceShutDownVM) //Get
-	http.HandleFunc("/DeleteVM", libvirtInst.DeleteVM)                 //Get
-	http.HandleFunc("/getStatusHost", libvirtInst.ReturnStatusHost)    //Get
+	mux := http.NewServeMux()
 
-	log.Fatal(http.ListenAndServe(":"+strconv.Itoa(portNum), nil))
+	mux.HandleFunc("GET /getStatus", libvirtInst.ReturnDomainByStatus)    //get
+	mux.HandleFunc("POST /createVM", libvirtInst.CreateVM)                 //post
+	mux.HandleFunc("GET /getStatusUUID", libvirtInst.ReturnStatusUUID)    //Get
+	mux.HandleFunc("POST /forceShutDownUUID", libvirtInst.ForceShutDownVM) //Get
+	mux.HandleFunc("POST /DeleteVM", libvirtInst.DeleteVM)                 //Get
+	mux.HandleFunc("GET /getStatusHost", libvirtInst.ReturnStatusHost)    //Get
+
+	timeCalulatorHTTP := timeCal.TimeLogging(mux) 
+
+
+	log.Fatal(http.ListenAndServe(":"+strconv.Itoa(portNum), timeCalulatorHTTP))
 }

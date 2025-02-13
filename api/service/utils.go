@@ -12,7 +12,8 @@ import (
 type BaseResponse[T any] struct {
 	Information *T      `json:"information,omitempty"`
 	Message     string `json:"message"`
-	Errors      error `json:"errors,omitempty"`
+	Errors      *conn.ErrorDescriptor `json:"errors,omitempty"`
+	ErrorDebug  string `json:"errrorDebug,omitempty"`
 }
 
 func ResponseGen[T any](message string) *BaseResponse[T] {
@@ -42,8 +43,8 @@ func (br *BaseResponse[T]) ResponseWriteErr(w http.ResponseWriter, err error, st
 		http.Error(w, br.Message, http.StatusInternalServerError)
 		return
 	}
-	br.Errors = errDesc
-
+	br.Errors = &errDesc
+	br.ErrorDebug= errDesc.Error()
 	data, marshalErr := json.Marshal(br)
 	if marshalErr != nil {
 		fmt.Println(marshalErr)
@@ -59,11 +60,13 @@ func (br *BaseResponse[T]) ResponseWriteErr(w http.ResponseWriter, err error, st
 func (br *BaseResponse[T]) ResponseWriteOK(w http.ResponseWriter, info *T) {
 	br.Message += " success"
 	br.Information = info
+	br.Errors=nil
 	data, err := json.Marshal(br)
 	if err != nil {
 		http.Error(w, "failed to marshal success response", http.StatusInternalServerError)
 		return
 	}
+	
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
