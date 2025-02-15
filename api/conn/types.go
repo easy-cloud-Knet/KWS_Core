@@ -8,12 +8,14 @@ import (
 
 
 type DomListControl struct {
-	DomainList map[string]Domain
-	DomainMutex sync.Mutex 
+	DomainList map[string]*Domain
+	domainMutex sync.Mutex 
 }
 
 type Domain struct {
 	Domain      *libvirt.Domain 
+	domainListMutex sync.Mutex 
+
 }
 
 type DomainStatusManager struct {
@@ -90,17 +92,16 @@ type DataTypeHandler interface {
 
 type DomainDetail struct {
 	DataHandle   []DataTypeHandler
-	DomainSeeker DomainSeeker
+	Domain *Domain
 }
 ////////////////////////interface uniformed function for various infoType
 
 
 type DomainTerminator struct {
-	DomainSeeker DomainSeeker
+	domain *Domain
 }
 type DomainDeleter struct {
-	DomainSeeker        DomainSeeker
-	DomainStatusManager *DomainStatusManager
+	domain        *Domain
 	DeletionType        DomainDeleteType
 }
 
@@ -110,18 +111,10 @@ type DomainDeleter struct {
 type DomainSeekingByUUID struct {
 	LibvirtInst *libvirt.Connect
 	UUID        string
-	Domain      []*Domain
-}
-
-type DomainSeekingByStatus struct {
-	LibvirtInst *libvirt.Connect
-	Status      libvirt.ConnectListAllDomainsFlags
-	DomList     []*Domain
 }
 
 type DomainSeeker interface {
-	SetDomain() error
-	ReturnDomain() ([]*Domain, error)
+	ReturnDomain() (*Domain, error)
 }
 
 /////////////////////////////interface seeking certain Domain
@@ -192,5 +185,5 @@ type DomainGenerator struct {
 
 
 type DomainConfigGenerator interface {
-	Generate() error 
+	Generate(*libvirt.Connect) (*libvirt.Domain,error)
 }

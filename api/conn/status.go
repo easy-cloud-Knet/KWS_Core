@@ -3,6 +3,7 @@ package conn
 import (
 	"errors"
 	"log"
+	"sync"
 
 	virerr "github.com/easy-cloud-Knet/KWS_Core.git/api/error"
 	"github.com/google/uuid"
@@ -76,10 +77,10 @@ func (DP *DomainState) GetInfo(domain *Domain) error {
 	return nil
 }
 
-func DomainDetailFactory(Handler DataTypeHandler, Seeker DomainSeeker) *DomainDetail {
+func DomainDetailFactory(Handler DataTypeHandler, dom *Domain) *DomainDetail {
 	return &DomainDetail{
 		DataHandle:   make([]DataTypeHandler, 0),
-		DomainSeeker: Seeker,
+		Domain: dom,
 	}
 }
 
@@ -105,89 +106,41 @@ func DataTypeRouter(types DomainDataType) (DataTypeHandler, error) {
 
 
 
-func (DSU *DomainSeekingByUUID) ReturnDomain() ([]*Domain, error) {
-	if len(DSU.Domain) == 0 {
-		err :=DSU.SetDomain()
-		if err!=nil{
-			if errors.Is(err, virerr.ErrorDescriptor{}){
-				return nil, virerr.ErrorJoin(err, errors.New("serching uuid from Return Domain Err"))
-			}
-		}
-	}
-	return DSU.Domain, nil
-}
-
-
-
-func (DSS *DomainSeekingByStatus) ReturnDomain() ([]*Domain, error) {
-	if len(DSS.DomList) == 0 {
-		err :=DSS.SetDomain()
-		if err!=nil{
-			if errors.Is(err,virerr.ErrorDescriptor{}){
-				return nil, virerr.ErrorJoin(err, errors.New("serching status from Return Domain Err"))
-			}
-		}
-	}
-	return DSS.DomList, nil
-}
-
-func ReturnUUID(UUID string) (uuid.UUID, error) {
-	uuidParsed, err := uuid.Parse(UUID)
-	if err != nil {
-		return uuid.UUID{}, err
-	}
-	return uuidParsed, nil
-}
-
-func (DSU *DomainSeekingByUUID) SetDomain() error {
+func (DSU *DomainSeekingByUUID) ReturnDomain() (*Domain, error) {
 	parsedUUID, err := uuid.Parse(DSU.UUID)
 	if err != nil {
-		return virerr.ErrorGen(virerr.InvalidUUID, err)
+		return nil,virerr.ErrorGen(virerr.InvalidUUID, err)
 	}
 	domain, err := DSU.LibvirtInst.LookupDomainByUUID(parsedUUID[:])
 	if err != nil {
-		return virerr.ErrorGen(virerr.DomainSearchError, err)
+		return nil,virerr.ErrorGen(virerr.DomainSearchError, err)
 	}else if domain==nil {
-		return virerr.ErrorGen(virerr.NoSuchDomain, err)
+		return nil,virerr.ErrorGen(virerr.NoSuchDomain, err)
 	}
 
-	Dom := make([]*Domain, 1)
-	Dom[0] = &Domain{
+	
+	return &Domain{
 		Domain:      domain,
-	}
-	DSU.Domain = Dom
-	return nil
+		domainListMutex: sync.Mutex{},
+	}, nil
 }
 
-func (DSS *DomainSeekingByStatus) SetDomain() error {
-	doms, err := DSS.LibvirtInst.ListAllDomains(DSS.Status)
+
+
+ 
+func ReturnUUID(UUID string) (*uuid.UUID, error) {
+	uuidParsed, err := uuid.Parse(UUID)
 	if err != nil {
-		return virerr.ErrorGen(virerr.DomainSearchError, err)
-	}else if len(doms)==0{
-		return virerr.ErrorGen(virerr.NoSuchDomain, err)
+		return nil, err
 	}
-	Domains := make([]*Domain, 0, len(doms))
-
-	for i := range doms {
-		Domains = append(Domains, &Domain{Domain: &doms[i]})
-	}
-
-	DSS.DomList = Domains
-	return nil
+	return &uuidParsed, nil
 }
 
-func DomSeekStatusFactory(LibInstance *libvirt.Connect,flag libvirt.ConnectListAllDomainsFlags)*DomainSeekingByStatus{
-	return &DomainSeekingByStatus{
-		LibvirtInst: LibInstance,
-		Status: flag,
-		DomList: make([]*Domain, 0),
-	}
-}
+
 
 func DomSeekUUIDFactory(LibInstance *libvirt.Connect,UUID string)*DomainSeekingByUUID{
 	return &DomainSeekingByUUID{ 
 		LibvirtInst: LibInstance,
 		UUID:        UUID,
-		Domain:      make([]*Domain, 0),
 	}
 }

@@ -1,32 +1,35 @@
 package parsor
 
 import (
+	"encoding/xml"
 	"fmt"
 	"log"
 	"os"
 	"os/exec"
 	"path/filepath"
 
+	"github.com/easy-cloud-Knet/KWS_Core.git/api/conn"
 	virerr "github.com/easy-cloud-Knet/KWS_Core.git/api/error"
+	"libvirt.org/go/libvirt"
 )
 
 
-func (DP DomainParsor)Generate() error{
+func (DP DomainParsor)Generate(LibvirtInst *libvirt.Connect) (*libvirt.Domain,error){
 	dirPath := fmt.Sprintf("/var/lib/kws/%s", DP.VMDescription.UUID)
 	if err := os.MkdirAll(dirPath, 0755); err != nil {
-		return virerr.ErrorGen(virerr.DomainGenerationError, fmt.Errorf("making directory error generating domain, may have duplicated uuid %w",err))
+		return nil,virerr.ErrorGen(virerr.DomainGenerationError, fmt.Errorf("making directory error generating domain, may have duplicated uuid %w",err))
 	}
 
 	if err:= DP.YamlParsorUser.ParseData(DP.VMDescription); err!=nil {	
-		return virerr.ErrorGen(virerr.DomainGenerationError, fmt.Errorf("making directory error generating domain, may have duplicated uuid %w", err))
+		return nil,virerr.ErrorGen(virerr.DomainGenerationError, fmt.Errorf("making directory error generating domain, may have duplicated uuid %w", err))
 	}
 
 	if err:= DP.YamlParsorUser.WriteFile(dirPath); err!=nil {	
-		return virerr.ErrorGen(virerr.DomainGenerationError, fmt.Errorf("making directory error generating domain, may have duplicated uuid %w",err))
+		return nil,virerr.ErrorGen(virerr.DomainGenerationError, fmt.Errorf("making directory error generating domain, may have duplicated uuid %w",err))
 	}
 
 	if err:= DP.YamlParsorMeta.WriteFile(dirPath);err != nil {	
-		return virerr.ErrorGen(virerr.DomainGenerationError, fmt.Errorf("making directory error generating domain, may have duplicated uuid %w",err))
+		return nil,virerr.ErrorGen(virerr.DomainGenerationError, fmt.Errorf("making directory error generating domain, may have duplicated uuid %w",err))
 	}
 	
 	if err:= DP.CreateDiskImage();err!=nil{
@@ -37,8 +40,19 @@ func (DP DomainParsor)Generate() error{
 
 	}
 
+	DP.DeviceDefiner.XML_Parsor(DP.VMDescription)
 
-	return nil
+	output, err := xml.MarshalIndent(DP.DeviceDefiner, "", "  ")
+	if err!=nil{
+		virerr.ErrorGen(virerr.DomainGenerationError,fmt.Errorf("XML deparsing Error, whilie defining hardware spec in Generation, %w", err))
+	}
+
+	dom,err := conn.CreateDomainWithXML(LibvirtInst, output)
+	if err!=nil{
+		
+	}
+
+	return dom,nil
 
 }
 
@@ -63,6 +77,8 @@ func (DP DomainParsor) CreateDiskImage() error{
 	}
 	return nil
 }
+
+
 
 func (DP DomainParsor) CreateISOFile()error{
 	dirPath := fmt.Sprintf("/var/lib/kws/%s", DP.VMDescription.UUID)

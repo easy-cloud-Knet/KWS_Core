@@ -13,24 +13,22 @@ import (
 func (i *InstHandler)ForceShutDownVM(w http.ResponseWriter, r *http.Request){
 	
 	param:= &DeleteDomain{}
-	resp:=ResponseGen[libvirt.DomainInfo]("Force Shutdown VM")
+	resp:=ResponseGen[libvirt.DomainInfo]("domain number of"+param.UUID+", Force Shutdown VM")
+
 	if err:=HttpDecoder(r,param); err!=nil{
 		resp.ResponseWriteErr(w,fmt.Errorf("%w error booting vm",err), http.StatusInternalServerError)
 		return
 	}
-	
-	DomainSeeker := conn.DomSeekUUIDFactory(i.LibvirtInst, param.UUID)
+	dom,err:= i.DomainControl.GetDomain(param.UUID,i.LibvirtInst)
 
-	DomainTerminator,_:= conn.DomainTerminatorFactory(DomainSeeker)
+	DomainTerminator,_:= conn.DomainTerminatorFactory(dom)
 
 	domainInfo,err:=DomainTerminator.ShutDownDomain()
 	if err!= nil{
 		resp.ResponseWriteErr(w,fmt.Errorf("%w error booting vm",err), http.StatusInternalServerError)
 		return
 	}
-	//uuid unparsing 중 에러, destroyDom 에서 에러
-	// 수신시 에러 발생 가능 ,추후 에러 핸들링 
-	
+
  
 	resp.ResponseWriteOK(w,domainInfo)
 	}
@@ -41,22 +39,33 @@ func (i *InstHandler)ForceShutDownVM(w http.ResponseWriter, r *http.Request){
 func (i *InstHandler)DeleteVM(w http.ResponseWriter, r *http.Request){
 	param:=&DeleteDomain{}
 	resp:= ResponseGen[libvirt.DomainInfo]("Deleting Vm")
+
 	if err:=HttpDecoder(r,param); err!=nil{
 		resp.ResponseWriteErr(w,fmt.Errorf("%w error booting vm",err), http.StatusInternalServerError)
 		return
 	}
- 
-	DomainSeeker:=conn.DomSeekUUIDFactory(i.LibvirtInst, param.UUID)
-	DomainDeleter,_:=conn.DomainDeleterFactory(DomainSeeker, param.DeletionType, param.UUID)
-	
-	domainInfo, err:=DomainDeleter.DeleteDomain()
+	if _, err := conn.ReturnUUID(param.UUID); err!=nil{
+		resp.ResponseWriteErr(w,fmt.Errorf("%w invalid uuid, uuid of %s",param.UUID,err), http.StatusBadRequest)
+		return
+	}
+	// uuid 가 적합한지 확인
+
+	domain, err := i.DomainControl.GetDomain(param.UUID,i.LibvirtInst)
+	if err!=nil{
+		resp.ResponseWriteErr(w,fmt.Errorf("%w invalid uuid, uuid of %s",param.UUID,err), http.StatusBadRequest)
+		//error handling 
+	}
+
+	DomainDeleter,_:=conn.DomainDeleterFactory(domain, param.DeletionType)
+	domainInfo, err:=DomainDeleter.DeleteDomain(param.UUID)
 	if err!=nil{
 		resp.ResponseWriteErr(w,fmt.Errorf("%w error booting vm",err), http.StatusInternalServerError)
 		fmt.Println(err)
 		return
 	}
-		//uuid unparsing 중 에러, undefine,destroyDom 에서 에러, 켜져 있지만 softdelete가 
-	// 수신시 에러 발생 가능 ,추후 에러 핸들링 
+
+	i.DomainControl.DeleteDomain(param.UUID, i.LibvirtInst)
+
 
 	resp.ResponseWriteOK(w,domainInfo)
 }
