@@ -9,7 +9,7 @@ import (
 
 type InstHandler struct {
 	LibvirtInst *libvirt.Connect
-	DomainControl  conn.DomListControl
+	DomainControl  *conn.DomListControl
 }
 // InstHandler 는 
 

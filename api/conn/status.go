@@ -121,7 +121,7 @@ func (DSU *DomainSeekingByUUID) ReturnDomain() (*Domain, error) {
 	
 	return &Domain{
 		Domain:      domain,
-		domainListMutex: sync.Mutex{},
+		domainMutex: sync.Mutex{},
 	}, nil
 }
 

@@ -20,6 +20,10 @@ func (i *InstHandler)ForceShutDownVM(w http.ResponseWriter, r *http.Request){
 		return
 	}
 	dom,err:= i.DomainControl.GetDomain(param.UUID,i.LibvirtInst)
+	if err!= nil{
+		resp.ResponseWriteErr(w,fmt.Errorf("%w error booting vm",err), http.StatusInternalServerError)
+		return
+	}
 
 	DomainTerminator,_:= conn.DomainTerminatorFactory(dom)
 
@@ -45,14 +49,14 @@ func (i *InstHandler)DeleteVM(w http.ResponseWriter, r *http.Request){
 		return
 	}
 	if _, err := conn.ReturnUUID(param.UUID); err!=nil{
-		resp.ResponseWriteErr(w,fmt.Errorf("%w invalid uuid, uuid of %s",param.UUID,err), http.StatusBadRequest)
+		resp.ResponseWriteErr(w,fmt.Errorf("%w invalid uuid, uuid of %s",err,param.UUID), http.StatusBadRequest)
 		return
 	}
 	// uuid 가 적합한지 확인
 
 	domain, err := i.DomainControl.GetDomain(param.UUID,i.LibvirtInst)
 	if err!=nil{
-		resp.ResponseWriteErr(w,fmt.Errorf("%w invalid uuid, uuid of %s",param.UUID,err), http.StatusBadRequest)
+		resp.ResponseWriteErr(w,fmt.Errorf("%w invalid uuid, uuid of %s", err,param.UUID), http.StatusBadRequest)
 		//error handling 
 	}
 

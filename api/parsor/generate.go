@@ -33,24 +33,29 @@ func (DP DomainParsor)Generate(LibvirtInst *libvirt.Connect) (*libvirt.Domain,er
 	}
 	
 	if err:= DP.CreateDiskImage();err!=nil{
+		return nil,virerr.ErrorGen(virerr.DomainGenerationError, fmt.Errorf("making directory error generating domain, may have duplicated uuid %w",err))
 
 	}
 
 	if err:= DP.CreateISOFile();err!=nil{
+		return nil,virerr.ErrorGen(virerr.DomainGenerationError, fmt.Errorf("making directory error generating domain, may have duplicated uuid %w",err))
 
 	}
 
 	DP.DeviceDefiner.XML_Parsor(DP.VMDescription)
 
-	output, err := xml.MarshalIndent(DP.DeviceDefiner, "", "  ")
+	output, err := xml.MarshalIndent(*DP.DeviceDefiner, "", "  ")
+	if err!=nil{
+		virerr.ErrorGen(virerr.DomainGenerationError,fmt.Errorf("XML deparsing Error, whilie defining hardware spec in Generation, %w", err))
+	}
+	fmt.Println(DP.DeviceDefiner)
+	dom,err := conn.CreateDomainWithXML(LibvirtInst, output)
 	if err!=nil{
 		virerr.ErrorGen(virerr.DomainGenerationError,fmt.Errorf("XML deparsing Error, whilie defining hardware spec in Generation, %w", err))
 	}
 
-	dom,err := conn.CreateDomainWithXML(LibvirtInst, output)
-	if err!=nil{
-		
-	}
+
+
 
 	return dom,nil
 

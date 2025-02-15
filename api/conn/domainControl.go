@@ -2,10 +2,30 @@ package conn
 
 import (
 	"fmt"
+	"sync"
 
 	virerr "github.com/easy-cloud-Knet/KWS_Core.git/api/error"
 	"libvirt.org/go/libvirt"
 )
+
+
+func DomGen(Dom *libvirt.Domain) *Domain{
+	return &Domain{
+		domainMutex: sync.Mutex{},
+		Domain: Dom,
+	}
+}
+
+
+
+
+func DomListConGen() *DomListControl{
+	return &DomListControl{
+		domainMutex: sync.Mutex{},
+		DomainList: make(map[string]*Domain),
+	}
+}
+
 
 
 func (DC *DomListControl) AddNewDomain(domain *Domain, uuid string){
@@ -53,6 +73,40 @@ func (DC *DomListControl) DeleteDomain(uuid string, LibvirtInst *libvirt.Connect
 
 
 func (DC *DomListControl) RetreiveAllDomain(LibvirtInst *libvirt.Connect)(error){
-	// 컴퓨터 부팅시 실행될 함수, libvirt.connect 에서 모든 도메인을 읽어와 업데이트 함.
+	domActive, err := LibvirtInst.ListAllDomains(libvirt.CONNECT_LIST_DOMAINS_ACTIVE)
+	if err!=nil{	
+		fmt.Print("do something")
+	}
+	for i:= range domActive{
+		uuid, err := domActive[i].GetUUID()
+		if err!=nil{
+			fmt.Println(err)
+		}
+		uuidStr := fmt.Sprintf("%x", uuid)
+		DC.DomainList[uuidStr]= &Domain{
+			Domain: &domActive[i],
+			domainMutex: sync.Mutex{},
+		}
+	}
+	domInactive, err := LibvirtInst.ListAllDomains(libvirt.CONNECT_LIST_DOMAINS_INACTIVE)
+	if err!=nil{
+		fmt.Print("do something")
+
+	}
+
+	for i:= range domInactive{
+		uuid, err := domInactive[i].GetUUID()
+		if err!=nil{
+			fmt.Println(err)
+		}
+		uuidStr := fmt.Sprintf("%x", uuid)
+		DC.DomainList[uuidStr]= &Domain{
+			Domain: &domInactive[i],
+			domainMutex: sync.Mutex{},
+		}
+	}
+	fmt.Println(DC.DomainList)
+
+
 	return nil
 }

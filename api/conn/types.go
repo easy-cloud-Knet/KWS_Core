@@ -14,7 +14,7 @@ type DomListControl struct {
 
 type Domain struct {
 	Domain      *libvirt.Domain 
-	domainListMutex sync.Mutex 
+	domainMutex sync.Mutex 
 
 }
 

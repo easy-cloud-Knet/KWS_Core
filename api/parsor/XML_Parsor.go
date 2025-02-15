@@ -4,7 +4,7 @@ import (
 	"fmt"
 )
 func(XP *VM_CREATE_XML) XML_Parsor(spec *VM_Init_Info) error {
-	XP= &VM_CREATE_XML{
+	*XP= VM_CREATE_XML{
 		Type: "kvm",
 		Name: spec.DomName,
 		UUID: spec.UUID,
