@@ -6,13 +6,13 @@ import (
 	"io"
 	"net/http"
 
-	"github.com/easy-cloud-Knet/KWS_Core.git/api/conn"
+	virerr "github.com/easy-cloud-Knet/KWS_Core.git/api/error"
 )
 
 type BaseResponse[T any] struct {
 	Information *T      `json:"information,omitempty"`
 	Message     string `json:"message"`
-	Errors      *conn.ErrorDescriptor `json:"errors,omitempty"`
+	Errors      *virerr.ErrorDescriptor `json:"errors,omitempty"`
 	ErrorDebug  string `json:"errrorDebug,omitempty"`
 }
 
@@ -26,19 +26,19 @@ func ResponseGen[T any](message string) *BaseResponse[T] {
 func HttpDecoder[T any](r *http.Request, param *T) error {
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
-		return conn.ErrorGen(conn.FaildDeEncoding,fmt.Errorf("%w error unmarshaling body into Structure",err))
+		return virerr.ErrorGen(virerr.FaildDeEncoding,fmt.Errorf("%w error unmarshaling body into Structure",err))
 	}
 	defer r.Body.Close()
 
 	if err := json.Unmarshal(body, param); err != nil {
-		return conn.ErrorGen(conn.FaildDeEncoding,fmt.Errorf("%w error unmarshaling body into Structure",err))
+		return virerr.ErrorGen(virerr.FaildDeEncoding,fmt.Errorf("%w error unmarshaling body into Structure",err))
 	}
 	return nil
 }
 
 func (br *BaseResponse[T]) ResponseWriteErr(w http.ResponseWriter, err error, statusCode int) {
 	br.Message += " failed"
-	errDesc, ok:= err.(conn.ErrorDescriptor)
+	errDesc, ok:= err.(virerr.ErrorDescriptor)
 	if !ok{
 		http.Error(w, br.Message, http.StatusInternalServerError)
 		return

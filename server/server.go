@@ -14,7 +14,7 @@ func InitServer(portNum int, libvirtInst *service.InstHandler) {
 	mux := http.NewServeMux()
 
 	mux.HandleFunc("GET /getStatus", libvirtInst.ReturnDomainByStatus)    //get
-	mux.HandleFunc("POST /createVM", libvirtInst.CreateVM)                 //post
+	mux.HandleFunc("POST /createVM", libvirtInst.CreateVMLocal)                 //post
 	mux.HandleFunc("GET /getStatusUUID", libvirtInst.ReturnStatusUUID)    //Get
 	mux.HandleFunc("POST /forceShutDownUUID", libvirtInst.ForceShutDownVM) //Get
 	mux.HandleFunc("POST /DeleteVM", libvirtInst.DeleteVM)                 //Get

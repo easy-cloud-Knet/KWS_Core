@@ -7,6 +7,7 @@ import (
 	"reflect"
 
 	"github.com/easy-cloud-Knet/KWS_Core.git/api/conn"
+	virerr "github.com/easy-cloud-Knet/KWS_Core.git/api/error"
 )
 
 
@@ -33,19 +34,19 @@ func (i *InstHandler) ReturnDomainByStatus(w http.ResponseWriter, r *http.Reques
  
 	list, err := doms.DomainSeeker.ReturnDomain()
 	if err != nil {
-		appendingErorr:=conn.ErrorJoin(err, errors.New("retreving Domain from Return Domain Status"))
+		appendingErorr:=virerr.ErrorJoin(err, errors.New("retreving Domain from Return Domain Status"))
 		resp.ResponseWriteErr(w, appendingErorr, http.StatusInternalServerError)
 		return 
 	}
 	for i := range list {
 		if list[i] == nil {
-			appendingError:= conn.ErrorGen(conn.DomainSearchError, errors.New("internal error dereferncing domain pointer in Sercing Status"))
+			appendingError:= virerr.ErrorGen(virerr.DomainSearchError, errors.New("internal error dereferncing domain pointer in Sercing Status"))
 			resp.ResponseWriteErr(w,appendingError, http.StatusInternalServerError)
 			return
 		}
 		err:= DataHandle.GetInfo(list[i])
 		if err!=nil{
-			appendingErorr:=conn.ErrorJoin(conn.DomainStatusError, errors.New("retreving Domain Status Error"))
+			appendingErorr:=virerr.ErrorJoin(virerr.DomainStatusError, errors.New("retreving Domain Status Error"))
 			resp.ResponseWriteErr(w,appendingErorr, http.StatusInternalServerError)
 		}
 		doms.DataHandle = append(doms.DataHandle, DataHandle)
@@ -79,7 +80,7 @@ func (i *InstHandler) ReturnStatusUUID(w http.ResponseWriter, r *http.Request) {
 
 	dom, err := DomainDetail.DomainSeeker.ReturnDomain()
 	if err != nil {
-		appendingErorr:=conn.ErrorJoin(err, errors.New("retreving Domain from Return Domain Status funcion error"))
+		appendingErorr:=virerr.ErrorJoin(err, errors.New("retreving Domain from Return Domain Status funcion error"))
 		resp.ResponseWriteErr(w, appendingErorr, http.StatusInternalServerError)
 		return 
 	}

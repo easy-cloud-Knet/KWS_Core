@@ -12,7 +12,7 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-func(u *User_data_yaml) FileConfig(dirPath string) error{
+func(u *User_data_yaml) WriteFile(dirPath string) error{
 	marshalledData, err := yaml.Marshal(u)
 	if err!=nil{
 		return err
@@ -28,7 +28,7 @@ func(u *User_data_yaml) FileConfig(dirPath string) error{
 }
 //parsing user-data >> file Config >> done writing user data
 
-func(u *Meta_data_yaml) FileConfig(dirPath string)error{
+func(u *Meta_data_yaml) WriteFile(dirPath string)error{
 	marshalledData, err := yaml.Marshal(u)
 	if err!=nil{
 		return err
@@ -43,7 +43,7 @@ func(u *Meta_data_yaml) FileConfig(dirPath string)error{
 }
 
 
-func(u *User_data_yaml) Parse_data(param *VM_Init_Info) error {
+func(u *User_data_yaml) ParseData(param *VM_Init_Info) error {
 
 	u.PackageUpdatable=true 
 	
@@ -88,7 +88,12 @@ func(u *User_data_yaml) Parse_data(param *VM_Init_Info) error {
 	
 	return nil
 }	
-func (m* Meta_data_yaml) Parse_data(param *VM_Init_Info) error {
+
+
+
+
+
+func (m* Meta_data_yaml) ParseData(param *VM_Init_Info) error {
 	m.Instance_ID=param.UUID
 	m.Local_Host_Id=param.DomName
 	return nil
