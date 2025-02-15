@@ -5,9 +5,13 @@ import (
 	"libvirt.org/go/libvirt"
 )
 
+
+
 type InstHandler struct {
-	LibvirtInst conn.LibvirtInst
+	LibvirtInst *libvirt.Connect
+	DomainControl  *conn.DomListControl
 }
+// InstHandler 는 
 
 type InstHandle interface {
 	LibvirtConnection()

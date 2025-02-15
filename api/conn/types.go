@@ -3,17 +3,21 @@ package conn
 import (
 	"sync"
 
-	"github.com/easy-cloud-Knet/KWS_Core.git/api/parsor"
 	"libvirt.org/go/libvirt"
 )
 
-type LibvirtInst = *libvirt.Connect
+
+type DomListControl struct {
+	DomainList map[string]*Domain
+	domainMutex sync.Mutex 
+}
 
 type Domain struct {
-	Domain      *libvirt.Domain
-	DomainMutex sync.Mutex
+	Domain      *libvirt.Domain 
+	domainMutex sync.Mutex 
+
 }
-// managing attachable devices for vm, vcpu,internet interface ...
+
 type DomainStatusManager struct {
 	DomainState libvirt.DomainState
 	UUID        string
@@ -88,22 +92,16 @@ type DataTypeHandler interface {
 
 type DomainDetail struct {
 	DataHandle   []DataTypeHandler
-	DomainSeeker DomainSeeker
+	Domain *Domain
 }
 ////////////////////////interface uniformed function for various infoType
 
-type DomainGeneratorLocal struct {
-	DomainStatusManager *DomainStatusManager
-	DataParsor          parsor.DomainGenerator
-	OS                  string
-}
 
 type DomainTerminator struct {
-	DomainSeeker DomainSeeker
+	domain *Domain
 }
 type DomainDeleter struct {
-	DomainSeeker        DomainSeeker
-	DomainStatusManager *DomainStatusManager
+	domain        *Domain
 	DeletionType        DomainDeleteType
 }
 
@@ -113,18 +111,10 @@ type DomainDeleter struct {
 type DomainSeekingByUUID struct {
 	LibvirtInst *libvirt.Connect
 	UUID        string
-	Domain      []*Domain
-}
-
-type DomainSeekingByStatus struct {
-	LibvirtInst *libvirt.Connect
-	Status      libvirt.ConnectListAllDomainsFlags
-	DomList     []*Domain
 }
 
 type DomainSeeker interface {
-	SetDomain() error
-	ReturnDomain() ([]*Domain, error)
+	ReturnDomain() (*Domain, error)
 }
 
 /////////////////////////////interface seeking certain Domain
@@ -173,4 +163,27 @@ type HostSystemInfo struct {
 	BootTime uint64  `json:"boot_time_epoch"`
 	CPU_Temp float64 `json:"cpu_temperature,omitempty"` // no
 	RAM_Temp float64 `json:"ram_temperature,omitempty"` // no
+}
+
+
+
+
+
+////////////////////////////////////////////////////////////////////////////////////
+//create domain 과 관련 된 구조체들, 
+// interface, Generate 로 생성 방식을 추상화 할 예졍, 
+// 현재는 yaml controller 로 파일을 바로 만들어서 실행하지만, 
+// user 가 입력을 하거나, 다른 파일 서버에서 받아오는 것<----- 더 빠를 수 있음
+////////////////////////////////////////////////////////////////////////////////////
+
+
+type DomainGenerator struct {
+	Domain Domain
+	DataParsor          DomainConfigGenerator
+}
+
+
+
+type DomainConfigGenerator interface {
+	Generate(*libvirt.Connect) (*libvirt.Domain,error)
 }

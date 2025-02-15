@@ -2,58 +2,16 @@ package service
 
 import (
 	"errors"
+	"fmt"
 	"net/http"
+	"reflect"
 
 	"github.com/easy-cloud-Knet/KWS_Core.git/api/conn"
+	virerr "github.com/easy-cloud-Knet/KWS_Core.git/api/error"
 )
 
 
-func (i *InstHandler) ReturnDomainByStatus(w http.ResponseWriter, r *http.Request) {
-	param:=&ReturnDomainFromStatus{}
-	resp:=ResponseGen[[]conn.DataTypeHandler]("domain status with Status")
-	
-	if err:=HttpDecoder(r,param); err!=nil{
-		resp.ResponseWriteErr(w,err, http.StatusBadRequest)
-		//StatusInternalError 말고 다른 에러 반환 고민
-		return
-	}
 
-	DomainSeeker:=conn.DomSeekStatusFactory(i.LibvirtInst, param.Status)
-	DataHandle, err := conn.DataTypeRouter(param.DataType)
-	if err!=nil{
-		resp.ResponseWriteErr(w, err, http.StatusBadRequest)
-		return
-		// wrong parameter error 반환
-	}
-	doms := conn.DomainDetailFactory(DataHandle, DomainSeeker)
-	// Domain Detail로 채우는 객체 생성
- 
-	list, err := doms.DomainSeeker.ReturnDomain()
-	if err != nil {
-		appendingErorr:=conn.ErrorJoin(err, errors.New("retreving Domain from Return Domain Status"))
-		resp.ResponseWriteErr(w, appendingErorr, http.StatusInternalServerError)
-		return 
-	}
-	for i := range list {
-		if list[i] == nil {
-			appendingError:= conn.ErrorGen(conn.DomainSearchError, errors.New("internal error dereferncing domain pointer in Sercing Status"))
-			resp.ResponseWriteErr(w,appendingError, http.StatusInternalServerError)
-			return
-		}
-		err:= DataHandle.GetInfo(list[i])
-		if err!=nil{
-			appendingErorr:=conn.ErrorJoin(conn.DomainStatusError, errors.New("retreving Domain Status Error"))
-			resp.ResponseWriteErr(w,appendingErorr, http.StatusInternalServerError)
-		}
-		doms.DataHandle = append(doms.DataHandle, DataHandle)
-	}
-	resp.ResponseWriteOK(w, &doms.DataHandle)
-	//slice를 포인터로 넘기는 문제가 있음, 타입 어설션 등 고민,, 
-}
-// InvalidUUID, UUID 변환 중 오류가 발생할 시
-// NoSuchDomain, 도메인 검색 중, 해당 도메인을 찾을 수 없을 시
-// DomainStatusError, 알수 없는 에러, Libvirt 내부 오류 발생 시
-// Wrong paramter, 도메인 상태 플래그가 범위를 벗어났을 시
 
 func (i *InstHandler) ReturnStatusUUID(w http.ResponseWriter, r *http.Request) {
 	param:=&ReturnDomainFromUUID{}
@@ -63,8 +21,11 @@ func (i *InstHandler) ReturnStatusUUID(w http.ResponseWriter, r *http.Request) {
 		resp.ResponseWriteErr(w,err, http.StatusBadRequest)
 		return
 	}
+	dom, err:= i.DomainControl.GetDomain(param.UUID, i.LibvirtInst)
+	if err!=nil{
+		resp.ResponseWriteErr(w,virerr.ErrorJoin(err, errors.New("error returning status from uuid")), http.StatusInternalServerError)
+	}
 
-	DomainSeeker:= conn.DomSeekUUIDFactory(i.LibvirtInst, param.UUID)
 	outputStruct, err := conn.DataTypeRouter(param.DataType)
 	if err!=nil{
 		resp.ResponseWriteErr(w, err, http.StatusBadRequest)
@@ -72,15 +33,10 @@ func (i *InstHandler) ReturnStatusUUID(w http.ResponseWriter, r *http.Request) {
 		// wrong parameter error 반환
 	}
 
-	DomainDetail := conn.DomainDetailFactory(outputStruct, DomainSeeker)
+	DomainDetail := conn.DomainDetailFactory(outputStruct, dom)
 
-	dom, err := DomainDetail.DomainSeeker.ReturnDomain()
-	if err != nil {
-		appendingErorr:=conn.ErrorJoin(err, errors.New("retreving Domain from Return Domain Status funcion error"))
-		resp.ResponseWriteErr(w, appendingErorr, http.StatusInternalServerError)
-		return 
-	}
-	outputStruct.GetInfo(dom[0])
+
+	outputStruct.GetInfo(dom)
 	DomainDetail.DataHandle = append(DomainDetail.DataHandle, outputStruct)
 
 	resp.ResponseWriteOK(w, &DomainDetail.DataHandle)
@@ -102,7 +58,7 @@ func (i *InstHandler) ReturnStatusHost(w http.ResponseWriter, r *http.Request) {
 		resp.ResponseWriteErr(w,err,http.StatusInternalServerError)
 		return
 	}
-	
+	fmt.Println("data sending", reflect.TypeOf(dataHandle))
 	host,err := conn.HostDetailFactory(dataHandle)
 	if err!= nil{
 		resp.ResponseWriteErr(w,err,http.StatusInternalServerError)

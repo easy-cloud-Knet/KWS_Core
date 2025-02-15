@@ -6,6 +6,7 @@ import (
 	"log"
 	"time"
 
+	virerr "github.com/easy-cloud-Knet/KWS_Core.git/api/error"
 	"github.com/shirou/gopsutil/cpu"
 	"github.com/shirou/gopsutil/disk"
 	"github.com/shirou/gopsutil/host"
@@ -15,14 +16,14 @@ import (
 func (CI *HostCpuInfo) GetHostInfo() error {
 	t, err := cpu.Times(false) //time
 	if err != nil {
-		log.Println(err)
-		return ErrorGen(HostStatusError, err)
+		log.Println(err) 
+		return virerr.ErrorGen(virerr.HostStatusError, err)
 	}
 
 	p, err := cpu.Percent(time.Second, false)
 	if err != nil {
 		log.Println(err)
-		return ErrorGen(HostStatusError, err)
+		return virerr.ErrorGen(virerr.HostStatusError, err)
 	}
 
 	if len(t) > 0 {
@@ -38,7 +39,7 @@ func (MI *HostMemoryInfo) GetHostInfo() error {
 	v, err := mem.VirtualMemory()
 	if err != nil {
 		log.Println(err)
-		return ErrorGen(HostStatusError, err)
+		return virerr.ErrorGen(virerr.HostStatusError, err)
 
 	}
 
@@ -54,7 +55,7 @@ func (HDI *HostDiskInfo) GetHostInfo() error {
 	d, err := disk.Usage("/")
 	if err != nil {
 		log.Println(err)
-		return ErrorGen(HostStatusError, err)
+		return virerr.ErrorGen(virerr.HostStatusError, err)
 
 	}
 
@@ -70,14 +71,14 @@ func (HSI *HostSystemInfo) GetHostInfo() error {
 	u, err := host.Uptime()
 	if err != nil {
 		log.Println(err)
-		return ErrorGen(HostStatusError, err)
+		return virerr.ErrorGen(virerr.HostStatusError, err)
 
 	}
 
 	b, err := host.BootTime()
 	if err != nil {
 		log.Println(err)
-		return ErrorGen(HostStatusError, err)
+		return virerr.ErrorGen(virerr.HostStatusError, err)
 
 	}
 
@@ -111,7 +112,7 @@ func HostDataTypeRouter(types HostDataType) (HostDataTypeHandler, error) {
 		return &HostSystemInfo{}, nil
 	}
 		
-		return nil, ErrorGen(HostStatusError, errors.New("not valid parameters for HostDataType provided"))
+		return nil, virerr.ErrorGen(virerr.HostStatusError, errors.New("not valid parameters for HostDataType provided"))
 }
 
 
@@ -125,3 +126,4 @@ func HostDetailFactory(handler HostDataTypeHandler) (*HostDetail, error) {
 		HostDataHandle: handler,
 	}, nil
 }
+

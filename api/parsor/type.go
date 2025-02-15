@@ -6,28 +6,30 @@ import (
 	network "github.com/easy-cloud-Knet/KWS_Core.git/api/net"
 )
 
-//type IP []byte
 
-type Create_VM_Method uint
+type VM_Init_Info struct{
+	DomType string `json:"domType"`
+	DomName string `json:"domName"`
+	UUID string `json:"uuid"`
+	OS string `json:"os"`
+	NetworkType string `json:"netType"`
+	HardwardInfo HardwareInfo `json:"HWInfo"`
+	NetConf network.NetDefine `json:"network"`
+	IPs []string `json:"ips"`
+	Users []User_info_VM `json:"users"`
+}
 
 
-type DomainGenerator struct{
-	YamlParsor YamlController 
-	DeviceDefiner VM_CREATE_XML
+type DomainParsor struct{
+	YamlParsorUser *User_data_yaml
+	YamlParsorMeta  *Meta_data_yaml 
+	DeviceDefiner *VM_CREATE_XML
+	VMDescription *VM_Init_Info
 }
 // struct for detailed generation config
 
-type YamlController interface{
-	Parse_data(*VM_Init_Info)  error
-	FileConfig(string) error 
-}
 
-const (
-	CREATE_WITH_XML Create_VM_Method = iota+1
-	type1
-	type2
-	type3
-)
+
 
 type Meta_data_yaml struct{
 	Instance_ID string `yaml:"instance-id"`
@@ -68,18 +70,7 @@ type User_info_VM struct {
 	PassWord string `json:"passWord"`
 }
 
-type VM_Init_Info struct{
-	DomType string `json:"domType"`
-	DomName string `json:"domName"`
-	UUID string `json:"uuid"`
-	OS string `json:"os"`
-	NetworkType string `json:"netType"`
-	HardwardInfo HardwareInfo `json:"HWInfo"`
-	NetConf network.NetDefine `json:"network"`
-	IPs []string `json:"ips"`
-	Method Create_VM_Method `json:"method"`
-	Users []User_info_VM `json:"users"`
-}
+
 
 type HardwareInfo struct{
 	CPU int `json:"cpu"`

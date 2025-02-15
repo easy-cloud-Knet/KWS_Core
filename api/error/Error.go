@@ -1,4 +1,4 @@
-package conn
+package virerr
 
 import (
 	"fmt"
@@ -29,6 +29,7 @@ const (
 	DomainShutdownError VirError= "failed in Deleting domain"
 )
 
+ 
 // VirError는 error 인터페이스를 구현
 func (ve VirError) Error() string {
 	return string(ve)
@@ -77,4 +78,5 @@ func ErrorJoin(baseError error ,appendingError error) error{
 	v.Detail=fmt.Errorf("%w %w", v.Detail, appendingError)
 	return v
 }
+
 
