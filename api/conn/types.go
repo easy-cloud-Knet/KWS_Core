@@ -3,6 +3,7 @@ package conn
 import (
 	"sync"
 
+	"go.uber.org/zap"
 	"libvirt.org/go/libvirt"
 )
 
@@ -185,5 +186,5 @@ type DomainGenerator struct {
 
 
 type DomainConfigGenerator interface {
-	Generate(*libvirt.Connect) (*libvirt.Domain,error)
+	Generate(*libvirt.Connect, *zap.SugaredLogger) (*libvirt.Domain,error)
 }

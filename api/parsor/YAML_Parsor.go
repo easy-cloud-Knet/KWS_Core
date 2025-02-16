@@ -3,7 +3,6 @@ package parsor
 import (
 	"bytes"
 	"fmt"
-	"log"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -21,7 +20,6 @@ func(u *User_data_yaml) WriteFile(dirPath string) error{
 	Writer.WriteString("#cloud-config\n")
 	Writer.Write(marshalledData)
 	if err := os.WriteFile(filepath.Join(dirPath, "user-data"), Writer.Bytes(), 0644); err != nil {
-		log.Printf("Error writing user-data file: %v", err)
 		return fmt.Errorf("error Writing user-data file %w", err)
 	}
 	return nil
@@ -36,7 +34,6 @@ func(u *Meta_data_yaml) WriteFile(dirPath string)error{
 	Writer := bytes.Buffer{}
 	Writer.Write(marshalledData)
 	if err := os.WriteFile(filepath.Join(dirPath, "meta-data"), Writer.Bytes(), 0644); err != nil {
-		log.Printf("Error writing meta-data file: %v", err)
 		return fmt.Errorf("error Writing Meta-data file %w", err)
 	}
 	return nil
@@ -86,6 +83,8 @@ func(u *User_data_yaml) ParseData(param *VM_Init_Info) error {
 	u.Runcmd= append(u.Runcmd, "sudo systemctl start qemu-guest-agent")
 	u.Runcmd= append(u.Runcmd, "sudo systemctl enable qemu-guest-agent")
 	
+	
+
 	return nil
 }	
 

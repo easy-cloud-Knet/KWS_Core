@@ -13,6 +13,9 @@ func (i *InstHandler)LibvirtConnection(){
 			panic(err)
 }
 	i.LibvirtInst = libvirtInst
+	i.Logger.Info("Libvirt Coonnection succefully done.")
+	
+	defer i.Logger.Sync()
 }
 
 

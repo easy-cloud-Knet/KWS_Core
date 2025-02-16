@@ -5,108 +5,112 @@ import (
 	"sync"
 
 	virerr "github.com/easy-cloud-Knet/KWS_Core.git/api/error"
+	"go.uber.org/zap"
 	"libvirt.org/go/libvirt"
 )
 
-
-func DomGen(Dom *libvirt.Domain) *Domain{
+func NewDomainInstance(Dom *libvirt.Domain) *Domain {
 	return &Domain{
 		domainMutex: sync.Mutex{},
-		Domain: Dom,
+		Domain:      Dom,
 	}
 }
 
-
-
-
-func DomListConGen() *DomListControl{
+func DomListConGen() *DomListControl {
 	return &DomListControl{
 		domainMutex: sync.Mutex{},
-		DomainList: make(map[string]*Domain),
+		DomainList:  make(map[string]*Domain),
 	}
 }
 
-
-
-func (DC *DomListControl) AddNewDomain(domain *Domain, uuid string){
+func (DC *DomListControl) AddNewDomain(domain *Domain, uuid string) {
 	DC.domainMutex.Lock()
-	DC.DomainList[uuid]= domain
 	defer DC.domainMutex.Unlock()
-	// 아직은 단순한 정도의 mutex만 구현, domainList 와 Domain이
-	// 얼마나 복잡하냐에 따라 수정 가능.
+
+	DC.DomainList[uuid] = domain
 }
 
+func (DC *DomListControl) GetDomain(uuid string, LibvirtInst *libvirt.Connect) (*Domain, error) {
+	DC.domainMutex.Lock()
+	domain, Exist := DC.DomainList[uuid]
+	DC.domainMutex.Unlock()
 
-func (DC *DomListControl) GetDomain(uuid string, LibvirtInst *libvirt.Connect)(*Domain, error){
-	domain, Exist := DC.DomainList[uuid]; 
-	if !Exist{
-		DomainSeeker:= DomSeekUUIDFactory(LibvirtInst, uuid)
-		domList,err :=DomainSeeker.ReturnDomain()
-		if err!=nil{
-			return nil, virerr.ErrorGen(virerr.NoSuchDomain,fmt.Errorf("no such domain exists with uuid of %s , %w", uuid,err))
+	if !Exist {
+		DomainSeeker := DomSeekUUIDFactory(LibvirtInst, uuid)
+		domList, err := DomainSeeker.ReturnDomain()
+		if err != nil {
+			return nil, err
 		}
-		domain=domList
-		DC.AddNewDomain(domain,uuid)
-		return domain, nil
+		DC.AddNewDomain(domList, uuid)
+		return domList, nil
 	}
 
-	return domain,nil
+	return domain, nil
 }
 
-func (DC *DomListControl) DeleteDomain(uuid string, LibvirtInst *libvirt.Connect)(error){
-	domain, Exist := DC.DomainList[uuid]; 
-	if !Exist{
-		DomainSeeker:= DomSeekUUIDFactory(LibvirtInst, uuid)
-		dom,err :=DomainSeeker.ReturnDomain()
-		if err!=nil{
-			return virerr.ErrorGen(virerr.NoSuchDomain,fmt.Errorf("domain trying to delete already empty, uuid of %s , %w", uuid,err))
+func (DC *DomListControl) DeleteDomain(uuid string, LibvirtInst *libvirt.Connect) error {
+	DC.domainMutex.Lock()
+	domain, Exist := DC.DomainList[uuid]
+	DC.domainMutex.Unlock()
+
+	if !Exist {
+		DomainSeeker := DomSeekUUIDFactory(LibvirtInst, uuid)
+		dom, err := DomainSeeker.ReturnDomain()
+		if err != nil {
+			return virerr.ErrorGen(virerr.NoSuchDomain, fmt.Errorf("domain trying to delete already empty, uuid of %s, %w", uuid, err))
 		}
 		dom.Domain.Free()
-		fmt.Println(dom)
-		//도메인 삭제 로직 추가, 로그 추가 <--- Map과 싱크가 안맞았다는 얘기(골치 아픔)
 		return nil
 	}
+
 	domain.Domain.Free()
+
+	DC.domainMutex.Lock()
 	delete(DC.DomainList, uuid)
+	DC.domainMutex.Unlock()
+
 	return nil
 }
 
-
-func (DC *DomListControl) RetreiveAllDomain(LibvirtInst *libvirt.Connect)(error){
-	domActive, err := LibvirtInst.ListAllDomains(libvirt.CONNECT_LIST_DOMAINS_ACTIVE)
-	if err!=nil{	
-		fmt.Print("do something")
+func (DC *DomListControl) retrieveDomainsByState(LibvirtInst *libvirt.Connect, state libvirt.ConnectListAllDomainsFlags, logger *zap.SugaredLogger) error {
+	domains, err := LibvirtInst.ListAllDomains(state)
+	if err != nil {
+		logger.Errorf("Failed to retrieve domains (state: %d): %v", state, err)
+		return err
 	}
-	for i:= range domActive{
-		uuid, err := domActive[i].GetUUID()
-		if err!=nil{
-			fmt.Println(err)
+
+	DC.domainMutex.Lock()
+	defer DC.domainMutex.Unlock()
+
+	for _, dom := range domains {
+		uuid, err := dom.GetUUIDString()
+		if err != nil {
+			logger.Errorf("Failed to get UUID for domain: %v", err)
+			continue
 		}
-		uuidStr := fmt.Sprintf("%x", uuid)
-		DC.DomainList[uuidStr]= &Domain{
-			Domain: &domActive[i],
+
+		DC.DomainList[uuid] = &Domain{
+			Domain:      &dom,
 			domainMutex: sync.Mutex{},
 		}
-	}
-	domInactive, err := LibvirtInst.ListAllDomains(libvirt.CONNECT_LIST_DOMAINS_INACTIVE)
-	if err!=nil{
-		fmt.Print("do something")
-
+		logger.Infof("Added domain: UUID=%s", uuid)
 	}
 
-	for i:= range domInactive{
-		uuid, err := domInactive[i].GetUUID()
-		if err!=nil{
-			fmt.Println(err)
-		}
-		uuidStr := fmt.Sprintf("%x", uuid)
-		DC.DomainList[uuidStr]= &Domain{
-			Domain: &domInactive[i],
-			domainMutex: sync.Mutex{},
-		}
+	logger.Infof("Total %d domains added (state: %d)", len(domains), state)
+	return nil
+}
+
+func (DC *DomListControl) RetrieveAllDomain(LibvirtInst *libvirt.Connect, logger *zap.SugaredLogger) error {
+	logger.Info("Retrieving all domains from libvirt...")
+
+	if err := DC.retrieveDomainsByState(LibvirtInst, libvirt.CONNECT_LIST_DOMAINS_ACTIVE, logger); err != nil {
+		return err
 	}
-	fmt.Println(DC.DomainList)
 
+	if err := DC.retrieveDomainsByState(LibvirtInst, libvirt.CONNECT_LIST_DOMAINS_INACTIVE, logger); err != nil {
+		return err
+	}
 
+	logger.Infof("Total VM count: %d", len(DC.DomainList))
 	return nil
 }

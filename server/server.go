@@ -5,22 +5,24 @@ import (
 	"net/http"
 	"strconv"
 
+	syslogger "github.com/easy-cloud-Knet/KWS_Core.git/api/logger"
 	"github.com/easy-cloud-Knet/KWS_Core.git/api/service"
-	timeCal "github.com/easy-cloud-Knet/KWS_Core.git/server/test.go"
+	"go.uber.org/zap"
 )
 
-func InitServer(portNum int, libvirtInst *service.InstHandler) {
-
+func InitServer(portNum int, libvirtInst *service.InstHandler, logger zap.SugaredLogger) {
+	logger.Infof("Starting server on %d", portNum)
 	mux := http.NewServeMux()
 
 	mux.HandleFunc("POST /createVM", libvirtInst.CreateVMLocal)                 //post
 	mux.HandleFunc("GET /getStatusUUID", libvirtInst.ReturnStatusUUID)    //Get
-	mux.HandleFunc("POST /forceShutDownUUID", libvirtInst.ForceShutDownVM) //Get
-	mux.HandleFunc("POST /DeleteVM", libvirtInst.DeleteVM)                 //Get
+	mux.HandleFunc("POST /forceShutDownUUID", libvirtInst.ForceShutDownVM) //POST
+	mux.HandleFunc("POST /DeleteVM", libvirtInst.DeleteVM)                 //POST
 	mux.HandleFunc("GET /getStatusHost", libvirtInst.ReturnStatusHost)    //Get
 
-	timeCalulatorHTTP := timeCal.TimeLogging(mux) 
+	
+	sysloggerHttp := syslogger.LoggerMiddleware(mux, &logger)
 
+	log.Fatal(http.ListenAndServe(":"+strconv.Itoa(portNum), sysloggerHttp))
 
-	log.Fatal(http.ListenAndServe(":"+strconv.Itoa(portNum), timeCalulatorHTTP))
 }

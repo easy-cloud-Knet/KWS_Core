@@ -1,8 +1,6 @@
 package service
 
 import (
-	"fmt"
-	"log"
 	"net/http"
 
 	"github.com/easy-cloud-Knet/KWS_Core.git/api/conn"
@@ -12,42 +10,38 @@ import (
 
 
 func (i *InstHandler) CreateVMLocal(w http.ResponseWriter, r *http.Request) {
+
 	resp:=ResponseGen[libvirt.DomainInfo]("CreateVm")
 	param:=&parsor.VM_Init_Info{}
 	
 	if err:=HttpDecoder(r,param); err!=nil{
 		resp.ResponseWriteErr(w,err, http.StatusBadRequest)
+		i.Logger.Errorf("error occured while decoding user's parameter of requested creation")
 		return
 	}
+	i.Logger.Infoln("Handling Create VM of uuid of %s", param.UUID)
 
-	DomainParsor:= parsor.ParsorFactoryFromRequest(param)
+	DomainParsor:= parsor.ParsorFactoryFromRequest(param, i.Logger)
 
 	DomainGenerator := &conn.DomainGenerator{
 		DataParsor: DomainParsor,
 	}
 
-	dom,err := DomainGenerator.DataParsor.Generate(i.LibvirtInst); 
+	dom,err := DomainGenerator.DataParsor.Generate(i.LibvirtInst, i.Logger); 
 	if err!=nil{
 		resp.ResponseWriteErr(w,err, http.StatusInternalServerError)
-
+		return
 	}
-	fmt.Println("domain specification", dom)
+
 	err = dom.Create()
 	if err!= nil{
 		resp.ResponseWriteErr(w,err, http.StatusInternalServerError)
-		log.Printf("Error starting VM, check for Host's Ram Capacity  %v", err)
 		return 
 	}
-	newDomain := conn.DomGen(dom)
+	newDomain := conn.NewDomainInstance(dom)
 
 	i.DomainControl.AddNewDomain(newDomain,param.UUID)
 
-	// domainInfo,err:= dom.GetInfo()
-	// if err!=nil{
-	// 	appendingErorr:=virerr.ErrorJoin(virerr.DomainStatusError, errors.New("retreving Domain Status Error in creating VM workload"))
-	// 	resp.ResponseWriteErr(w,appendingErorr, http.StatusInternalServerError)
-	// 	return 
-	// }
 	resp.ResponseWriteOK(w,nil)
 }
 
