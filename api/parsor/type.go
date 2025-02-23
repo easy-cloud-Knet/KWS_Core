@@ -12,10 +12,8 @@ type VM_Init_Info struct{
 	DomName string `json:"domName"`
 	UUID string `json:"uuid"`
 	OS string `json:"os"`
-	NetworkType string `json:"netType"`
 	HardwardInfo HardwareInfo `json:"HWInfo"`
 	NetConf network.NetDefine `json:"network"`
-	IPs []string `json:"ips"`
 	Users []User_info_VM `json:"users"`
 }
 

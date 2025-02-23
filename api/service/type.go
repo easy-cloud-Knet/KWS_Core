@@ -2,6 +2,7 @@ package service
 
 import (
 	"github.com/easy-cloud-Knet/KWS_Core.git/api/conn"
+	"go.uber.org/zap"
 	"libvirt.org/go/libvirt"
 )
 
@@ -10,6 +11,7 @@ import (
 type InstHandler struct {
 	LibvirtInst *libvirt.Connect
 	DomainControl  *conn.DomListControl
+	Logger *zap.Logger
 }
 // InstHandler 는 
 
@@ -30,10 +32,7 @@ type StartDomain struct {
 	UUID string `json:"UUID"`
 }
 
-type ReturnDomainFromStatus struct {
-	DataType conn.DomainDataType                `json:"dataType"`
-	Status   libvirt.ConnectListAllDomainsFlags `json:"Flag"`
-}
+ 
 
 type ReturnDomainFromUUID struct {
 	DataType conn.DomainDataType `json:"dataType"`

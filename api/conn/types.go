@@ -3,6 +3,7 @@ package conn
 import (
 	"sync"
 
+	"go.uber.org/zap"
 	"libvirt.org/go/libvirt"
 )
 
@@ -15,7 +16,6 @@ type DomListControl struct {
 type Domain struct {
 	Domain      *libvirt.Domain 
 	domainMutex sync.Mutex 
-
 }
 
 type DomainStatusManager struct {
@@ -91,7 +91,7 @@ type DataTypeHandler interface {
 }
 
 type DomainDetail struct {
-	DataHandle   []DataTypeHandler
+	DataHandle   DataTypeHandler
 	Domain *Domain
 }
 ////////////////////////interface uniformed function for various infoType
@@ -185,5 +185,5 @@ type DomainGenerator struct {
 
 
 type DomainConfigGenerator interface {
-	Generate(*libvirt.Connect) (*libvirt.Domain,error)
+	Generate(*libvirt.Connect, *zap.Logger) (*libvirt.Domain,error)
 }

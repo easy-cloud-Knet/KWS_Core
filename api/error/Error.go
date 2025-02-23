@@ -71,11 +71,11 @@ func ErrorGen(baseError VirError, detailError error) error{
 }
 
 func ErrorJoin(baseError error ,appendingError error) error{
-	v,ok := baseError.(*ErrorDescriptor)
+	v,ok := baseError.(ErrorDescriptor)
 	if !ok{
 		return ErrorGen(VirError(baseError.Error()), appendingError)
 	}
-	v.Detail=fmt.Errorf("%w %w", v.Detail, appendingError)
+	v.Detail=fmt.Errorf("%w %w", appendingError, v.Detail)
 	return v
 }
 

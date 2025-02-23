@@ -47,11 +47,9 @@ func (br *BaseResponse[T]) ResponseWriteErr(w http.ResponseWriter, err error, st
 	br.ErrorDebug= errDesc.Error()
 	data, marshalErr := json.Marshal(br)
 	if marshalErr != nil {
-		fmt.Println(marshalErr)
 		http.Error(w, "failed to marshal error response", http.StatusInternalServerError)
 		return
 	}
-	fmt.Println("error occured in RESPONSE ERR ", br)
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(statusCode)
 	w.Write(data)
