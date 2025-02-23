@@ -11,7 +11,7 @@ import (
 type InstHandler struct {
 	LibvirtInst *libvirt.Connect
 	DomainControl  *conn.DomListControl
-	Logger *zap.SugaredLogger
+	Logger *zap.Logger
 }
 // InstHandler 는 
 

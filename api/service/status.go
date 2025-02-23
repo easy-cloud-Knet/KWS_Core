@@ -8,6 +8,7 @@ import (
 
 	"github.com/easy-cloud-Knet/KWS_Core.git/api/conn"
 	virerr "github.com/easy-cloud-Knet/KWS_Core.git/api/error"
+	"go.uber.org/zap"
 )
 
 
@@ -21,6 +22,8 @@ func (i *InstHandler) ReturnStatusUUID(w http.ResponseWriter, r *http.Request) {
 		resp.ResponseWriteErr(w,err, http.StatusBadRequest)
 		return
 	}
+	i.Logger.Info("retreving domain status", zap.String("uuid", param.UUID))
+	
 	dom, err:= i.DomainControl.GetDomain(param.UUID, i.LibvirtInst)
 	if err!=nil{
 		resp.ResponseWriteErr(w,virerr.ErrorJoin(err, errors.New("error returning status from uuid")), http.StatusInternalServerError)

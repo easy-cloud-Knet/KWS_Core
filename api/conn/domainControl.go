@@ -72,10 +72,10 @@ func (DC *DomListControl) DeleteDomain(uuid string, LibvirtInst *libvirt.Connect
 	return nil
 }
 
-func (DC *DomListControl) retrieveDomainsByState(LibvirtInst *libvirt.Connect, state libvirt.ConnectListAllDomainsFlags, logger *zap.SugaredLogger) error {
+func (DC *DomListControl) retrieveDomainsByState(LibvirtInst *libvirt.Connect, state libvirt.ConnectListAllDomainsFlags, logger *zap.Logger) error {
 	domains, err := LibvirtInst.ListAllDomains(state)
 	if err != nil {
-		logger.Errorf("Failed to retrieve domains (state: %d): %v", state, err)
+		logger.Fatal("Failed to retrieve domains",zap.Error(err))
 		return err
 	}
 
@@ -85,7 +85,7 @@ func (DC *DomListControl) retrieveDomainsByState(LibvirtInst *libvirt.Connect, s
 	for _, dom := range domains {
 		uuid, err := dom.GetUUIDString()
 		if err != nil {
-			logger.Errorf("Failed to get UUID for domain: %v", err)
+			logger.Sugar().Error("Failed to get UUID for domain", err)
 			continue
 		}
 
@@ -93,14 +93,15 @@ func (DC *DomListControl) retrieveDomainsByState(LibvirtInst *libvirt.Connect, s
 			Domain:      &dom,
 			domainMutex: sync.Mutex{},
 		}
-		logger.Infof("Added domain: UUID=%s", uuid)
+		// logger.Infof("Added domain: UUID=%s", uuid)
+		logger.Sugar().Infof("Added domain: UUID=%s", uuid)
 	}
 
-	logger.Infof("Total %d domains added (state: %d)", len(domains), state)
+	logger.Sugar().Infof("Total %d domains added (state: %d)", len(domains), state)
 	return nil
 }
 
-func (DC *DomListControl) RetrieveAllDomain(LibvirtInst *libvirt.Connect, logger *zap.SugaredLogger) error {
+func (DC *DomListControl) RetrieveAllDomain(LibvirtInst *libvirt.Connect, logger *zap.Logger) error {
 	logger.Info("Retrieving all domains from libvirt...")
 
 	if err := DC.retrieveDomainsByState(LibvirtInst, libvirt.CONNECT_LIST_DOMAINS_ACTIVE, logger); err != nil {
@@ -111,6 +112,6 @@ func (DC *DomListControl) RetrieveAllDomain(LibvirtInst *libvirt.Connect, logger
 		return err
 	}
 
-	logger.Infof("Total VM count: %d", len(DC.DomainList))
+	logger.Info("retreiving intital vm", zap.Int("number", len(DC.DomainList)))
 	return nil
 }

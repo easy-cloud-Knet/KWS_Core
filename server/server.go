@@ -10,8 +10,8 @@ import (
 	"go.uber.org/zap"
 )
 
-func InitServer(portNum int, libvirtInst *service.InstHandler, logger zap.SugaredLogger) {
-	logger.Infof("Starting server on %d", portNum)
+func InitServer(portNum int, libvirtInst *service.InstHandler, logger zap.Logger) {
+	logger.Sugar().Infof("Starting server on %d", portNum)
 	mux := http.NewServeMux()
 
 	mux.HandleFunc("POST /createVM", libvirtInst.CreateVMLocal)                 //post

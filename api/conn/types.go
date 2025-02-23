@@ -16,7 +16,6 @@ type DomListControl struct {
 type Domain struct {
 	Domain      *libvirt.Domain 
 	domainMutex sync.Mutex 
-
 }
 
 type DomainStatusManager struct {
@@ -186,5 +185,5 @@ type DomainGenerator struct {
 
 
 type DomainConfigGenerator interface {
-	Generate(*libvirt.Connect, *zap.SugaredLogger) (*libvirt.Domain,error)
+	Generate(*libvirt.Connect, *zap.Logger) (*libvirt.Domain,error)
 }
