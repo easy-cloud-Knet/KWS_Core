@@ -1,7 +1,6 @@
 package service
 
 import (
-	"errors"
 	"fmt"
 	"net/http"
 	"reflect"
@@ -22,26 +21,30 @@ func (i *InstHandler) ReturnStatusUUID(w http.ResponseWriter, r *http.Request) {
 		resp.ResponseWriteErr(w,err, http.StatusBadRequest)
 		return
 	}
-	i.Logger.Info("retreving domain status", zap.String("uuid", param.UUID))
+	i.Logger.Info("retreving domain status",
+	 zap.String("uuid", param.UUID),
+	zap.Int("method", int(param.DataType)))
 
 	dom, err:= i.DomainControl.GetDomain(param.UUID, i.LibvirtInst)
 	if err!=nil{
-		resp.ResponseWriteErr(w,virerr.ErrorJoin(err, errors.New("error returning status from uuid")), http.StatusInternalServerError)
+		detailErr := virerr.ErrorGen(virerr.DomainStatusError,fmt.Errorf("error getting domain while serving ReturnStatusUUID ,UUID of %s, %w",param.UUID, err))
+		resp.ResponseWriteErr(w,detailErr, http.StatusInternalServerError)
+		return
 	}
 
 	outputStruct, err := conn.DataTypeRouter(param.DataType)
 	if err!=nil{
-		resp.ResponseWriteErr(w, err, http.StatusBadRequest)
+		detailErr := virerr.ErrorJoin(err,fmt.Errorf("error domain type routing while serving ReturnStatusUUID ,UUID of %s, %w",param.UUID, err))
+		resp.ResponseWriteErr(w, detailErr, http.StatusBadRequest)
 		return
-		// wrong parameter error 반환
 	}
 
 	DomainDetail := conn.DomainDetailFactory(outputStruct, dom)
 
 
 	outputStruct.GetInfo(dom)
+	i.Logger.Sugar().Info("retreving domain info successfully", outputStruct)
 	DomainDetail.DataHandle = outputStruct
-
 	resp.ResponseWriteOK(w, &DomainDetail.DataHandle)
 
 }

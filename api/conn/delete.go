@@ -6,6 +6,7 @@ import (
 	"os/exec"
 	"path/filepath"
 
+	virerr "github.com/easy-cloud-Knet/KWS_Core.git/api/error"
 	"libvirt.org/go/libvirt"
 )
 
@@ -26,12 +27,13 @@ func (DD *DomainDeleter) DeleteDomain(uuid string) (*libvirt.DomainInfo, error) 
 
 	isRunning, _ := dom.Domain.IsActive()
 	if isRunning && DD.DeletionType == SoftDelete {
-		return nil, fmt.Errorf("Domain Is Running %w, cannot softDelete running Domain", nil)
+		return nil, virerr.ErrorGen(virerr.DeletionDomainError,fmt.Errorf("Domain Is Running,cannot softDelete running Domain")) 
 	} else if isRunning && DD.DeletionType == HardDelete {
 		domShut := &DomainTerminator{domain: dom}
+
 		_, err := domShut.ShutDownDomain()
 		if err != nil {
-			return nil, fmt.Errorf("%w, failed deleting Domain in libvirt Instance, ", err)
+			return nil, virerr.ErrorGen(virerr.DeletionDomainError,fmt.Errorf("failed shutting domain down while hard deleting domain, %w",err)) 
 		}
 	}
 	basicFilePath := "/var/lib/kws/"
@@ -42,16 +44,11 @@ func (DD *DomainDeleter) DeleteDomain(uuid string) (*libvirt.DomainInfo, error) 
 	deleteCmd.Stderr = os.Stderr
 
 	if err := deleteCmd.Run(); err != nil {
-		return nil, fmt.Errorf("%w failed deleteing files in %s", err, FilePath)
+		return nil, virerr.ErrorGen(virerr.DeletionDomainError,fmt.Errorf("failed deleting exsiting local file deleting domain, %w ",err)) 
 	}
 
-	// domainInfo, err := dom.Domain.GetInfo()
-	// if err != nil {
-	// 	return nil, fmt.Errorf("%w Error Retreving DomInfo in After Deleting Domain", err)
-	// } // 다른 정보 추가 고려
-
 	if err := dom.Domain.Undefine(); err != nil {
-		return nil, fmt.Errorf("%w, failed deleting Domain in libvirt Instance, ", err)
+		return nil, virerr.ErrorGen(virerr.DeletionDomainError,fmt.Errorf("failed deleting domain from libvirt daemon, %w ",err)) 
 	}
 
 	return nil, nil
@@ -63,17 +60,12 @@ func (DD *DomainTerminator) ShutDownDomain() (*libvirt.DomainInfo, error) {
 
 	isRunning, _ := dom.Domain.IsActive()
 	if !isRunning {
-		return nil, fmt.Errorf("requested Domain to shutdown is already Dead ")
+		return nil, virerr.ErrorGen(virerr.DomainShutdownError, fmt.Errorf("domain is still running, can not soft shut running domain"))
 	}
 
 	if err := dom.Domain.Destroy(); err != nil {
-		fmt.Println("error occured while deleting Domain")
-		return nil, fmt.Errorf("internal Error in Libvirt occured while shutting down domain")
+		return nil, virerr.ErrorGen(virerr.DomainShutdownError, fmt.Errorf("domain shutting down error from libvirt daemon %w",err))
 	}
-	// domainInfo, err := dom.Domain.GetInfo()
-	// if err != nil {
-	// 	fmt.Println(err)
-	// 	return nil, err
-	// }
+
 	return nil, nil
 }

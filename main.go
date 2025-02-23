@@ -30,7 +30,6 @@ func main() {
 
 
 	defer func() {
-
 		logger.Info("Shutting down gracefully...") // 종료 시 로깅
 		logger.Sync()
 		libvirtInst.LibvirtInst.Close()
