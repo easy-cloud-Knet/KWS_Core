@@ -32,10 +32,7 @@ type StartDomain struct {
 	UUID string `json:"UUID"`
 }
 
-type ReturnDomainFromStatus struct {
-	DataType conn.DomainDataType                `json:"dataType"`
-	Status   libvirt.ConnectListAllDomainsFlags `json:"Flag"`
-}
+ 
 
 type ReturnDomainFromUUID struct {
 	DataType conn.DomainDataType `json:"dataType"`

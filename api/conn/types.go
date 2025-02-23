@@ -91,7 +91,7 @@ type DataTypeHandler interface {
 }
 
 type DomainDetail struct {
-	DataHandle   []DataTypeHandler
+	DataHandle   DataTypeHandler
 	Domain *Domain
 }
 ////////////////////////interface uniformed function for various infoType

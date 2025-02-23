@@ -79,7 +79,7 @@ func (DP *DomainState) GetInfo(domain *Domain) error {
 
 func DomainDetailFactory(Handler DataTypeHandler, dom *Domain) *DomainDetail {
 	return &DomainDetail{
-		DataHandle:   make([]DataTypeHandler, 0),
+		DataHandle: Handler,
 		Domain: dom,
 	}
 }
