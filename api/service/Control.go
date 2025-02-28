@@ -59,7 +59,7 @@ func (i *InstHandler)DeleteVM(w http.ResponseWriter, r *http.Request){
 	if _, err := conn.ReturnUUID(param.UUID); err!=nil{
 		detailErr := virerr.ErrorGen(virerr.DeletionDomainError,fmt.Errorf("error translating uuid while serving DeleteVM,UUID of %s, %w",param.UUID, err))
 		resp.ResponseWriteErr(w,detailErr, http.StatusBadRequest)
-		i.Logger.Info("error deparsing http request whilie serving DeleteVM", zap.Error(err))
+		i.Logger.Error("error deparsing http request whilie serving DeleteVM", zap.Error(err))
 		return
 	}
 	// uuid 가 적합한지 확인
@@ -77,7 +77,6 @@ func (i *InstHandler)DeleteVM(w http.ResponseWriter, r *http.Request){
 	if err!=nil{
 		encapsuledErr:= virerr.ErrorJoin(err,fmt.Errorf("error while Serving DeleteVM"))
 		resp.ResponseWriteErr(w,encapsuledErr, http.StatusInternalServerError)
-		fmt.Println(err)
 		return
 	}
 

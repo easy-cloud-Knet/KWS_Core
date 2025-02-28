@@ -69,6 +69,15 @@ func ErrorGen(baseError VirError, detailError error) error{
 		Detail: detailError,
 	}
 }
+func DescriptionEmmiter(DescErr error ) string{
+	v,ok := DescErr.(ErrorDescriptor)
+	if !ok{
+		return DescErr.Error()
+	}
+	return v.Detail.Error()
+}
+
+
 
 func ErrorJoin(baseError error ,appendingError error) error{
 	v,ok := baseError.(ErrorDescriptor)

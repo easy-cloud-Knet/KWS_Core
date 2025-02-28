@@ -17,29 +17,29 @@ func (DP DomainParsor) Generate(LibvirtInst *libvirt.Connect, logger *zap.Logger
 	
 	// 디렉토리 생성
 	if err := os.MkdirAll(dirPath, 0755); err != nil {
-		errDesc := fmt.Errorf("failed to create directory (%s)", dirPath) 
+		errDesc := fmt.Errorf("domain-parsor: failed to create directory (%s)", dirPath) 
 		logger.Error("failed making directory", zap.Error(errDesc))
 		return nil, virerr.ErrorGen(virerr.DomainGenerationError, errDesc)
 	}
 
 	// cloud-init 파일 처리
 	if err := DP.processCloudInitFiles(dirPath); err != nil {
-		errorEncapsed := virerr.ErrorJoin(err,fmt.Errorf("in domain-parsor,"))
-		logger.Error(errorEncapsed.Error())
+		errorEncapsed := virerr.ErrorJoin(err,fmt.Errorf("domain-parsor: "))
+		logger.Error(virerr.DescriptionEmmiter(errorEncapsed))		
 		return nil, errorEncapsed
 	}
 		logger.Info("generating configuration file successfully done", zap.String("filePath", dirPath))
 
 	if err := DP.CreateDiskImage(dirPath); err != nil {
-		errorEncapsed := virerr.ErrorJoin(err,fmt.Errorf("in domain-parsor,"))
-		logger.Error(errorEncapsed.Error())		
+		errorEncapsed := virerr.ErrorJoin(err,fmt.Errorf("domain-parsor: "))
+		logger.Error(virerr.DescriptionEmmiter(errorEncapsed))		
 		return nil, errorEncapsed
 	}
 
 	// ISO 파일 생성
 	if err := DP.CreateISOFile(dirPath); err != nil {
-		errorEncapsed := virerr.ErrorJoin(err,fmt.Errorf("in domain-parsor,"))
-		logger.Error(errorEncapsed.Error())		
+		errorEncapsed := virerr.ErrorJoin(err,fmt.Errorf("domain-parsor: "))
+		logger.Error(virerr.DescriptionEmmiter(errorEncapsed))		
 		return nil, err
 	}
 
@@ -47,15 +47,15 @@ func (DP DomainParsor) Generate(LibvirtInst *libvirt.Connect, logger *zap.Logger
 	DP.DeviceDefiner.XML_Parsor(DP.VMDescription)
 	output, err := xml.MarshalIndent(*DP.DeviceDefiner, "", "  ")
 	if err != nil {
-		errDesc := virerr.ErrorGen(virerr.DomainGenerationError, fmt.Errorf("in domain-parsor, XML marshaling error: %w", err))
-		logger.Error(errDesc.Error())
+		errDesc := virerr.ErrorGen(virerr.DomainGenerationError, fmt.Errorf("domain-parsor: XML marshaling error %w", err))
+		logger.Error(virerr.DescriptionEmmiter(errDesc))		
 		return nil, errDesc
 	}
 
 	dom, err := conn.CreateDomainWithXML(LibvirtInst, output)
 	if err != nil {
-		errDesc := virerr.ErrorJoin(err, fmt.Errorf("in domain-parsor"))
-		logger.Error(errDesc.Error())
+		errDesc := virerr.ErrorJoin(err, fmt.Errorf("domain-parsor: "))
+		logger.Error(virerr.DescriptionEmmiter(errDesc))		
 		return nil, errDesc
 	}
 
@@ -70,21 +70,21 @@ func (DP DomainParsor) Generate(LibvirtInst *libvirt.Connect, logger *zap.Logger
 
 func (DP DomainParsor) processCloudInitFiles(dirPath string) error {
 	if err := DP.YamlParsorUser.ParseData(DP.VMDescription); err != nil {
-		errDesc := fmt.Errorf("failed to parse cloud-init user-data: %w", err)
+		errDesc := fmt.Errorf("parsor/ProcessCloudInitFiles: failed to parse cloud-init user-data: %w", err)
 		return virerr.ErrorGen(virerr.DomainGenerationError, errDesc)
 	}
 	
 	if err := DP.YamlParsorUser.WriteFile(dirPath); err != nil {
-		errDesc := fmt.Errorf("failed to write user-data file: %w", err)
+		errDesc := fmt.Errorf("parsor/ProcessCloudInitFiles:failed to write user-data file: %w", err)
 		return virerr.ErrorGen(virerr.DomainGenerationError, errDesc)
 	}
 
 	if err := DP.YamlParsorMeta.ParseData(DP.VMDescription); err != nil {
-		errDesc := fmt.Errorf("failed to parse cloud-init meta-data: %w", err)
+		errDesc := fmt.Errorf("parsor/ProcessCloudInitFiles: failed to parse cloud-init meta-data: %w", err)
 		return virerr.ErrorGen(virerr.DomainGenerationError, errDesc)
 	}
 	if err := DP.YamlParsorMeta.WriteFile(dirPath); err != nil {
-		errDesc := fmt.Errorf("failed to write meta-data file: %w", err)
+		errDesc := fmt.Errorf("parsor/ProcessCloudInitFiles: ailed to write meta-data file: %w", err)
 		return virerr.ErrorGen(virerr.DomainGenerationError, errDesc)
 	}
 
@@ -102,7 +102,7 @@ func (DP DomainParsor) CreateDiskImage(dirPath string) error{
 		targetImage, "10G",
 	)
 	if err := qemuImgCmd.Run(); err != nil {
-		errorDescription:=fmt.Errorf("generating Disk image error, may have duplicdated uuid or lack of HD capacity %s, %v", dirPath, err)
+		errorDescription:=fmt.Errorf("parsor/CreateDiskImage: generating Disk image error, may have duplicdated uuid or lack of HD capacity %s, %v", dirPath, err)
 		 return virerr.ErrorGen(virerr.DomainGenerationError, errorDescription)
 	}
 
