@@ -25,7 +25,7 @@ func (i *InstHandler) ReturnStatusUUID(w http.ResponseWriter, r *http.Request) {
 	 zap.String("uuid", param.UUID),
 	zap.Int("method", int(param.DataType)))
 
-	dom, err:= i.DomainControl.GetDomain(param.UUID, i.LibvirtInst)
+	dom, err:= i.DomainControl.GetDomain(param.UUID, i.LibvirtInst, i.Logger)
 	if err!=nil{
 		detailErr := virerr.ErrorGen(virerr.DomainStatusError,fmt.Errorf("error getting domain while serving ReturnStatusUUID ,UUID of %s, %w",param.UUID, err))
 		resp.ResponseWriteErr(w,detailErr, http.StatusInternalServerError)

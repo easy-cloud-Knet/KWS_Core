@@ -23,14 +23,15 @@ func DomListConGen() *DomListControl {
 	}
 }
 
-func (DC *DomListControl) AddNewDomain(domain *Domain, uuid string) {
+func (DC *DomListControl) AddNewDomain(domain *Domain, uuid string, logger *zap.Logger) {
 	DC.domainMutex.Lock()
 	defer DC.domainMutex.Unlock()
 
 	DC.DomainList[uuid] = domain
+	logger.Info("domain added to DomList successfully", zap.String("uuid", uuid))
 }
 
-func (DC *DomListControl) GetDomain(uuid string, LibvirtInst *libvirt.Connect) (*Domain, error) {
+func (DC *DomListControl) GetDomain(uuid string, LibvirtInst *libvirt.Connect, logger *zap.Logger) (*Domain, error) {
 	DC.domainMutex.Lock()
 	domain, Exist := DC.DomainList[uuid]
 	DC.domainMutex.Unlock()
@@ -41,24 +42,27 @@ func (DC *DomListControl) GetDomain(uuid string, LibvirtInst *libvirt.Connect) (
 		if err != nil {
 			return nil, err
 		}
-		DC.AddNewDomain(domList, uuid)
+		DC.AddNewDomain(domList, uuid, logger)
 		return domList, nil
 	}
 
 	return domain, nil
 }
 
-func (DC *DomListControl) DeleteDomain(uuid string, LibvirtInst *libvirt.Connect) error {
+func (DC *DomListControl) DeleteDomain(uuid string, LibvirtInst *libvirt.Connect, logger *zap.Logger) error {
 	DC.domainMutex.Lock()
 	domain, Exist := DC.DomainList[uuid]
 	DC.domainMutex.Unlock()
 
 	if !Exist {
+		logger.Error("domain sync error: domain cannot be found in map, this can cause potential error, debug needed")
 		DomainSeeker := DomSeekUUIDFactory(LibvirtInst, uuid)
 		dom, err := DomainSeeker.ReturnDomain()
 		if err != nil {
-			return virerr.ErrorGen(virerr.NoSuchDomain, fmt.Errorf("domain trying to delete already empty, uuid of %s, %w", uuid, err))
-		}
+			newError:= virerr.ErrorGen(virerr.NoSuchDomain, fmt.Errorf("domain trying to delete already empty, uuid of %s, %w", uuid, err))
+			logger.Error(virerr.DescriptionEmmiter(newError))
+			return newError
+			}
 		dom.Domain.Free()
 		return nil
 	}
@@ -68,7 +72,7 @@ func (DC *DomListControl) DeleteDomain(uuid string, LibvirtInst *libvirt.Connect
 	DC.domainMutex.Lock()
 	delete(DC.DomainList, uuid)
 	DC.domainMutex.Unlock()
-
+	logger.Error("domain succesfully deleted from list", zap.String("uuid",uuid))
 	return nil
 }
 
@@ -85,7 +89,7 @@ func (DC *DomListControl) retrieveDomainsByState(LibvirtInst *libvirt.Connect, s
 	for _, dom := range domains {
 		uuid, err := dom.GetUUIDString()
 		if err != nil {
-			logger.Sugar().Error("Failed to get UUID for domain", err)
+			logger.Sugar().Fatal("Failed to get UUID for domain", err)
 			continue
 		}
 

@@ -45,7 +45,7 @@ func (i *InstHandler) CreateVMLocal(w http.ResponseWriter, r *http.Request) {
 	}
 	newDomain := conn.NewDomainInstance(dom)
 
-	i.DomainControl.AddNewDomain(newDomain,param.UUID)
+	i.DomainControl.AddNewDomain(newDomain,param.UUID, i.Logger)
 
 	resp.ResponseWriteOK(w,nil)
 }

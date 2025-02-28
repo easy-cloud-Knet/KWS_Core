@@ -24,7 +24,7 @@ func (i *InstHandler)ForceShutDownVM(w http.ResponseWriter, r *http.Request){
 	}
 	i.Logger.Info("http reqeust for shutting down VM", zap.String("uuid",param.UUID))
 
-	dom,err:= i.DomainControl.GetDomain(param.UUID,i.LibvirtInst)
+	dom,err:= i.DomainControl.GetDomain(param.UUID,i.LibvirtInst, i.Logger)
 	if err!= nil{
 		resp.ResponseWriteErr(w,virerr.ErrorGen(virerr.DomainShutdownError,fmt.Errorf("error retreiving domiain, while serving ForceShutDown VM")), http.StatusInternalServerError)
 		i.Logger.Error("error retreiving domiain, while serving ForceShutDown VM", zap.Error(err))
@@ -53,20 +53,21 @@ func (i *InstHandler)DeleteVM(w http.ResponseWriter, r *http.Request){
 
 	if err:=HttpDecoder(r,param); err!=nil{
 		resp.ResponseWriteErr(w,virerr.ErrorGen(virerr.DomainShutdownError,err), http.StatusInternalServerError)
-		i.Logger.Error("error deparsing http request whilie serving DeleteVM", zap.Error(err))
+		i.Logger.Error("DeleteVM: error deparsing http request" +virerr.DescriptionEmmiter(err))
 		return
 	}
 	if _, err := conn.ReturnUUID(param.UUID); err!=nil{
 		detailErr := virerr.ErrorGen(virerr.DeletionDomainError,fmt.Errorf("error translating uuid while serving DeleteVM,UUID of %s, %w",param.UUID, err))
 		resp.ResponseWriteErr(w,detailErr, http.StatusBadRequest)
-		i.Logger.Error("error deparsing http request whilie serving DeleteVM", zap.Error(err))
+		i.Logger.Error("DeleteVM: error deparsing http request"+virerr.DescriptionEmmiter(err))
 		return
 	}
 	// uuid 가 적합한지 확인
 
-	domain, err := i.DomainControl.GetDomain(param.UUID,i.LibvirtInst)
+	domain, err := i.DomainControl.GetDomain(param.UUID,i.LibvirtInst, i.Logger)
 	if err!=nil{
 		detailErr := virerr.ErrorGen(virerr.DeletionDomainError,fmt.Errorf("error getting domain while serving DeleteVM,UUID of %s, %w",param.UUID, err))
+		i.Logger.Error("DeleteVM: error retreiving domain serching,"+ virerr.DescriptionEmmiter(detailErr))
 		resp.ResponseWriteErr(w,detailErr, http.StatusBadRequest)
 		return
 		//error handling 
@@ -76,11 +77,12 @@ func (i *InstHandler)DeleteVM(w http.ResponseWriter, r *http.Request){
 	domainInfo, err:=DomainDeleter.DeleteDomain(param.UUID)
 	if err!=nil{
 		encapsuledErr:= virerr.ErrorJoin(err,fmt.Errorf("error while Serving DeleteVM"))
+		i.Logger.Error("DeleteVM: error retreiving domain serching,"+virerr.DescriptionEmmiter(encapsuledErr))
 		resp.ResponseWriteErr(w,encapsuledErr, http.StatusInternalServerError)
 		return
 	}
 
-	i.DomainControl.DeleteDomain(param.UUID, i.LibvirtInst)
+	i.DomainControl.DeleteDomain(param.UUID, i.LibvirtInst, i.Logger)
 
 
 	resp.ResponseWriteOK(w,domainInfo)
