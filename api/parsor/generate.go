@@ -12,34 +12,35 @@ import (
 	"go.uber.org/zap"
 	"libvirt.org/go/libvirt"
 )
+
 func (DP DomainParsor) Generate(LibvirtInst *libvirt.Connect, logger *zap.Logger) (*libvirt.Domain, error) {
 	dirPath := fmt.Sprintf("/var/lib/kws/%s", DP.VMDescription.UUID)
-	
+
 	// 디렉토리 생성
 	if err := os.MkdirAll(dirPath, 0755); err != nil {
-		errDesc := fmt.Errorf("failed to create directory (%s)", dirPath) 
+		errDesc := fmt.Errorf("failed to create directory (%s)", dirPath)
 		logger.Error("failed making directory", zap.Error(errDesc))
 		return nil, virerr.ErrorGen(virerr.DomainGenerationError, errDesc)
 	}
 
 	// cloud-init 파일 처리
 	if err := DP.processCloudInitFiles(dirPath); err != nil {
-		errorEncapsed := virerr.ErrorJoin(err,fmt.Errorf("in domain-parsor,"))
+		errorEncapsed := virerr.ErrorJoin(err, fmt.Errorf("in domain-parsor,"))
 		logger.Error(errorEncapsed.Error())
 		return nil, errorEncapsed
 	}
-		logger.Info("generating configuration file successfully done", zap.String("filePath", dirPath))
+	logger.Info("generating configuration file successfully done", zap.String("filePath", dirPath))
 
 	if err := DP.CreateDiskImage(dirPath); err != nil {
-		errorEncapsed := virerr.ErrorJoin(err,fmt.Errorf("in domain-parsor,"))
-		logger.Error(errorEncapsed.Error())		
+		errorEncapsed := virerr.ErrorJoin(err, fmt.Errorf("in domain-parsor,"))
+		logger.Error(errorEncapsed.Error())
 		return nil, errorEncapsed
 	}
 
 	// ISO 파일 생성
 	if err := DP.CreateISOFile(dirPath); err != nil {
-		errorEncapsed := virerr.ErrorJoin(err,fmt.Errorf("in domain-parsor,"))
-		logger.Error(errorEncapsed.Error())		
+		errorEncapsed := virerr.ErrorJoin(err, fmt.Errorf("in domain-parsor,"))
+		logger.Error(errorEncapsed.Error())
 		return nil, err
 	}
 
@@ -59,12 +60,12 @@ func (DP DomainParsor) Generate(LibvirtInst *libvirt.Connect, logger *zap.Logger
 		return nil, errDesc
 	}
 
-	logger.Info("Domain created successfully: ", 
-	zap.String("UUID",DP.DeviceDefiner.UUID ),
- 	zap.Int("CPU",DP.VMDescription.HardwardInfo.CPU),
-	zap.Int("Memory",DP.VMDescription.HardwardInfo.Memory),
-	zap.String("IP", DP.VMDescription.NetConf.Ips[0]),
-)
+	logger.Info("Domain created successfully: ",
+		zap.String("UUID", DP.DeviceDefiner.UUID),
+		zap.Int("CPU", DP.VMDescription.HardwardInfo.CPU),
+		zap.Int("Memory", DP.VMDescription.HardwardInfo.Memory),
+		zap.String("IP", DP.VMDescription.NetConf.Ips[0]),
+	)
 	return dom, nil
 }
 
@@ -73,7 +74,7 @@ func (DP DomainParsor) processCloudInitFiles(dirPath string) error {
 		errDesc := fmt.Errorf("failed to parse cloud-init user-data: %w", err)
 		return virerr.ErrorGen(virerr.DomainGenerationError, errDesc)
 	}
-	
+
 	if err := DP.YamlParsorUser.WriteFile(dirPath); err != nil {
 		errDesc := fmt.Errorf("failed to write user-data file: %w", err)
 		return virerr.ErrorGen(virerr.DomainGenerationError, errDesc)
@@ -91,10 +92,9 @@ func (DP DomainParsor) processCloudInitFiles(dirPath string) error {
 	return nil
 }
 
- 
-func (DP DomainParsor) CreateDiskImage(dirPath string) error{
-	baseImage := fmt.Sprintf("/var/lib/kws/baseimg/%s",  DP.VMDescription.OS )
-	targetImage := filepath.Join(dirPath, fmt.Sprintf("%s.qcow2",  DP.VMDescription.UUID))
+func (DP DomainParsor) CreateDiskImage(dirPath string) error {
+	baseImage := fmt.Sprintf("/var/lib/kws/baseimg/%s", DP.VMDescription.OS)
+	targetImage := filepath.Join(dirPath, fmt.Sprintf("%s.qcow2", DP.VMDescription.UUID))
 	qemuImgCmd := exec.Command("qemu-img", "create",
 		"-b", baseImage,
 		"-f", "qcow2",
@@ -102,17 +102,14 @@ func (DP DomainParsor) CreateDiskImage(dirPath string) error{
 		targetImage, "10G",
 	)
 	if err := qemuImgCmd.Run(); err != nil {
-		errorDescription:=fmt.Errorf("generating Disk image error, may have duplicdated uuid or lack of HD capacity %s, %v", dirPath, err)
-		 return virerr.ErrorGen(virerr.DomainGenerationError, errorDescription)
+		errorDescription := fmt.Errorf("generating Disk image error, may have duplicdated uuid or lack of HD capacity %s, %v", dirPath, err)
+		return virerr.ErrorGen(virerr.DomainGenerationError, errorDescription)
 	}
-
 
 	return nil
 }
 
-
-
-func (DP DomainParsor) CreateISOFile(dirPath string)error{
+func (DP DomainParsor) CreateISOFile(dirPath string) error {
 
 	isoOutput := filepath.Join(dirPath, "cidata.iso")
 	userDataPath := filepath.Join(dirPath, "user-data")
@@ -125,22 +122,19 @@ func (DP DomainParsor) CreateISOFile(dirPath string)error{
 		userDataPath, metaDataPath,
 	)
 
-
 	if err := genisoCmd.Run(); err != nil {
-		errorDescription:=fmt.Errorf("generating ISO image error, may have duplicdated uuid or wrong format of yaml file %s, %v", dirPath, err)
+		errorDescription := fmt.Errorf("generating ISO image error, may have duplicdated uuid or wrong format of yaml file %s, %v", dirPath, err)
 		return virerr.ErrorGen(virerr.DomainGenerationError, errorDescription)
 	}
 	return nil
 }
 
-
-
-func ParsorFactoryFromRequest(param *VM_Init_Info, logger *zap.Logger)*DomainParsor{
+func ParsorFactoryFromRequest(param *VM_Init_Info, logger *zap.Logger) *DomainParsor {
 	return &DomainParsor{
 		YamlParsorUser: &User_data_yaml{},
 		YamlParsorMeta: &Meta_data_yaml{},
 		VMDescription:  param,
-		DeviceDefiner: &VM_CREATE_XML{},
+		DeviceDefiner:  &VM_CREATE_XML{},
 	}
 
 }

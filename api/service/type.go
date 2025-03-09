@@ -6,14 +6,13 @@ import (
 	"libvirt.org/go/libvirt"
 )
 
-
-
 type InstHandler struct {
-	LibvirtInst *libvirt.Connect
-	DomainControl  *conn.DomListControl
-	Logger *zap.Logger
+	LibvirtInst   *libvirt.Connect
+	DomainControl *conn.DomListControl
+	Logger        *zap.Logger
 }
-// InstHandler 는 
+
+// InstHandler 는
 
 type InstHandle interface {
 	LibvirtConnection()
@@ -31,8 +30,6 @@ type ShutDownDomain struct {
 type StartDomain struct {
 	UUID string `json:"UUID"`
 }
-
- 
 
 type ReturnDomainFromUUID struct {
 	DataType conn.DomainDataType `json:"dataType"`
