@@ -6,89 +6,78 @@ import (
 	network "github.com/easy-cloud-Knet/KWS_Core.git/api/net"
 )
 
-
-type VM_Init_Info struct{
-	DomType string `json:"domType"`
-	DomName string `json:"domName"`
-	UUID string `json:"uuid"`
-	OS string `json:"os"`
-	HardwardInfo HardwareInfo `json:"HWInfo"`
-	NetConf network.NetDefine `json:"network"`
-	Users []User_info_VM `json:"users"`
+type VM_Init_Info struct {
+	DomType      string            `json:"domType"`
+	DomName      string            `json:"domName"`
+	UUID         string            `json:"uuid"`
+	OS           string            `json:"os"`
+	HardwardInfo HardwareInfo      `json:"HWInfo"`
+	NetConf      network.NetDefine `json:"network"`
+	Users        []User_info_VM    `json:"users"`
 }
 
-
-type DomainParsor struct{
+type DomainParsor struct {
 	YamlParsorUser *User_data_yaml
-	YamlParsorMeta  *Meta_data_yaml 
-	DeviceDefiner *VM_CREATE_XML
-	VMDescription *VM_Init_Info
+	YamlParsorMeta *Meta_data_yaml
+	DeviceDefiner  *VM_CREATE_XML
+	VMDescription  *VM_Init_Info
 }
+
 // struct for detailed generation config
 
-
-
-
-type Meta_data_yaml struct{
-	Instance_ID string `yaml:"instance-id"`
+type Meta_data_yaml struct {
+	Instance_ID   string `yaml:"instance-id"`
 	Local_Host_Id string `yaml:"local-hostname"`
 }
 
-type User_specific struct{
-	Name string `yaml:"name,omitempty"`
-	Passwd string `yaml:"passwd,omitempty"`
-	Lock_passwd bool `yaml:"lock_passwd"`
+type User_specific struct {
+	Name                string   `yaml:"name,omitempty"`
+	Passwd              string   `yaml:"passwd,omitempty"`
+	Lock_passwd         bool     `yaml:"lock_passwd"`
 	Ssh_authorized_keys []string `yaml:"ssh_authorized_keys,omitempty"`
-	Groups string `yaml:"groups,omitempty"`
-	SuGroup string `yaml:"sudo,omitempty"`
-	Shell string ` yaml:"shell,omitempty"`
+	Groups              string   `yaml:"groups,omitempty"`
+	SuGroup             string   `yaml:"sudo,omitempty"`
+	Shell               string   `yaml:"shell,omitempty"`
 }
 
-type User_write_file struct{
-	Path string `yaml:"path"`
+type User_write_file struct {
+	Path        string `yaml:"path"`
 	Permissions string `yaml:"permissions"`
-	Content string `yaml:"content"`
+	Content     string `yaml:"content"`
 }
-type User_data_yaml struct{
-	PackageUpdatable bool `yaml:"package_update"`
-	PredownProjects []string `yaml:"packages"`
-	Users []interface{}  `yaml:"users"`
-	Write_files []User_write_file `yaml:"write_files"`
-	Runcmd []string `yaml:"runcmd"`
+type User_data_yaml struct {
+	PackageUpdatable bool              `yaml:"package_update"`
+	PredownProjects  []string          `yaml:"packages"`
+	Users            []interface{}     `yaml:"users"`
+	Write_files      []User_write_file `yaml:"write_files"`
+	Runcmd           []string          `yaml:"runcmd"`
 }
-
-
-
-
-
 
 type User_info_VM struct {
-	Name string `json:"name"`
-	Groups string `json:"groups"`
-	PassWord string `json:"passWord"`
+	Name                string   `json:"name"`
+	Groups              string   `json:"groups"`
+	PassWord            string   `json:"passWord"`
+	Ssh_authorized_keys []string `json:"ssh"`
 }
 
-
-
-type HardwareInfo struct{
-	CPU int `json:"cpu"`
+type HardwareInfo struct {
+	CPU    int `json:"cpu"`
 	Memory int `json:"memory"`
 }
+
 // gonna replace fields in VM_Init_Info
 //structure,need to modify parsor when implement this
 
-
-
 type VM_CREATE_XML struct {
-	XMLName   xml.Name   `xml:"domain"`
-	Type      string     `xml:"type,attr"`
-	Name      string     `xml:"name"`
-	UUID      string     `xml:"uuid"`
-	Memory    Memory     `xml:"memory"`
-	VCPU      VCPU       `xml:"vcpu"`
-	Features  Features   `xml:"features"`
-	OS        OS         `xml:"os"`
-	Devices   Devices    `xml:"devices"`
+	XMLName  xml.Name `xml:"domain"`
+	Type     string   `xml:"type,attr"`
+	Name     string   `xml:"name"`
+	UUID     string   `xml:"uuid"`
+	Memory   Memory   `xml:"memory"`
+	VCPU     VCPU     `xml:"vcpu"`
+	Features Features `xml:"features"`
+	OS       OS       `xml:"os"`
+	Devices  Devices  `xml:"devices"`
 }
 
 type Memory struct {
@@ -132,9 +121,9 @@ type Devices struct {
 }
 
 type Channel struct {
-	Type   string          `xml:"type,attr"`
-	Source ChannelSource   `xml:"source"`
-	Target ChannelTarget   `xml:"target"`
+	Type   string        `xml:"type,attr"`
+	Source ChannelSource `xml:"source"`
+	Target ChannelTarget `xml:"target"`
 }
 
 type ChannelSource struct {
@@ -147,11 +136,11 @@ type ChannelTarget struct {
 }
 
 type Disk struct {
-	Type   string  `xml:"type,attr"`
-	Device string  `xml:"device,attr"`
-	Driver Driver  `xml:"driver"`
-	Source Source  `xml:"source"`
-	Target Target  `xml:"target"`
+	Type     string    `xml:"type,attr"`
+	Device   string    `xml:"device,attr"`
+	Driver   Driver    `xml:"driver"`
+	Source   Source    `xml:"source"`
+	Target   Target    `xml:"target"`
 	ReadOnly *ReadOnly `xml:"readonly,omitempty"`
 }
 
@@ -172,7 +161,7 @@ type Target struct {
 type ReadOnly struct{}
 
 type Serial struct {
-	Type   string `xml:"type,attr"`
+	Type   string     `xml:"type,attr"`
 	Target TargetPort `xml:"target"`
 }
 
@@ -181,7 +170,7 @@ type TargetPort struct {
 }
 
 type Console struct {
-	Type   string `xml:"type,attr"`
+	Type   string        `xml:"type,attr"`
 	Target ConsoleTarget `xml:"target"`
 }
 
@@ -191,14 +180,14 @@ type ConsoleTarget struct {
 }
 
 type Interface struct {
-	Type   string      `xml:"type,attr"`
-	Source NetworkSource `xml:"source"`
+	Type   string         `xml:"type,attr"`
+	Source NetworkSource  `xml:"source"`
 	Model  InterfaceModel `xml:"model"`
 }
 
 type NetworkSource struct {
 	Network string `xml:"network,attr"`
-	Bridge string `xml:"bridge,attr"`
+	Bridge  string `xml:"bridge,attr"`
 }
 
 type InterfaceModel struct {
