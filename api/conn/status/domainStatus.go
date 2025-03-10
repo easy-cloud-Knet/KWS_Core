@@ -1,10 +1,10 @@
-package conn
+package status
 
 import (
 	"errors"
 	"log"
-	"sync"
 
+	domCon "github.com/easy-cloud-Knet/KWS_Core.git/api/conn/DomCon"
 	virerr "github.com/easy-cloud-Knet/KWS_Core.git/api/error"
 	"github.com/google/uuid"
 	"github.com/shirou/gopsutil/disk"
@@ -12,7 +12,7 @@ import (
 	"libvirt.org/go/libvirt"
 )
 
-func (SI *SystemInfo) GetInfo(domain *Domain) error {
+func (SI *SystemInfo) GetInfo(domain *domCon.Domain) error {
 	v, err := mem.VirtualMemory()
 	if err != nil {
 		log.Println(err)
@@ -36,7 +36,7 @@ func (SI *SystemInfo) GetInfo(domain *Domain) error {
 	return nil
 }
 
-func (DI *DomainInfo) GetInfo(domain *Domain) error {
+func (DI *DomainInfo) GetInfo(domain *domCon.Domain) error {
 	info, err := domain.Domain.GetInfo()
 	if err != nil {
 		return virerr.ErrorGen(virerr.DomainStatusError, err)
@@ -50,7 +50,7 @@ func (DI *DomainInfo) GetInfo(domain *Domain) error {
 	return nil
 }
 
-func (DP *DomainState) GetInfo(domain *Domain) error {
+func (DP *DomainState) GetInfo(domain *domCon.Domain) error {
 	info, _, err := domain.Domain.GetState()
 	//searching for coresponding second parameter, "Reason"
 	if err != nil {
@@ -77,7 +77,7 @@ func (DP *DomainState) GetInfo(domain *Domain) error {
 	return nil
 }
 
-func DomainDetailFactory(Handler DataTypeHandler, dom *Domain) *DomainDetail {
+func DomainDetailFactory(Handler DataTypeHandler, dom *domCon.Domain) *DomainDetail {
 	return &DomainDetail{
 		DataHandle: Handler,
 		Domain: dom,
@@ -106,41 +106,6 @@ func DataTypeRouter(types DomainDataType) (DataTypeHandler, error) {
 
 
 
-func (DSU *DomainSeekingByUUID) ReturnDomain() (*Domain, error) {
-	parsedUUID, err := uuid.Parse(DSU.UUID)
-	if err != nil {
-		return nil,virerr.ErrorGen(virerr.InvalidUUID, err)
-	}
-	domain, err := DSU.LibvirtInst.LookupDomainByUUID(parsedUUID[:])
-	if err != nil {
-		return nil,virerr.ErrorGen(virerr.DomainSearchError, err)
-	}else if domain==nil {
-		return nil,virerr.ErrorGen(virerr.NoSuchDomain, err)
-	}
-
-	
-	return &Domain{
-		Domain:      domain,
-		domainMutex: sync.Mutex{},
-	}, nil
-}
-
 
 
  
-func ReturnUUID(UUID string) (*uuid.UUID, error) {
-	uuidParsed, err := uuid.Parse(UUID)
-	if err != nil {
-		return nil, err
-	}
-	return &uuidParsed, nil
-}
-
-
-
-func DomSeekUUIDFactory(LibInstance *libvirt.Connect,UUID string)*DomainSeekingByUUID{
-	return &DomainSeekingByUUID{ 
-		LibvirtInst: LibInstance,
-		UUID:        UUID,
-	}
-}

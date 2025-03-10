@@ -6,14 +6,14 @@ import (
 	"net/http"
 	"reflect"
 
-	"github.com/easy-cloud-Knet/KWS_Core.git/api/conn"
+	"github.com/easy-cloud-Knet/KWS_Core.git/api/conn/status"
 	virerr "github.com/easy-cloud-Knet/KWS_Core.git/api/error"
 	"go.uber.org/zap"
 )
 
 func (i *InstHandler) ReturnStatusUUID(w http.ResponseWriter, r *http.Request) {
 	param := &ReturnDomainFromUUID{}
-	resp := ResponseGen[conn.DataTypeHandler]("domain Status UUID")
+	resp := ResponseGen[status.DataTypeHandler]("domain Status UUID")
 
 	if err := HttpDecoder(r, param); err != nil {
 		resp.ResponseWriteErr(w, err, http.StatusBadRequest)
@@ -26,14 +26,14 @@ func (i *InstHandler) ReturnStatusUUID(w http.ResponseWriter, r *http.Request) {
 		resp.ResponseWriteErr(w, virerr.ErrorJoin(err, errors.New("error returning status from uuid")), http.StatusInternalServerError)
 	}
 
-	outputStruct, err := conn.DataTypeRouter(param.DataType)
+	outputStruct, err := status.DataTypeRouter(param.DataType)
 	if err != nil {
 		resp.ResponseWriteErr(w, err, http.StatusBadRequest)
 		return
 		// wrong parameter error 반환
 	}
 
-	DomainDetail := conn.DomainDetailFactory(outputStruct, dom)
+	DomainDetail := status.DomainDetailFactory(outputStruct, dom)
 
 	outputStruct.GetInfo(dom)
 	DomainDetail.DataHandle = outputStruct
@@ -44,7 +44,7 @@ func (i *InstHandler) ReturnStatusUUID(w http.ResponseWriter, r *http.Request) {
 
 func (i *InstHandler) ReturnStatusHost(w http.ResponseWriter, r *http.Request) {
 	param := &ReturnHostFromStatus{}
-	resp := ResponseGen[conn.HostDataTypeHandler]("Host Status Return")
+	resp := ResponseGen[status.HostDataTypeHandler]("Host Status Return")
 
 	if err := HttpDecoder(r, param); err != nil {
 		resp.ResponseWriteErr(w, err, http.StatusInternalServerError)
@@ -52,13 +52,13 @@ func (i *InstHandler) ReturnStatusHost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	dataHandle, err := conn.HostDataTypeRouter(param.HostDataType)
+	dataHandle, err := status.HostDataTypeRouter(param.HostDataType)
 	if err != nil {
 		resp.ResponseWriteErr(w, err, http.StatusInternalServerError)
 		return
 	}
 	fmt.Println("data sending", reflect.TypeOf(dataHandle))
-	host, err := conn.HostDetailFactory(dataHandle)
+	host, err := status.HostDetailFactory(dataHandle)
 	if err != nil {
 		resp.ResponseWriteErr(w, err, http.StatusInternalServerError)
 	}

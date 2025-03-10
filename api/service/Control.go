@@ -5,6 +5,8 @@ import (
 	"net/http"
 
 	"github.com/easy-cloud-Knet/KWS_Core.git/api/conn"
+	domCon "github.com/easy-cloud-Knet/KWS_Core.git/api/conn/DomCon"
+	"github.com/easy-cloud-Knet/KWS_Core.git/api/conn/termination"
 	"libvirt.org/go/libvirt"
 )
 
@@ -25,16 +27,16 @@ func (i *InstHandler)ForceShutDownVM(w http.ResponseWriter, r *http.Request){
 		return
 	}
 
-	DomainTerminator,_:= conn.DomainTerminatorFactory(dom)
+	DomainTerminator,_:= termination.DomainTerminatorFactory(dom)
 
-	domainInfo,err:=DomainTerminator.ShutDownDomain()
+	_,err=DomainTerminator.Operation()
 	if err!= nil{
 		resp.ResponseWriteErr(w,fmt.Errorf("%w error booting vm",err), http.StatusInternalServerError)
 		return
 	}
 
  
-	resp.ResponseWriteOK(w,domainInfo)
+	resp.ResponseWriteOK(w,nil)
 	}
 
 
@@ -48,7 +50,7 @@ func (i *InstHandler)DeleteVM(w http.ResponseWriter, r *http.Request){
 		resp.ResponseWriteErr(w,fmt.Errorf("%w error booting vm",err), http.StatusInternalServerError)
 		return
 	}
-	if _, err := conn.ReturnUUID(param.UUID); err!=nil{
+	if _, err := domCon.ReturnUUID(param.UUID); err!=nil{
 		resp.ResponseWriteErr(w,fmt.Errorf("%w invalid uuid, uuid of %s",err,param.UUID), http.StatusBadRequest)
 		return
 	}
@@ -60,17 +62,20 @@ func (i *InstHandler)DeleteVM(w http.ResponseWriter, r *http.Request){
 		//error handling 
 	}
 
-	DomainDeleter,_:=conn.DomainDeleterFactory(domain, param.DeletionType)
-	domainInfo, err:=DomainDeleter.DeleteDomain(param.UUID)
+	DomainDeleter,_:=termination.DomainDeleterFactory(domain, param.DeletionType)
+	_,err=DomainDeleter.Operation()
 	if err!=nil{
 		resp.ResponseWriteErr(w,fmt.Errorf("%w error booting vm",err), http.StatusInternalServerError)
 		fmt.Println(err)
 		return
 	}
 
-	i.DomainControl.DeleteDomain(param.UUID, i.LibvirtInst)
 
+	DomCon:=conn.DomainControllerInjection(i.DomainControl,DomainDeleter)
 
-	resp.ResponseWriteOK(w,domainInfo)
+	DomCon.DomainDeleteWithOperation(i.Logger,param.UUID)
+	
+
+	resp.ResponseWriteOK(w,nil)
 }
 
