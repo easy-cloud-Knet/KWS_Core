@@ -57,7 +57,7 @@ func (DC *DomListControl)DeleteDomain(Domain *libvirt.Domain,uuid string)error{
 }
 
 
-func (DC *DomListControl)FindDeleteDomain(LibvirtInst *libvirt.Connect,uuid string) error {
+func (DC *DomListControl)FindandDeleteDomain(LibvirtInst *libvirt.Connect,uuid string) error {
 	DC.domainListMutex.Lock()
 	domain, Exist := DC.DomainList[uuid]
 	DC.domainListMutex.Unlock()

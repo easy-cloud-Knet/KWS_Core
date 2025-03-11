@@ -11,8 +11,9 @@ import (
 )
 
 
-func DomainDeleterFactory(Domain *domCon.Domain, DelType DomainDeleteType) (*DomainDeleter, error) {
+func DomainDeleterFactory(Domain *domCon.Domain, DelType DomainDeleteType, uuid string) (*DomainDeleter, error) {
 	return &DomainDeleter{
+		uuid:uuid,
 		domain: Domain,
 		DeletionType: DelType,
 		}, nil
@@ -33,7 +34,7 @@ func (DD *DomainDeleter) Operation() (*libvirt.Domain,error){
 		}
 	}
 	basicFilePath := "/var/lib/kws/"
- 
+	fmt.Println("domain uuid %s", DD.uuid)
 	FilePath := filepath.Join(basicFilePath, DD.uuid)
 	deleteCmd := exec.Command("rm", "-rf", FilePath)
 	deleteCmd.Stdout = os.Stdout

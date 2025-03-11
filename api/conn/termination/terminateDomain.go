@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	domCon "github.com/easy-cloud-Knet/KWS_Core.git/api/conn/DomCon"
+	virerr "github.com/easy-cloud-Knet/KWS_Core.git/api/error"
 	"libvirt.org/go/libvirt"
 )
 
@@ -17,14 +18,14 @@ func DomainTerminatorFactory(Domain *domCon.Domain) (*DomainTerminator, error) {
 func (DD *DomainTerminator) Operation()(*libvirt.Domain,error){
 	dom:= DD.domain
 
-	isRunning, _ := dom.Domain.IsActive()
+	isRunning, err := dom.Domain.IsActive()
 	if !isRunning {
-		return  nil,fmt.Errorf("requested Domain to shutdown is already Dead ")
+		return  nil,virerr.ErrorGen(virerr.DomainShutdownError, fmt.Errorf("error checking domain's aliveness, from libvirt. %w", err))
 	}
 
 	if err := dom.Domain.Destroy(); err != nil {
 		fmt.Println("error occured while deleting Domain")
-		return nil,fmt.Errorf("internal Error in Libvirt occured while shutting down domain")
+		return nil,virerr.ErrorGen(virerr.DomainShutdownError, fmt.Errorf("error shutting down domain, from libvirt. %w, %v", err,DD))
 	}
 
 	return dom.Domain,nil

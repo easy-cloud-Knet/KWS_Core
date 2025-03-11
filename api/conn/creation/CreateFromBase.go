@@ -43,7 +43,6 @@ func (DCB *DomainCreator) Operation()(*libvirt.Domain,error){
 	}
 
 	output, err := xml.MarshalIndent(*DCB.DomainConfiger.DeviceDefiner, "", "  ")
-
 	if err != nil {
 		errDesc := virerr.ErrorGen(virerr.DomainGenerationError, fmt.Errorf("in domain-Creator, XML marshaling error: %w", err))
 		DCB.logger.Error(errDesc.Error())
@@ -54,11 +53,14 @@ func (DCB *DomainCreator) Operation()(*libvirt.Domain,error){
 	if err!=nil{
 		errDesc := virerr.ErrorGen(virerr.DomainGenerationError, fmt.Errorf("in domain-Creator, error occured from creating with libvirt: %w", err))
 		DCB.logger.Error(errDesc.Error())
+		return nil,errDesc
+		
 	}
 	err=domain.Create()
 	if err!=nil{
 		errDesc := virerr.ErrorGen(virerr.DomainGenerationError, fmt.Errorf("in domain-Creator, XML marshaling error: %w", err))
 		DCB.logger.Error(errDesc.Error())
+		return nil,errDesc
 	}
 	return domain,nil
 }
