@@ -21,23 +21,22 @@ func (i *InstHandler) ReturnStatusUUID(w http.ResponseWriter, r *http.Request) {
 	}
 	i.Logger.Info("retreving domain status", zap.String("uuid", param.UUID))
 
-	dom, err := i.DomainControl.GetDomain(param.UUID, i.LibvirtInst)
-	if err != nil {
-		resp.ResponseWriteErr(w, virerr.ErrorJoin(err, errors.New("error returning status from uuid")), http.StatusInternalServerError)
-	}
-
 	outputStruct, err := status.DataTypeRouter(param.DataType)
 	if err != nil {
 		resp.ResponseWriteErr(w, err, http.StatusBadRequest)
 		return
 		// wrong parameter error 반환
 	}
+	dom, err := i.DomainControl.GetDomain(param.UUID, i.LibvirtInst)
+	if err != nil {
+		resp.ResponseWriteErr(w, virerr.ErrorJoin(err, errors.New("error returning status from uuid")), http.StatusInternalServerError)
+	}
 
 	DomainDetail := status.DomainDetailFactory(outputStruct, dom)
 
 	outputStruct.GetInfo(dom)
 	DomainDetail.DataHandle = outputStruct
-
+	fmt.Println(outputStruct)
 	resp.ResponseWriteOK(w, &DomainDetail.DataHandle)
 
 }

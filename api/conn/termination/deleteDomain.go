@@ -34,7 +34,6 @@ func (DD *DomainDeleter) Operation() (*libvirt.Domain,error){
 		}
 	}
 	basicFilePath := "/var/lib/kws/"
-	fmt.Println("domain uuid %s", DD.uuid)
 	FilePath := filepath.Join(basicFilePath, DD.uuid)
 	deleteCmd := exec.Command("rm", "-rf", FilePath)
 	deleteCmd.Stdout = os.Stdout

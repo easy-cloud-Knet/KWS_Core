@@ -22,6 +22,7 @@ const (
 	MemInfo                     //1 ....
 	DiskInfoHi
 	SystemInfoHi
+	GeneralInfo
 )
 
 type HostCpuInfo struct {
@@ -51,6 +52,29 @@ type HostSystemInfo struct {
 	RAM_Temp float64 `json:"ram_temperature,omitempty"` // no
 }
 
+type HostGeneralInfo struct {
+	CPU HostCpuInfo `json:"cpuInfo"`
+	Memory HostMemoryInfo `json:"memoryInfo"`
+	Disk HostDiskInfo `json:"DiskInfo"`
+}
+
+type MemoryInfo struct {
+	Total       uint64  `json:"total_gb"`
+	Used        uint64  `json:"used_gb"`
+	Available   uint64  `json:"available_gb"`
+	UsedPercent float64 `json:"used_percent"`
+}
+
+type DiskInfo struct {
+	Mountpoint  string  `json:"mountpoint"`
+	Total       uint64  `json:"total_gb"`
+	Used        uint64  `json:"used_gb"`
+	Free        uint64  `json:"free_gb"`
+	UsedPercent float64 `json:"used_percent"`
+}
+
+
+///////////////////////////////위쪽은 호스트 인포
 
 type DomainDataType uint
 
@@ -79,27 +103,6 @@ type DomainInfo struct {
 	NrVirtCpu uint                `json:"nrVirtCpu"`
 	CpuTime   uint64              `json:"cpuTime"`
 }
-
-type MemoryInfo struct {
-	Total       uint64  `json:"total_gb"`
-	Used        uint64  `json:"used_gb"`
-	Available   uint64  `json:"available_gb"`
-	UsedPercent float64 `json:"used_percent"`
-}
-
-type DiskInfo struct {
-	Mountpoint  string  `json:"mountpoint"`
-	Total       uint64  `json:"total_gb"`
-	Used        uint64  `json:"used_gb"`
-	Free        uint64  `json:"free_gb"`
-	UsedPercent float64 `json:"used_percent"`
-}
-
-type SystemInfo struct {
-	Memory MemoryInfo `json:"memory"`
-	Disks  DiskInfo   `json:"disks"`
-}
-
 
 type DataTypeHandler interface {
 	GetInfo(*domCon.Domain) error

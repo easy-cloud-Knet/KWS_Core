@@ -7,34 +7,9 @@ import (
 	domCon "github.com/easy-cloud-Knet/KWS_Core.git/api/conn/DomCon"
 	virerr "github.com/easy-cloud-Knet/KWS_Core.git/api/error"
 	"github.com/google/uuid"
-	"github.com/shirou/gopsutil/disk"
-	"github.com/shirou/gopsutil/mem"
 	"libvirt.org/go/libvirt"
 )
 
-func (SI *SystemInfo) GetInfo(domain *domCon.Domain) error {
-	v, err := mem.VirtualMemory()
-	if err != nil {
-		log.Println(err)
-		return virerr.ErrorGen(virerr.HostStatusError,err)
-	}
-	SI.Memory.Total = v.Total / 1024 / 1024 / 1024
-	SI.Memory.Used = v.Used / 1024 / 1024 / 1024
-	SI.Memory.Available = v.Available / 1024 / 1024 / 1024
-	SI.Memory.UsedPercent = v.UsedPercent
-
-	usage, err := disk.Usage("/")
-	if err != nil {
-		return virerr.ErrorGen(virerr.HostStatusError, err)
-	}
-
-	SI.Disks.Total = usage.Total / 1024 / 1024 / 1024
-	SI.Disks.Used = usage.Used / 1024 / 1024 / 1024
-	SI.Disks.Free = usage.Free / 1024 / 1024 / 1024
-	SI.Disks.UsedPercent = usage.UsedPercent
-
-	return nil
-}
 
 func (DI *DomainInfo) GetInfo(domain *domCon.Domain) error {
 	info, err := domain.Domain.GetInfo()
@@ -98,8 +73,7 @@ func DataTypeRouter(types DomainDataType) (DataTypeHandler, error) {
 		return &DomainInfo{}, nil
 	case GuestInfoDisk:
 		return &DomainInfo{}, nil
-	case HostInfo:
-		return &SystemInfo{}, nil
+
 	}
 	return nil, virerr.ErrorGen(virerr.InvalidParameter, errors.New("invalid flag for DataRoute entereed "))
 }

@@ -56,7 +56,8 @@ func (i *InstHandler)DeleteVM(w http.ResponseWriter, r *http.Request){
 		return
 	}
 	// uuid 가 적합한지 확인
-	fmt.Println(param.UUID)
+
+	
 	domain, err := i.DomainControl.GetDomain(param.UUID,i.LibvirtInst)
 	if err!=nil{
 		resp.ResponseWriteErr(w,virerr.ErrorJoin(err,fmt.Errorf("error deleting vm, retreving Get domin error ")),http.StatusInternalServerError)
@@ -71,8 +72,6 @@ func (i *InstHandler)DeleteVM(w http.ResponseWriter, r *http.Request){
 		fmt.Println(err)
 		return
 	}
-
-
 	DomCon:=conn.DomainControllerInjection(i.DomainControl,DomainDeleter)
 
 	DomCon.DomainDeleteWithOperation(i.Logger,param.UUID)
