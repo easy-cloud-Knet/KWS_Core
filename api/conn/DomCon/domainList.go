@@ -1,4 +1,4 @@
-package conn
+package domCon
 
 import (
 	"fmt"
@@ -18,22 +18,22 @@ func NewDomainInstance(Dom *libvirt.Domain) *Domain {
 
 func DomListConGen() *DomListControl {
 	return &DomListControl{
-		domainMutex: sync.Mutex{},
+		domainListMutex: sync.Mutex{},
 		DomainList:  make(map[string]*Domain),
 	}
 }
 
 func (DC *DomListControl) AddNewDomain(domain *Domain, uuid string) {
-	DC.domainMutex.Lock()
-	defer DC.domainMutex.Unlock()
+	DC.domainListMutex.Lock()
+	defer DC.domainListMutex.Unlock()
 
 	DC.DomainList[uuid] = domain
 }
 
 func (DC *DomListControl) GetDomain(uuid string, LibvirtInst *libvirt.Connect) (*Domain, error) {
-	DC.domainMutex.Lock()
+	DC.domainListMutex.Lock()
 	domain, Exist := DC.DomainList[uuid]
-	DC.domainMutex.Unlock()
+	DC.domainListMutex.Unlock()
 
 	if !Exist {
 		DomainSeeker := DomSeekUUIDFactory(LibvirtInst, uuid)
@@ -48,10 +48,19 @@ func (DC *DomListControl) GetDomain(uuid string, LibvirtInst *libvirt.Connect) (
 	return domain, nil
 }
 
-func (DC *DomListControl) DeleteDomain(uuid string, LibvirtInst *libvirt.Connect) error {
-	DC.domainMutex.Lock()
+func (DC *DomListControl)DeleteDomain(Domain *libvirt.Domain,uuid string)error{
+	DC.domainListMutex.Lock()
+	delete(DC.DomainList, uuid)
+	Domain.Free()
+	DC.domainListMutex.Unlock()
+	return nil
+}
+
+
+func (DC *DomListControl)FindandDeleteDomain(LibvirtInst *libvirt.Connect,uuid string) error {
+	DC.domainListMutex.Lock()
 	domain, Exist := DC.DomainList[uuid]
-	DC.domainMutex.Unlock()
+	DC.domainListMutex.Unlock()
 
 	if !Exist {
 		DomainSeeker := DomSeekUUIDFactory(LibvirtInst, uuid)
@@ -65,9 +74,9 @@ func (DC *DomListControl) DeleteDomain(uuid string, LibvirtInst *libvirt.Connect
 
 	domain.Domain.Free()
 
-	DC.domainMutex.Lock()
+	DC.domainListMutex.Lock()
 	delete(DC.DomainList, uuid)
-	DC.domainMutex.Unlock()
+	DC.domainListMutex.Unlock()
 
 	return nil
 }
@@ -79,8 +88,8 @@ func (DC *DomListControl) retrieveDomainsByState(LibvirtInst *libvirt.Connect, s
 		return err
 	}
 
-	DC.domainMutex.Lock()
-	defer DC.domainMutex.Unlock()
+	DC.domainListMutex.Lock()
+	defer DC.domainListMutex.Unlock()
 
 	for _, dom := range domains {
 		uuid, err := dom.GetUUIDString()

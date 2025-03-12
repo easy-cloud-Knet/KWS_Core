@@ -1,14 +1,16 @@
 package service
 
 import (
-	"github.com/easy-cloud-Knet/KWS_Core.git/api/conn"
+	domCon "github.com/easy-cloud-Knet/KWS_Core.git/api/conn/DomCon"
+	"github.com/easy-cloud-Knet/KWS_Core.git/api/conn/status"
+	"github.com/easy-cloud-Knet/KWS_Core.git/api/conn/termination"
 	"go.uber.org/zap"
 	"libvirt.org/go/libvirt"
 )
 
 type InstHandler struct {
 	LibvirtInst   *libvirt.Connect
-	DomainControl *conn.DomListControl
+	DomainControl *domCon.DomListControl
 	Logger        *zap.Logger
 }
 
@@ -22,7 +24,7 @@ type InstHandle interface {
 
 type DeleteDomain struct {
 	UUID         string                `json:"UUID"`
-	DeletionType conn.DomainDeleteType `json:"DeleteType"`
+	DeletionType termination.DomainDeleteType `json:"DeleteType"`
 }
 type ShutDownDomain struct {
 	UUID string `json:"UUID"`
@@ -32,16 +34,17 @@ type StartDomain struct {
 }
 
 type ReturnDomainFromUUID struct {
-	DataType conn.DomainDataType `json:"dataType"`
+	DataType status.DomainDataType `json:"dataType"`
 	UUID     string              `json:"UUID"`
 }
 
 // host
 type ReturnHostFromStatus struct {
-	HostDataType conn.HostDataType `json:"host_dataType"`
+	HostDataType status.HostDataType `json:"host_dataType"`
 }
 
-//
+
+
 
 // type ConnectListAllDomainsFlags uint
 //     const (

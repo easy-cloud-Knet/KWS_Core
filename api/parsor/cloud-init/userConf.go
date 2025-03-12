@@ -1,4 +1,4 @@
-package parsor
+package userconfig
 
 import (
 	"bytes"
@@ -8,8 +8,11 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/easy-cloud-Knet/KWS_Core.git/api/parsor"
 	"gopkg.in/yaml.v3"
 )
+
+
 
 func (u *User_data_yaml) WriteFile(dirPath string) error {
 	marshalledData, err := yaml.Marshal(u)
@@ -25,7 +28,6 @@ func (u *User_data_yaml) WriteFile(dirPath string) error {
 	return nil
 }
 
-//parsing user-data >> file Config >> done writing user data
 
 func (u *Meta_data_yaml) WriteFile(dirPath string) error {
 	marshalledData, err := yaml.Marshal(u)
@@ -40,7 +42,7 @@ func (u *Meta_data_yaml) WriteFile(dirPath string) error {
 	return nil
 }
 
-func (u *User_data_yaml) ParseData(param *VM_Init_Info) error {
+func (u *User_data_yaml) ParseData(param *parsor.VM_Init_Info) error {
 
 	u.PackageUpdatable = true
 
@@ -87,7 +89,7 @@ func (u *User_data_yaml) ParseData(param *VM_Init_Info) error {
 	return nil
 }
 
-func (m *Meta_data_yaml) ParseData(param *VM_Init_Info) error {
+func (m *Meta_data_yaml) ParseData(param *parsor.VM_Init_Info) error {
 	m.Instance_ID = param.UUID
 	m.Local_Host_Id = param.DomName
 	return nil

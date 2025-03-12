@@ -14,7 +14,7 @@ func InitServer(portNum int, libvirtInst *service.InstHandler, logger zap.Logger
 	logger.Sugar().Infof("Starting server on %d", portNum)
 	mux := http.NewServeMux()
 
-	mux.HandleFunc("POST /createVM", libvirtInst.CreateVMLocal)                 //post
+	mux.HandleFunc("POST /createVM", libvirtInst.CreateVMFromBase)                 //post
 	mux.HandleFunc("GET /getStatusUUID", libvirtInst.ReturnStatusUUID)    //Get
 	mux.HandleFunc("POST /forceShutDownUUID", libvirtInst.ForceShutDownVM) //POST
 	mux.HandleFunc("POST /DeleteVM", libvirtInst.DeleteVM)                 //POST

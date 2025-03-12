@@ -1,4 +1,4 @@
-package conn
+package status
 
 import (
 	"errors"
@@ -67,6 +67,47 @@ func (HDI *HostDiskInfo) GetHostInfo() error {
 	return nil
 }
 
+func (SI *HostGeneralInfo) GetHostInfo() error {
+	err:=SI.CPU.GetHostInfo()
+	if err!=nil{
+		return virerr.ErrorGen(virerr.HostStatusError, fmt.Errorf("general Status:error retreving host Status %w",err))
+	}
+	err=SI.Disk.GetHostInfo()
+	if err!=nil{
+		return virerr.ErrorGen(virerr.HostStatusError, fmt.Errorf("general Status:error retreving host Status %w",err))
+	}
+	err=SI.Memory.GetHostInfo()
+	if err!=nil{
+		return virerr.ErrorGen(virerr.HostStatusError, fmt.Errorf("general Status:error retreving host Status %w",err))
+	}
+
+	// v, err := mem.VirtualMemory()
+	// if err != nil {
+	// 	log.Println(err)
+	// 	return virerr.ErrorGen(virerr.HostStatusError,err)
+	// }
+	// SI.Memory.Total = v.Total / 1024 / 1024 / 1024
+	// SI.Memory.Used = v.Used / 1024 / 1024 / 1024
+	// SI.Memory.Available = v.Available / 1024 / 1024 / 1024
+	// SI.Memory.UsedPercent = v.UsedPercent
+
+	// usage, err := disk.Usage("/")
+	// if err != nil {
+	// 	return virerr.ErrorGen(virerr.HostStatusError, err)
+	// }
+
+	// SI.Disk.Total = usage.Total / 1024 / 1024 / 1024
+	// SI.Disk.Used = usage.Used / 1024 / 1024 / 1024
+	// SI.Disk.Free = usage.Free / 1024 / 1024 / 1024
+	// SI.Disk.UsedPercent = usage.UsedPercent
+
+	return nil
+}
+
+
+
+
+
 func (HSI *HostSystemInfo) GetHostInfo() error {
 	u, err := host.Uptime()
 	if err != nil {
@@ -110,6 +151,8 @@ func HostDataTypeRouter(types HostDataType) (HostDataTypeHandler, error) {
 		return &HostDiskInfo{}, nil
 	case SystemInfoHi:
 		return &HostSystemInfo{}, nil
+	case GeneralInfo:
+		return &HostGeneralInfo{},nil
 	}
 		
 		return nil, virerr.ErrorGen(virerr.HostStatusError, errors.New("not valid parameters for HostDataType provided"))
