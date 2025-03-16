@@ -12,8 +12,6 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-
-
 func (u *User_data_yaml) WriteFile(dirPath string) error {
 	marshalledData, err := yaml.Marshal(u)
 	if err != nil {
@@ -27,7 +25,6 @@ func (u *User_data_yaml) WriteFile(dirPath string) error {
 	}
 	return nil
 }
-
 
 func (u *Meta_data_yaml) WriteFile(dirPath string) error {
 	marshalledData, err := yaml.Marshal(u)
@@ -66,8 +63,21 @@ func (u *User_data_yaml) ParseData(param *parsor.VM_Init_Info) error {
 			Lock_passwd:         false,
 		})
 	}
+	File_Appendor := u.configNetworkIP(param.NetConf.Ips)
+
+	u.Users = Users_Detail
+	u.Write_files = File_Appendor
+
+	u.configNetworkCommand()
+	u.configQEMU()
+
+	return nil
+}
+
+func (u *User_data_yaml) configNetworkIP(ips []string) []User_write_file {
 	var File_Appendor []User_write_file
-	for index, IP := range param.NetConf.Ips {
+
+	for index, IP := range ips {
 		ipCon := strings.Split(IP, ".")
 		ipAddress := strings.Join([]string{ipCon[0], ipCon[1], ipCon[2], ipCon[3]}, ".")
 		Gateway := strings.Join([]string{ipCon[0], ipCon[1], ipCon[2], "1"}, ".")
@@ -75,18 +85,21 @@ func (u *User_data_yaml) ParseData(param *parsor.VM_Init_Info) error {
 			Path:        fmt.Sprintf("/etc/systemd/network/10-enp%ds3.network", index),
 			Permissions: "0644",
 			Content:     fmt.Sprintf("[Match]\nName=enp%ds3\n[Network]\nAddress=%s/24\nGateway=%s\nDNS=%s\nDHCP=no", index, ipAddress, Gateway, "8.8.8.8"),
-		})
+		}) //
 	}
 
-	u.Users = Users_Detail
-	u.Write_files = File_Appendor
+	return File_Appendor
+}
+
+func (u *User_data_yaml) configNetworkCommand() {
 	u.Runcmd = append(u.Runcmd, "systemctl enable systemd-networkd")
 	u.Runcmd = append(u.Runcmd, "systemctl start systemd-networkd")
 	u.Runcmd = append(u.Runcmd, "sudo netplan apply")
+}
+
+func (u *User_data_yaml) configQEMU() {
 	u.Runcmd = append(u.Runcmd, "sudo systemctl start qemu-guest-agent")
 	u.Runcmd = append(u.Runcmd, "sudo systemctl enable qemu-guest-agent")
-
-	return nil
 }
 
 func (m *Meta_data_yaml) ParseData(param *parsor.VM_Init_Info) error {
