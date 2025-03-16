@@ -1,6 +1,7 @@
 package syslogger
 
 import (
+	"fmt"
 	"net/http"
 	"time"
 
@@ -8,11 +9,18 @@ import (
 	"go.uber.org/zap/zapcore"
 )
 
+func getLogFilePath() string {
+	logDir := "/var/log/kws/"
+	currentDate := time.Now().Format("20060102") // YYYYMMDD 포맷
+	logFile := fmt.Sprintf("%s%s.log", logDir, currentDate)
+	return logFile
+}
 
 func InitialLogger() *zap.Logger{
 	encoderCfg := zap.NewProductionEncoderConfig()
     encoderCfg.TimeKey = "timestamp"
     encoderCfg.EncodeTime = zapcore.ISO8601TimeEncoder
+	filePath:= getLogFilePath()
 
 
 	config:= zap.Config{
@@ -22,21 +30,13 @@ func InitialLogger() *zap.Logger{
 		DisableStacktrace: true,
 		Encoding: "json",
 		EncoderConfig:    encoderCfg,
-		OutputPaths: []string{"stdout"},
-		ErrorOutputPaths: []string{"stderr"},
+		OutputPaths: []string{"stdout",filePath},
+		ErrorOutputPaths: []string{"stderr",filePath},
 	}
 
 	return zap.Must(config.Build())
 
-	// zap.Build(config)
 
-	// baseLogger, err := zap.NewDevelopment()
-	
-	// if err!=nil{ 
-	// 	panic("Error initializing logger")
-	// }
-	// logger:= baseLogger.Sugar()
-	// return logger
 }
 
 
@@ -51,3 +51,7 @@ func LoggerMiddleware(next http.Handler, logger *zap.Logger) http.Handler{
 		logger.Info("http response sent",zap.Duration("time elapsed", elapsed))
 	})
 }
+
+
+
+

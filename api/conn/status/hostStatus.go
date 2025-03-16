@@ -81,26 +81,6 @@ func (SI *HostGeneralInfo) GetHostInfo() error {
 		return virerr.ErrorGen(virerr.HostStatusError, fmt.Errorf("general Status:error retreving host Status %w",err))
 	}
 
-	// v, err := mem.VirtualMemory()
-	// if err != nil {
-	// 	log.Println(err)
-	// 	return virerr.ErrorGen(virerr.HostStatusError,err)
-	// }
-	// SI.Memory.Total = v.Total / 1024 / 1024 / 1024
-	// SI.Memory.Used = v.Used / 1024 / 1024 / 1024
-	// SI.Memory.Available = v.Available / 1024 / 1024 / 1024
-	// SI.Memory.UsedPercent = v.UsedPercent
-
-	// usage, err := disk.Usage("/")
-	// if err != nil {
-	// 	return virerr.ErrorGen(virerr.HostStatusError, err)
-	// }
-
-	// SI.Disk.Total = usage.Total / 1024 / 1024 / 1024
-	// SI.Disk.Used = usage.Used / 1024 / 1024 / 1024
-	// SI.Disk.Free = usage.Free / 1024 / 1024 / 1024
-	// SI.Disk.UsedPercent = usage.UsedPercent
-
 	return nil
 }
 

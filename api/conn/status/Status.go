@@ -52,6 +52,8 @@ type HostSystemInfo struct {
 	RAM_Temp float64 `json:"ram_temperature,omitempty"` // no
 }
 
+
+
 type HostGeneralInfo struct {
 	CPU HostCpuInfo `json:"cpuInfo"`
 	Memory HostMemoryInfo `json:"memoryInfo"`
