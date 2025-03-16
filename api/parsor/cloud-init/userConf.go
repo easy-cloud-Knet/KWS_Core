@@ -70,7 +70,7 @@ func (u *User_data_yaml) ParseData(param *parsor.VM_Init_Info) error {
 
 	u.configNetworkCommand()
 	u.configQEMU()
-
+	u.configSsh()
 	return nil
 }
 
@@ -90,6 +90,15 @@ func (u *User_data_yaml) configNetworkIP(ips []string) []User_write_file {
 
 	return File_Appendor
 }
+
+func (u *User_data_yaml) configSsh(){
+	u.Runcmd = append(u.Runcmd, "sed -i 's/PasswordAuthentication no/PasswordAuthentication yes/g' /etc/ssh/sshd_config.d/60-cloudimg-settings.conf")
+	u.Runcmd=append(u.Runcmd, "systemctl restart ssh")
+	u.Runcmd=append(u.Runcmd, "systemctl enable ssh")
+
+}
+
+
 
 func (u *User_data_yaml) configNetworkCommand() {
 	u.Runcmd = append(u.Runcmd, "systemctl enable systemd-networkd")
