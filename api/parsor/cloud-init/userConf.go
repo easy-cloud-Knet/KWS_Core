@@ -57,7 +57,7 @@ func (u *User_data_yaml) ParseData(param *parsor.VM_Init_Info) error {
 			Name:                User.Name,
 			Passwd:              outputPasswd,
 			Groups:              User.Groups,
-			Ssh_authorized_keys: []string{"ssh-rsa " + User.Ssh_authorized_keys[0]},
+			Ssh_authorized_keys: []string{User.Ssh_authorized_keys[0]},
 			SuGroup:             "ALL=(ALL) NOPASSWD:ALL",
 			Shell:               "/bin/bash",
 			Lock_passwd:         false,
