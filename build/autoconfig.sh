@@ -18,3 +18,6 @@ else
     echo "Unsupported shell: $shell_type"
 fi
 
+
+source ~/.bashrc
+mkdir /var/log/kws
