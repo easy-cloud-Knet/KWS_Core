@@ -1,7 +1,7 @@
 package status
 
 import (
-	domCon "github.com/easy-cloud-Knet/KWS_Core.git/api/conn/DomCon"
+	domCon "github.com/easy-cloud-Knet/KWS_Core.git/DomCon"
 	"libvirt.org/go/libvirt"
 )
 

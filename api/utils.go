@@ -1,4 +1,4 @@
-package service
+package api
 
 import (
 	"encoding/json"
@@ -6,7 +6,8 @@ import (
 	"io"
 	"net/http"
 
-	virerr "github.com/easy-cloud-Knet/KWS_Core.git/api/error"
+	domCon "github.com/easy-cloud-Knet/KWS_Core.git/DomCon"
+	virerr "github.com/easy-cloud-Knet/KWS_Core.git/error"
 )
 
 type BaseResponse[T any] struct {
@@ -69,4 +70,12 @@ func (br *BaseResponse[T]) ResponseWriteOK(w http.ResponseWriter, info *T) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	w.Write(data)
+}
+
+
+func (i InstHandler) domainConGetter()(*domCon.DomListControl, error){
+	if(i.DomainControl != nil){
+		return nil, fmt.Errorf("domainController not initialled yet")
+	}
+	return i.DomainControl,nil
 }

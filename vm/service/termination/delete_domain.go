@@ -6,7 +6,7 @@ import (
 	"os/exec"
 	"path/filepath"
 
-	domCon "github.com/easy-cloud-Knet/KWS_Core.git/api/conn/DomCon"
+	domCon "github.com/easy-cloud-Knet/KWS_Core.git/DomCon"
 	"libvirt.org/go/libvirt"
 )
 
@@ -19,7 +19,7 @@ func DomainDeleterFactory(Domain *domCon.Domain, DelType DomainDeleteType, uuid 
 		}, nil
 }
 
-func (DD *DomainDeleter) Operation() (*libvirt.Domain,error){
+func (DD *DomainDeleter) DeleteDomain() (*libvirt.Domain,error){
 	dom := DD.domain
 
 	isRunning, _ := dom.Domain.IsActive()

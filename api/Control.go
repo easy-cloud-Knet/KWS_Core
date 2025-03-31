@@ -1,13 +1,12 @@
-package service
+package api
 
 import (
 	"fmt"
 	"net/http"
 
-	"github.com/easy-cloud-Knet/KWS_Core.git/api/conn"
-	domCon "github.com/easy-cloud-Knet/KWS_Core.git/api/conn/DomCon"
-	"github.com/easy-cloud-Knet/KWS_Core.git/api/conn/termination"
-	virerr "github.com/easy-cloud-Knet/KWS_Core.git/api/error"
+	domCon "github.com/easy-cloud-Knet/KWS_Core.git/DomCon"
+	virerr "github.com/easy-cloud-Knet/KWS_Core.git/error"
+	"github.com/easy-cloud-Knet/KWS_Core.git/vm/service/termination"
 	"libvirt.org/go/libvirt"
 )
 
@@ -66,15 +65,13 @@ func (i *InstHandler)DeleteVM(w http.ResponseWriter, r *http.Request){
 	}
 
 	DomainDeleter,_:=termination.DomainDeleterFactory(domain, param.DeletionType, param.UUID)
-	_,err=DomainDeleter.Operation()
+	_,err=DomainDeleter.DeleteDomain()
 	if err!=nil{
 		resp.ResponseWriteErr(w,virerr.ErrorJoin(err,fmt.Errorf("error deleting vm, retreving Get domin error ")),http.StatusInternalServerError)
 		fmt.Println(err)
 		return
 	}
-	DomCon:=conn.DomainControllerInjection(i.DomainControl,DomainDeleter)
 
-	DomCon.DomainDeleteWithOperation(i.Logger,param.UUID)
 	
 
 	resp.ResponseWriteOK(w,nil)

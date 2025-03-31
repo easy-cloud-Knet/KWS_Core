@@ -1,4 +1,4 @@
-package service
+package api
 
 import (
 	"errors"
@@ -6,8 +6,8 @@ import (
 	"net/http"
 	"reflect"
 
-	"github.com/easy-cloud-Knet/KWS_Core.git/api/conn/status"
-	virerr "github.com/easy-cloud-Knet/KWS_Core.git/api/error"
+	virerr "github.com/easy-cloud-Knet/KWS_Core.git/error"
+	"github.com/easy-cloud-Knet/KWS_Core.git/vm/service/status"
 	"go.uber.org/zap"
 )
 

@@ -3,8 +3,8 @@ package termination
 import (
 	"fmt"
 
-	domCon "github.com/easy-cloud-Knet/KWS_Core.git/api/conn/DomCon"
-	virerr "github.com/easy-cloud-Knet/KWS_Core.git/api/error"
+	domCon "github.com/easy-cloud-Knet/KWS_Core.git/DomCon"
+	virerr "github.com/easy-cloud-Knet/KWS_Core.git/error"
 	"libvirt.org/go/libvirt"
 )
 

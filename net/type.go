@@ -28,4 +28,7 @@ type NetInterface struct {
 type VnetInterface struct {
 }
 
-//currently building for advanced
+
+type Networkd struct{
+	
+}

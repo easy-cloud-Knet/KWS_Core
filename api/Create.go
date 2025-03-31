@@ -1,0 +1,42 @@
+package api
+
+import (
+	"fmt"
+	"net/http"
+
+	virerr "github.com/easy-cloud-Knet/KWS_Core.git/error"
+	"github.com/easy-cloud-Knet/KWS_Core.git/vm/parsor"
+	"github.com/easy-cloud-Knet/KWS_Core.git/vm/service/creation"
+	"go.uber.org/zap"
+	"libvirt.org/go/libvirt"
+)
+
+
+func (i *InstHandler) CreateVMFromBase(w http.ResponseWriter, r *http.Request) {
+
+	resp := ResponseGen[libvirt.DomainInfo]("CreateVm")
+	param := &parsor.VM_Init_Info{}
+
+	if err := HttpDecoder(r, param); err != nil {
+		resp.ResponseWriteErr(w, err, http.StatusBadRequest)
+		i.Logger.Error("error occured while decoding user's parameter of requested creation")
+		return
+	}
+	i.Logger.Info("Handling Create VM", zap.String("uuid", param.UUID))
+
+	DomConf := creation.LocalConfFactory(param, i.Logger)
+	DomCreator:=creation.LocalCreatorFactory(DomConf, i.LibvirtInst,i.Logger)
+	
+	newDomain,err :=DomCreator.CreateVM()
+	if err!=nil&& newDomain==nil{
+		newErr:=virerr.ErrorGen(virerr.DomainGenerationError, fmt.Errorf(" %w error while creating new domain, from CreateVM",err))
+		i.Logger.Error("error from createvm" , zap.Error(newErr))
+		resp.ResponseWriteErr(w, err, http.StatusInternalServerError)
+		
+	}
+
+	domCon,_:= i.domainConGetter()
+	domCon.AddNewDomain(newDomain,param.UUID)
+	
+	resp.ResponseWriteOK(w, nil)
+}

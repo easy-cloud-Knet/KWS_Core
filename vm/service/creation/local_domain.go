@@ -7,16 +7,17 @@ import (
 	"os/exec"
 	"path/filepath"
 
-	virerr "github.com/easy-cloud-Knet/KWS_Core.git/api/error"
-	"github.com/easy-cloud-Knet/KWS_Core.git/api/parsor"
-	userconfig "github.com/easy-cloud-Knet/KWS_Core.git/api/parsor/cloud-init"
+	domCon "github.com/easy-cloud-Knet/KWS_Core.git/DomCon"
+	virerr "github.com/easy-cloud-Knet/KWS_Core.git/error"
+	"github.com/easy-cloud-Knet/KWS_Core.git/vm/parsor"
+	userconfig "github.com/easy-cloud-Knet/KWS_Core.git/vm/parsor/cloud-init"
 	"go.uber.org/zap"
 	"libvirt.org/go/libvirt"
 )
 
 
-func LocalDomainerFactory(param *parsor.VM_Init_Info, logger *zap.Logger) *NewDomainFromBase {
-	return &NewDomainFromBase{
+func LocalConfFactory(param *parsor.VM_Init_Info, logger *zap.Logger) *localConfigurer {
+	return &localConfigurer{
 		VMDescription:  param,
 		YamlParsorUser: &userconfig.User_data_yaml{},
 		YamlParsorMeta: &userconfig.Meta_data_yaml{},
@@ -24,8 +25,8 @@ func LocalDomainerFactory(param *parsor.VM_Init_Info, logger *zap.Logger) *NewDo
 	}
 
 }
-func DomainCreatorFactory(confige *NewDomainFromBase,libvirtInst *libvirt.Connect,logger *zap.Logger )(*DomainCreator){
-	return &DomainCreator{
+func LocalCreatorFactory(confige *localConfigurer,libvirtInst *libvirt.Connect,logger *zap.Logger )(*LocalCreator){
+	return &LocalCreator{
 		DomainConfiger:confige,
 		libvirtInst:libvirtInst,
 		logger:logger,
@@ -35,7 +36,7 @@ func DomainCreatorFactory(confige *NewDomainFromBase,libvirtInst *libvirt.Connec
 
 
 
-func (DCB *DomainCreator) Operation()(*libvirt.Domain,error){
+func (DCB *LocalCreator) CreateVM()(*domCon.Domain,error){
 	//DomainConfiger 를 인터페이스로 둔다면 타입 체크로 분기 가능 
 	err:= DCB.DomainConfiger.Generate(DCB.libvirtInst,DCB.logger)
 	if err!=nil{
@@ -62,16 +63,16 @@ func (DCB *DomainCreator) Operation()(*libvirt.Domain,error){
 		DCB.logger.Error(errDesc.Error())
 		return nil,errDesc
 	}
-	return domain,nil
+	domconDom:=domCon.NewDomainInstance(domain)
+	return domconDom,nil
 }
 
 
 
 
-func (DB NewDomainFromBase) Generate(LibvirtInst *libvirt.Connect, logger *zap.Logger) (error) {
+func (DB localConfigurer) Generate(LibvirtInst *libvirt.Connect, logger *zap.Logger) (error) {
 	dirPath := fmt.Sprintf("/var/lib/kws/%s", DB.VMDescription.UUID)
 
-	// 디렉토리 생성
 	if err := os.MkdirAll(dirPath, 0755); err != nil {
 		errDesc := fmt.Errorf("failed to create directory (%s)", dirPath)
 		logger.Error("failed making directory", zap.Error(errDesc))
@@ -103,7 +104,7 @@ func (DB NewDomainFromBase) Generate(LibvirtInst *libvirt.Connect, logger *zap.L
 	return nil
 }
 
-func (DB NewDomainFromBase) processCloudInitFiles(dirPath string) error {
+func (DB localConfigurer) processCloudInitFiles(dirPath string) error {
 	if err := DB.YamlParsorUser.ParseData(DB.VMDescription); err != nil {
 		errDesc := fmt.Errorf("failed to parse cloud-init user-data: %w", err)
 		return virerr.ErrorGen(virerr.DomainGenerationError, errDesc)
@@ -127,7 +128,7 @@ func (DB NewDomainFromBase) processCloudInitFiles(dirPath string) error {
 }
 
 
-func (DB NewDomainFromBase) CreateISOFile(dirPath string) error {
+func (DB localConfigurer) CreateISOFile(dirPath string) error {
 
 	isoOutput := filepath.Join(dirPath, "cidata.iso")
 	userDataPath := filepath.Join(dirPath, "user-data")

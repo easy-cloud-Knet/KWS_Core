@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"sync"
 
-	virerr "github.com/easy-cloud-Knet/KWS_Core.git/api/error"
+	virerr "github.com/easy-cloud-Knet/KWS_Core.git/error"
 	"go.uber.org/zap"
 	"libvirt.org/go/libvirt"
 )
@@ -37,12 +37,12 @@ func (DC *DomListControl) GetDomain(uuid string, LibvirtInst *libvirt.Connect) (
 
 	if !Exist {
 		DomainSeeker := DomSeekUUIDFactory(LibvirtInst, uuid)
-		domList, err := DomainSeeker.ReturnDomain()
+		dom, err := DomainSeeker.ReturnDomain()
 		if err != nil {
 			return nil, err
 		}
-		DC.AddNewDomain(domList, uuid)
-		return domList, nil
+		DC.AddNewDomain(dom, uuid)
+		return dom, nil
 	}
 
 	return domain, nil
@@ -57,7 +57,7 @@ func (DC *DomListControl)DeleteDomain(Domain *libvirt.Domain,uuid string)error{
 }
 
 
-func (DC *DomListControl)FindandDeleteDomain(LibvirtInst *libvirt.Connect,uuid string) error {
+func (DC *DomListControl)FindAndDeleteDomain(LibvirtInst *libvirt.Connect,uuid string) error {
 	DC.domainListMutex.Lock()
 	domain, Exist := DC.DomainList[uuid]
 	DC.domainListMutex.Unlock()
