@@ -1,4 +1,4 @@
-sudo apt install -y --no-install-recommends qemu-system libvirt-clients libvirt-daemon-system libvirt-dev dnsmasq virtinst pkg-config whois qemu-guest-agent
+sudo apt install -y --no-install-recommends qemu-system libvirt-clients libvirt-daemon-system libvirt-dev dnsmasq virtinst pkg-config whois qemu-guest-agent qemu-utils
 sudo apt install -y  gcc
 
 sudo apt install -y  cloud-init genisoimage

@@ -5,12 +5,12 @@ import (
 	"net/http"
 	"strconv"
 
-	syslogger "github.com/easy-cloud-Knet/KWS_Core.git/api/logger"
-	"github.com/easy-cloud-Knet/KWS_Core.git/api/service"
+	"github.com/easy-cloud-Knet/KWS_Core.git/api"
+	syslogger "github.com/easy-cloud-Knet/KWS_Core.git/logger"
 	"go.uber.org/zap"
 )
 
-func InitServer(portNum int, libvirtInst *service.InstHandler, logger zap.Logger) {
+func InitServer(portNum int, libvirtInst *api.InstHandler, logger zap.Logger) {
 	logger.Sugar().Infof("Starting server on %d", portNum)
 	mux := http.NewServeMux()
 

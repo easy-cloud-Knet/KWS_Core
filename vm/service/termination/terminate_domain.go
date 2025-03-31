@@ -3,8 +3,8 @@ package termination
 import (
 	"fmt"
 
-	domCon "github.com/easy-cloud-Knet/KWS_Core.git/api/conn/DomCon"
-	virerr "github.com/easy-cloud-Knet/KWS_Core.git/api/error"
+	domCon "github.com/easy-cloud-Knet/KWS_Core.git/DomCon"
+	virerr "github.com/easy-cloud-Knet/KWS_Core.git/error"
 	"libvirt.org/go/libvirt"
 )
 
@@ -14,7 +14,7 @@ func DomainTerminatorFactory(Domain *domCon.Domain) (*DomainTerminator, error) {
 	}, nil
 }
 
-func (DD *DomainTerminator) Operation() (*libvirt.Domain, error) {
+func (DD *DomainTerminator) TerminateDomain() (*libvirt.Domain, error) {
 	dom := DD.domain
 
 	isRunning, err := dom.Domain.IsActive()

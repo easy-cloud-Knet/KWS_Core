@@ -8,7 +8,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/easy-cloud-Knet/KWS_Core.git/api/parsor"
+	"github.com/easy-cloud-Knet/KWS_Core.git/vm/parsor"
 	"gopkg.in/yaml.v3"
 )
 

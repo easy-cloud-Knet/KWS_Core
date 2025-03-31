@@ -5,9 +5,9 @@ import (
 	_ "log"
 	"runtime/debug"
 
-	domCon "github.com/easy-cloud-Knet/KWS_Core.git/api/conn/DomCon"
-	syslogger "github.com/easy-cloud-Knet/KWS_Core.git/api/logger"
-	"github.com/easy-cloud-Knet/KWS_Core.git/api/service"
+	domCon "github.com/easy-cloud-Knet/KWS_Core.git/DomCon"
+	"github.com/easy-cloud-Knet/KWS_Core.git/api"
+	syslogger "github.com/easy-cloud-Knet/KWS_Core.git/logger"
 	"github.com/easy-cloud-Knet/KWS_Core.git/server"
 )
 
@@ -17,7 +17,7 @@ func main() {
 
 	domListCon := domCon.DomListConGen()
 
-	libvirtInst := service.InstHandler{
+	libvirtInst := api.InstHandler{
 		DomainControl: domListCon,
 		Logger:        logger,
 	}
@@ -28,7 +28,6 @@ func main() {
 	go server.InitServer(8080, &libvirtInst, *logger)
 
 	defer func() {
-
 		logger.Info("Shutting down gracefully...") // 종료 시 로깅
 		logger.Sync()
 		libvirtInst.LibvirtInst.Close()
