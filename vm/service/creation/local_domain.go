@@ -149,12 +149,6 @@ func (DB localConfigurer) CreateISOFile(dirPath string) error {
 }
 
 
-
-
-
-
-
-
 func CreateDomainWithXML(LibvirtInst *libvirt.Connect ,config []byte) (*libvirt.Domain, error) {
 
 	// DomainCreateXMLWithFiles를 호출하여 도메인을 생성합니다.

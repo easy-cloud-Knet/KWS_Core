@@ -16,6 +16,11 @@ func (i *InstHandler) CreateVMFromBase(w http.ResponseWriter, r *http.Request) {
 
 	resp := ResponseGen[libvirt.DomainInfo]("CreateVm")
 	param := &parsor.VM_Init_Info{}
+	domCon,_:= i.domainConGetter()
+	if domCon==nil{
+		fmt.Println("emrpy domcon")
+	}
+	
 
 	if err := HttpDecoder(r, param); err != nil {
 		resp.ResponseWriteErr(w, err, http.StatusBadRequest)
@@ -23,6 +28,13 @@ func (i *InstHandler) CreateVMFromBase(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	i.Logger.Info("Handling Create VM", zap.String("uuid", param.UUID))
+
+	isExist,_:=domCon.GetDomain(param.UUID, i.LibvirtInst)
+	if (isExist==nil){
+		resp.ResponseWriteErr(w, nil, http.StatusBadRequest)
+		i.Logger.Error("error handling creating vm, domain already exists", zap.String("uuid",param.UUID))
+		return
+	}
 
 	DomConf := creation.LocalConfFactory(param, i.Logger)
 	DomCreator:=creation.LocalCreatorFactory(DomConf, i.LibvirtInst,i.Logger)
@@ -32,11 +44,11 @@ func (i *InstHandler) CreateVMFromBase(w http.ResponseWriter, r *http.Request) {
 		newErr:=virerr.ErrorGen(virerr.DomainGenerationError, fmt.Errorf(" %w error while creating new domain, from CreateVM",err))
 		i.Logger.Error("error from createvm" , zap.Error(newErr))
 		resp.ResponseWriteErr(w, err, http.StatusInternalServerError)
-		
+		return		
 	}
 
-	domCon,_:= i.domainConGetter()
 	domCon.AddNewDomain(newDomain,param.UUID)
 	
 	resp.ResponseWriteOK(w, nil)
+	
 }

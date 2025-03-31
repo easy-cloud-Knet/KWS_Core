@@ -17,7 +17,7 @@ type DomainDeletion interface{
 }
 
 type DomainTermination interface{
-	terminateDomain() (*libvirt.Domain,error)
+	TerminateDomain() (*libvirt.Domain,error)
 }
 
 type DomainTerminator struct {

@@ -31,16 +31,20 @@ func (DC *DomListControl) AddNewDomain(domain *Domain, uuid string) {
 }
 
 func (DC *DomListControl) GetDomain(uuid string, LibvirtInst *libvirt.Connect) (*Domain, error) {
+	fmt.Println("ASdfd")
+	fmt.Println(DC)
 	DC.domainListMutex.Lock()
 	domain, Exist := DC.DomainList[uuid]
 	DC.domainListMutex.Unlock()
-
+	fmt.Println("ASdfd")
 	if !Exist {
 		DomainSeeker := DomSeekUUIDFactory(LibvirtInst, uuid)
 		dom, err := DomainSeeker.ReturnDomain()
 		if err != nil {
+			fmt.Println(err)
 			return nil, err
 		}
+	fmt.Println(dom)	
 		DC.AddNewDomain(dom, uuid)
 		return dom, nil
 	}

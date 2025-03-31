@@ -29,7 +29,7 @@ func (i *InstHandler)ForceShutDownVM(w http.ResponseWriter, r *http.Request){
 
 	DomainTerminator,_:= termination.DomainTerminatorFactory(dom)
 
-	_,err=DomainTerminator.Operation()
+	_,err=DomainTerminator.TerminateDomain()
 	if err!= nil{
 		resp.ResponseWriteErr(w,virerr.ErrorJoin(err,fmt.Errorf("error shutting down vm, retreving Get domin error ")), http.StatusInternalServerError)
 		return

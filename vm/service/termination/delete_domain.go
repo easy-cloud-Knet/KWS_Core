@@ -28,7 +28,7 @@ func (DD *DomainDeleter) DeleteDomain() (*libvirt.Domain,error){
 		return  nil,fmt.Errorf("domain Is Running %w, cannot softDelete running Domain", nil)
 	} else if isRunning && DD.DeletionType == HardDelete {
 		DomainTerminator := &DomainTerminator{domain: dom}
-		_,err := DomainTerminator.Operation()
+		_,err := DomainTerminator.TerminateDomain()
 		if err != nil {
 			return nil,fmt.Errorf("%w, failed deleting Domain in libvirt Instance, ", err)
 		}

@@ -73,8 +73,9 @@ func (br *BaseResponse[T]) ResponseWriteOK(w http.ResponseWriter, info *T) {
 }
 
 
-func (i InstHandler) domainConGetter()(*domCon.DomListControl, error){
-	if(i.DomainControl != nil){
+func (i *InstHandler) domainConGetter()(*domCon.DomListControl, error){
+	fmt.Println(i)
+	if(i.DomainControl == nil){
 		return nil, fmt.Errorf("domainController not initialled yet")
 	}
 	return i.DomainControl,nil

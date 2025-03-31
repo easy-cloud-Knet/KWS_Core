@@ -14,7 +14,7 @@ func DomainTerminatorFactory(Domain *domCon.Domain) (*DomainTerminator, error) {
 	}, nil
 }
 
-func (DD *DomainTerminator) Operation() (*libvirt.Domain, error) {
+func (DD *DomainTerminator) TerminateDomain() (*libvirt.Domain, error) {
 	dom := DD.domain
 
 	isRunning, err := dom.Domain.IsActive()
