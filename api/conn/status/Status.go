@@ -5,8 +5,6 @@ import (
 	"libvirt.org/go/libvirt"
 )
 
-
-
 type HostDetail struct {
 	HostDataHandle HostDataTypeHandler
 }
@@ -23,6 +21,7 @@ const (
 	DiskInfoHi
 	SystemInfoHi
 	GeneralInfo
+	DomainallInfo
 )
 
 type HostCpuInfo struct {
@@ -32,10 +31,11 @@ type HostCpuInfo struct {
 }
 
 type HostMemoryInfo struct {
-	Total       uint64  `json:"total_gb"`
-	Used        uint64  `json:"used_gb"`
-	Available   uint64  `json:"available_gb"`
-	UsedPercent float64 `json:"used_percent"`
+	Total          uint64  `json:"total_gb"`
+	Used           uint64  `json:"used_gb"`
+	Available      uint64  `json:"available_gb"`
+	UsedPercent    float64 `json:"used_percent"`
+	ReservedMemory uint64  `json:"reservedmem"`
 }
 
 type HostDiskInfo struct {
@@ -52,22 +52,21 @@ type HostSystemInfo struct {
 	RAM_Temp float64 `json:"ram_temperature,omitempty"` // no
 }
 
-
-
 type HostGeneralInfo struct {
-	CPU HostCpuInfo `json:"cpuInfo"`
+	CPU    HostCpuInfo    `json:"cpuInfo"`
 	Memory HostMemoryInfo `json:"memoryInfo"`
-	Disk HostDiskInfo `json:"DiskInfo"`
+	Disk   HostDiskInfo   `json:"DiskInfo"`
 }
 
 type MemoryInfo struct {
-	Total       uint64  `json:"total_gb"`
-	Used        uint64  `json:"used_gb"`
-	Available   uint64  `json:"available_gb"`
-	UsedPercent float64 `json:"used_percent"`
+	Total          uint64  `json:"total_gb"`
+	Used           uint64  `json:"used_gb"`
+	Available      uint64  `json:"available_gb"`
+	UsedPercent    float64 `json:"used_percent"`
+	ReservedMemory uint64  `json:"reservedmem"`
 }
 
-type DiskInfo struct {
+type TotaldomainInfo struct {
 	Mountpoint  string  `json:"mountpoint"`
 	Total       uint64  `json:"total_gb"`
 	Used        uint64  `json:"used_gb"`
@@ -75,8 +74,29 @@ type DiskInfo struct {
 	UsedPercent float64 `json:"used_percent"`
 }
 
+///////////////////////////////위쪽은 hostinfo
 
-///////////////////////////////위쪽은 호스트 인포
+type InstDataType uint
+
+type InstDetail struct {
+	AllInstDataHandle InstDataTypeHandler
+}
+
+type InstDataTypeHandler interface {
+	GetAllinstInfo(LibvirtInst *libvirt.Connect) error
+}
+
+const (
+	Vcpu_MaxMem InstDataType = iota //0
+	//1 ....
+)
+
+type AllInstInfo struct {
+	Totalmaxmem uint64 `json:"totalmaxmem"`
+	TotalVCpu   uint   `json:"totalVCpu"`
+}
+
+///////////////////////////////위쪽은 allinstinfo
 
 type DomainDataType uint
 
@@ -90,12 +110,10 @@ const (
 	HostInfo // -ing
 )
 
-
-
 type DomainState struct {
-	DomainState libvirt.DomainState `json:"currentState"`
-	UUID  string                        `json:"UUID"`
-	Users []libvirt.DomainGuestInfoUser `json:"Guest Info,omitempty"`
+	DomainState libvirt.DomainState           `json:"currentState"`
+	UUID        string                        `json:"UUID"`
+	Users       []libvirt.DomainGuestInfoUser `json:"Guest Info,omitempty"`
 }
 
 type DomainInfo struct {
@@ -111,6 +129,6 @@ type DataTypeHandler interface {
 }
 
 type DomainDetail struct {
-	DataHandle   DataTypeHandler
-	Domain *domCon.Domain
+	DataHandle DataTypeHandler
+	Domain     *domCon.Domain
 }

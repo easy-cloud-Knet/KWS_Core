@@ -11,12 +11,13 @@ import (
 	"github.com/shirou/gopsutil/disk"
 	"github.com/shirou/gopsutil/host"
 	"github.com/shirou/gopsutil/mem"
+	"libvirt.org/go/libvirt"
 )
 
 func (CI *HostCpuInfo) GetHostInfo() error {
 	t, err := cpu.Times(false) //time
 	if err != nil {
-		log.Println(err) 
+		log.Println(err)
 		return virerr.ErrorGen(virerr.HostStatusError, err)
 	}
 
@@ -42,12 +43,33 @@ func (MI *HostMemoryInfo) GetHostInfo() error {
 		return virerr.ErrorGen(virerr.HostStatusError, err)
 
 	}
+	conn, err := libvirt.NewConnect("qemu:///system")
+	if err != nil {
+		log.Println(err)
+	}
+
+	domains, err := conn.ListAllDomains(0) //alldomain
+	if err != nil {
+		log.Println(err)
+	}
+
+	var totalMaxMem uint64
+	for _, dom := range domains {
+		data, err := dom.GetInfo()
+		if err != nil {
+			log.Println(err)
+			dom.Free()
+			continue
+		}
+		totalMaxMem += data.MaxMem
+		dom.Free()
+	}
 
 	MI.Total = v.Total / 1024 / 1024 / 1024
 	MI.Used = v.Used / 1024 / 1024 / 1024
 	MI.Available = v.Available / 1024 / 1024 / 1024
 	MI.UsedPercent = v.UsedPercent
-
+	MI.ReservedMemory = totalMaxMem
 	return nil
 }
 
@@ -68,25 +90,21 @@ func (HDI *HostDiskInfo) GetHostInfo() error {
 }
 
 func (SI *HostGeneralInfo) GetHostInfo() error {
-	err:=SI.CPU.GetHostInfo()
-	if err!=nil{
-		return virerr.ErrorGen(virerr.HostStatusError, fmt.Errorf("general Status:error retreving host Status %w",err))
+	err := SI.CPU.GetHostInfo()
+	if err != nil {
+		return virerr.ErrorGen(virerr.HostStatusError, fmt.Errorf("general Status:error retreving host Status %w", err))
 	}
-	err=SI.Disk.GetHostInfo()
-	if err!=nil{
-		return virerr.ErrorGen(virerr.HostStatusError, fmt.Errorf("general Status:error retreving host Status %w",err))
+	err = SI.Disk.GetHostInfo()
+	if err != nil {
+		return virerr.ErrorGen(virerr.HostStatusError, fmt.Errorf("general Status:error retreving host Status %w", err))
 	}
-	err=SI.Memory.GetHostInfo()
-	if err!=nil{
-		return virerr.ErrorGen(virerr.HostStatusError, fmt.Errorf("general Status:error retreving host Status %w",err))
+	err = SI.Memory.GetHostInfo()
+	if err != nil {
+		return virerr.ErrorGen(virerr.HostStatusError, fmt.Errorf("general Status:error retreving host Status %w", err))
 	}
 
 	return nil
 }
-
-
-
-
 
 func (HSI *HostSystemInfo) GetHostInfo() error {
 	u, err := host.Uptime()
@@ -115,7 +133,7 @@ func (HSI *HostSystemInfo) GetHostInfo() error {
 				HSI.RAM_Temp = t.Temperature
 			}
 		}
-	}// 에러가 발생했을때 대처가 부족한거 같음
+	} // 에러가 발생했을때 대처가 부족한거 같음
 
 	return nil
 }
@@ -132,13 +150,11 @@ func HostDataTypeRouter(types HostDataType) (HostDataTypeHandler, error) {
 	case SystemInfoHi:
 		return &HostSystemInfo{}, nil
 	case GeneralInfo:
-		return &HostGeneralInfo{},nil
+		return &HostGeneralInfo{}, nil
 	}
-		
-		return nil, virerr.ErrorGen(virerr.HostStatusError, errors.New("not valid parameters for HostDataType provided"))
+
+	return nil, virerr.ErrorGen(virerr.HostStatusError, errors.New("not valid parameters for HostDataType provided"))
 }
-
-
 
 func HostDetailFactory(handler HostDataTypeHandler) (*HostDetail, error) {
 	if err := handler.GetHostInfo(); err != nil {
@@ -149,4 +165,3 @@ func HostDetailFactory(handler HostDataTypeHandler) (*HostDetail, error) {
 		HostDataHandle: handler,
 	}, nil
 }
-

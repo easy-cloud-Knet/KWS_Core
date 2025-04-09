@@ -23,7 +23,7 @@ type InstHandle interface {
 //// income api Structures
 
 type DeleteDomain struct {
-	UUID         string                `json:"UUID"`
+	UUID         string                       `json:"UUID"`
 	DeletionType termination.DomainDeleteType `json:"DeleteType"`
 }
 type ShutDownDomain struct {
@@ -35,7 +35,7 @@ type StartDomain struct {
 
 type ReturnDomainFromUUID struct {
 	DataType status.DomainDataType `json:"dataType"`
-	UUID     string              `json:"UUID"`
+	UUID     string                `json:"UUID"`
 }
 
 // host
@@ -43,8 +43,9 @@ type ReturnHostFromStatus struct {
 	HostDataType status.HostDataType `json:"host_dataType"`
 }
 
-
-
+type ReturnInstAllData struct {
+	InstDataType status.InstDataType `json:"dataType"`
+}
 
 // type ConnectListAllDomainsFlags uint
 //     const (
