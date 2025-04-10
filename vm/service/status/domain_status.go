@@ -10,7 +10,6 @@ import (
 	"libvirt.org/go/libvirt"
 )
 
-
 func (DI *DomainInfo) GetInfo(domain *domCon.Domain) error {
 	info, err := domain.Domain.GetInfo()
 	if err != nil {
@@ -32,12 +31,12 @@ func (DP *DomainState) GetInfo(domain *domCon.Domain) error {
 		return virerr.ErrorGen(virerr.DomainStatusError, err)
 	}
 
-	uuidBytes,err := domain.Domain.GetUUID()
-	if err!= nil{
+	uuidBytes, err := domain.Domain.GetUUID()
+	if err != nil {
 		return virerr.ErrorGen(virerr.InvalidUUID, err)
 	}
 	uuidParsed, err := uuid.FromBytes(uuidBytes)
-	if err!= nil{
+	if err != nil {
 		return virerr.ErrorGen(virerr.InvalidUUID, err)
 	}
 
@@ -55,7 +54,7 @@ func (DP *DomainState) GetInfo(domain *domCon.Domain) error {
 func DomainDetailFactory(Handler DataTypeHandler, dom *domCon.Domain) *DomainDetail {
 	return &DomainDetail{
 		DataHandle: Handler,
-		Domain: dom,
+		Domain:     dom,
 	}
 }
 
@@ -77,9 +76,3 @@ func DataTypeRouter(types DomainDataType) (DataTypeHandler, error) {
 	}
 	return nil, virerr.ErrorGen(virerr.InvalidParameter, errors.New("invalid flag for DataRoute entereed "))
 }
-
-
-
-
-
- 
