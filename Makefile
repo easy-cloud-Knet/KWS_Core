@@ -1,6 +1,11 @@
 kws :=KWS_Server
 
-.PHONY: build run clean
+.PHONY: build run clean conf
+
+conf:	./build/go.sh
+	./build/download.sh
+	./build/autoconfig.sh
+
 
 build: main.go
 	go build -o $(kws) .

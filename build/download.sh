@@ -12,5 +12,4 @@ sudo wget -O /var/lib/kws/baseimg/debian-12.7.0.qcow2  https://cloud.debian.org/
 
 
 sudo wget -O /var/lib/kws/baseimg/ubuntu-cloud-24.04.img   https://cloud-images.ubuntu.com/noble/current/noble-server-cloudimg-amd64.img
-kws에서 vm 만들어서 하는게 나을 듯 
 
