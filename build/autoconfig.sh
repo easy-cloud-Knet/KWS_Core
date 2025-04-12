@@ -38,7 +38,7 @@ StartLimitIntervalSec=0
 Type=simple
 Restart=always
 RestartSec=1
-User=${user}
+User=root
 ExecStart=${curr_dir}/KWS_Core
 
 [Install]
