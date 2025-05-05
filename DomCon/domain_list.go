@@ -31,12 +31,10 @@ func (DC *DomListControl) AddNewDomain(domain *Domain, uuid string) {
 }
 
 func (DC *DomListControl) GetDomain(uuid string, LibvirtInst *libvirt.Connect) (*Domain, error) {
-	fmt.Println("ASdfd")
 	fmt.Println(DC)
 	DC.domainListMutex.Lock()
 	domain, Exist := DC.DomainList[uuid]
 	DC.domainListMutex.Unlock()
-	fmt.Println("ASdfd")
 	if !Exist {
 		DomainSeeker := DomSeekUUIDFactory(LibvirtInst, uuid)
 		dom, err := DomainSeeker.ReturnDomain()
