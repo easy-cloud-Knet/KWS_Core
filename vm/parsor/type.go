@@ -150,6 +150,10 @@ type Interface struct {
 	Type   string         `xml:"type,attr"`
 	Source NetworkSource  `xml:"source"`
 	Model  InterfaceModel `xml:"model"`
+	Virtualport virPort  `xml:"Virtualport"`
+}
+type virPort struct{
+	Type string `xml:"type,attr"`
 }
 
 type NetworkSource struct {
