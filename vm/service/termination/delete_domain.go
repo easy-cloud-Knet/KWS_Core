@@ -46,6 +46,7 @@ func (DD *DomainDeleter) DeleteDomain() (*libvirt.Domain,error){
 	if err := dom.Domain.Undefine(); err != nil {
 		return nil,fmt.Errorf("%w, failed deleting Domain in libvirt Instance, ", err)
 	}
+	
 
 	return dom.Domain,nil
 }
