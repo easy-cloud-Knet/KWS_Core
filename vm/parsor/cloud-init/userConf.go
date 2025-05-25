@@ -103,6 +103,9 @@ func (u *User_data_yaml) configSsh(){
 func (u *User_data_yaml) configNetworkCommand() {
 	u.Runcmd = append(u.Runcmd, "systemctl enable systemd-networkd")
 	u.Runcmd = append(u.Runcmd, "systemctl start systemd-networkd")
+	u.Runcmd = append(u.Runcmd, "sudo systemctl disable systemd-networkd-wait-online.service")
+	u.Runcmd = append(u.Runcmd, "sudo systemctl mask systemd-networkd-wait-online.service")
+	
 	u.Runcmd = append(u.Runcmd, "sudo netplan apply")
 }
 
