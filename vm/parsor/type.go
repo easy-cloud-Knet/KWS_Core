@@ -149,7 +149,11 @@ type ConsoleTarget struct {
 type Interface struct {
 	Type   string         `xml:"type,attr"`
 	Source NetworkSource  `xml:"source"`
+	Virtualport virPort  `xml:"virtualport"`
 	Model  InterfaceModel `xml:"model"`
+}
+type virPort struct{
+	Type string `xml:"type,attr"`
 }
 
 type NetworkSource struct {

@@ -71,7 +71,7 @@ After=network-online.target
 [Service]
 User=root
 Group=root
-Type=simple
+Type=simple 
 ExecStart=${curr_dir}/node_exporter/node_exporter
 
 [Install]
@@ -86,7 +86,6 @@ sudo systemctl start promtail.service
 sudo systemctl enable node_exporter.service
 sudo systemctl start node_exporter.service
 
-# 셸 설정
 if [[ "$shell_type" == "bash" ]]; then
     echo 'export PATH=$PATH:/usr/local/go/bin' >> ~/.bashrc
     echo "셸을 다시 시작하거나 'source ~/.bashrc'를 실행하세요."
