@@ -71,7 +71,7 @@ func (i *InstHandler)DeleteVM(w http.ResponseWriter, r *http.Request){
 		fmt.Println(err)
 		return
 	}
-
+	i.DomainControl.DeleteDomain(domain.Domain, param.UUID) 
 	
 
 	resp.ResponseWriteOK(w,nil)
