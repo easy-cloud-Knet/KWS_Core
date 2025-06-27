@@ -65,13 +65,13 @@ func (i *InstHandler)DeleteVM(w http.ResponseWriter, r *http.Request){
 	}
 
 	DomainDeleter,_:=termination.DomainDeleterFactory(domain, param.DeletionType, param.UUID)
-	_,err=DomainDeleter.DeleteDomain()
+	domDeleted,err:=DomainDeleter.DeleteDomain()
 	if err!=nil{
 		resp.ResponseWriteErr(w,virerr.ErrorJoin(err,fmt.Errorf("error deleting vm, retreving Get domin error ")),http.StatusInternalServerError)
 		fmt.Println(err)
 		return
 	}
-	i.DomainControl.DeleteDomain(domain.Domain, param.UUID) 
+	i.DomainControl.DeleteDomain(domDeleted,param.UUID)
 	
 
 	resp.ResponseWriteOK(w,nil)
