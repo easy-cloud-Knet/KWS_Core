@@ -18,16 +18,18 @@ sudo ./configure
 sudo make
 sudo make install
 
-sudo .. 
+cd .. 
 sudo ./configure
 sudo make
 sudo make install 
 
+
 echo "export PATH=$PATH:/usr/local/share/ovn/scripts">> ~/.bashrc  
+echo "export PATH=$PATH:/usr/local/share/openvswitch/scripts">> ~/.bashrc  
 
-
+source ~/.bashrc
 ovn-ctl start_controller
 
-
+sudo rm -rf ovn
 
 
