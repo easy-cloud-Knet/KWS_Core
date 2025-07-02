@@ -18,7 +18,7 @@ sudo ./configure
 sudo make
 sudo make install
 
-sudo .. 
+cd ..
 sudo ./configure
 sudo make
 sudo make install 
