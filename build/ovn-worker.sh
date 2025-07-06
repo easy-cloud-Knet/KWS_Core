@@ -23,7 +23,7 @@ Name=br-ext
 [Network]
 Address=$IP_ADDRESS/24
 DNS=$DNS
-Gateway=8.8.8.8
+Gateway=$DNS
 EOF
 
 sudo ovs-vsctl add-br br-ext
