@@ -28,6 +28,5 @@ echo 'PATH="$PATH:/usr/local/share/ovn/scripts"'>> ~/.bashrc
 echo 'PATH="$PATH:/usr/local/share/openvswitch/scripts"'>> ~/.bashrc  
 
 
-ovn-ctl start_controller
 
 
