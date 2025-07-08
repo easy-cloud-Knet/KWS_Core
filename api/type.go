@@ -46,3 +46,8 @@ type ReturnHostFromStatus struct {
 type ReturnInstAllData struct {
 	InstDataType status.InstDataType `json:"dataType"`
 }
+
+// //////////////////////
+type UUIDListResponse struct {
+	UUIDs []string `json:"uuids"`
+}

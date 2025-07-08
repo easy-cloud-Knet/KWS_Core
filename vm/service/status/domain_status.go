@@ -72,7 +72,6 @@ func DataTypeRouter(types DomainDataType) (DataTypeHandler, error) {
 		return &DomainInfo{}, nil
 	case GuestInfoDisk:
 		return &DomainInfo{}, nil
-
 	}
 	return nil, virerr.ErrorGen(virerr.InvalidParameter, errors.New("invalid flag for DataRoute entereed "))
 }

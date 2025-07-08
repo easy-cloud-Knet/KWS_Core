@@ -93,3 +93,14 @@ func (i *InstHandler) ReturnInstAllInfo(w http.ResponseWriter, r *http.Request) 
 // 1. Routing 등에서 일어나는 에러, (host data 타입등이 잘못 입력 된 경우) , InvalidParameter
 // 2. 정확히 파악할 수 없는 오류, 사용하는 호스트 반환 패키지에서 반환되는 오류, , HostStatusError
 // 이 두가지는 내부 함수에서 파악하여 올리기 때문에, 추가 없이  ResponseWirteErr 호출해도 괜찮을 듯
+
+func (i *InstHandler) ReturnAllUUIDs(w http.ResponseWriter, r *http.Request) {
+	i.Logger.Info("ReturnAllUUIDs handler entered")
+
+	resp := ResponseGen[UUIDListResponse]("Get All UUIDs")
+
+	uuids := i.DomainControl.GetAllUUIDs()
+	respData := UUIDListResponse{UUIDs: uuids}
+
+	resp.ResponseWriteOK(w, &respData)
+}
