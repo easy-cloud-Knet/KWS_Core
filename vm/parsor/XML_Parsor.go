@@ -82,9 +82,9 @@ func(XP *VM_CREATE_XML) XML_Parsor(spec *VM_Init_Info) error {
 					Source: NetworkSource{
 						Bridge: "virbr1",
 					},
-					Virtualport:virPort{
-						Type:"openvswitch",
-					},
+					// Virtualport:virPort{
+					// 	Type:"openvswitch",
+					// },
 					Model: InterfaceModel{
 						Type: "virtio",
 					},

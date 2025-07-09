@@ -46,6 +46,7 @@ func (DC *DomListControl) GetDomain(uuid string, LibvirtInst *libvirt.Connect) (
 		DC.AddNewDomain(dom, uuid)
 		return dom, nil
 	}
+	fmt.Println(domain)	
 
 	return domain, nil
 }
