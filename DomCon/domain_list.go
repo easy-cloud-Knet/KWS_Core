@@ -19,7 +19,7 @@ func NewDomainInstance(Dom *libvirt.Domain) *Domain {
 func DomListConGen() *DomListControl {
 	return &DomListControl{
 		domainListMutex: sync.Mutex{},
-		DomainList:  make(map[string]*Domain),
+		DomainList:      make(map[string]*Domain),
 	}
 }
 
@@ -42,7 +42,7 @@ func (DC *DomListControl) GetDomain(uuid string, LibvirtInst *libvirt.Connect) (
 			fmt.Println(err)
 			return nil, err
 		}
-	fmt.Println(dom)	
+		fmt.Println(dom)
 		DC.AddNewDomain(dom, uuid)
 		return dom, nil
 	}
@@ -51,7 +51,7 @@ func (DC *DomListControl) GetDomain(uuid string, LibvirtInst *libvirt.Connect) (
 	return domain, nil
 }
 
-func (DC *DomListControl)DeleteDomain(Domain *libvirt.Domain,uuid string)error{
+func (DC *DomListControl) DeleteDomain(Domain *libvirt.Domain, uuid string) error {
 	DC.domainListMutex.Lock()
 	delete(DC.DomainList, uuid)
 	Domain.Free()
@@ -59,8 +59,7 @@ func (DC *DomListControl)DeleteDomain(Domain *libvirt.Domain,uuid string)error{
 	return nil
 }
 
-
-func (DC *DomListControl)FindAndDeleteDomain(LibvirtInst *libvirt.Connect,uuid string) error {
+func (DC *DomListControl) FindAndDeleteDomain(LibvirtInst *libvirt.Connect, uuid string) error {
 	DC.domainListMutex.Lock()
 	domain, Exist := DC.DomainList[uuid]
 	DC.domainListMutex.Unlock()
@@ -87,7 +86,7 @@ func (DC *DomListControl)FindAndDeleteDomain(LibvirtInst *libvirt.Connect,uuid s
 func (DC *DomListControl) retrieveDomainsByState(LibvirtInst *libvirt.Connect, state libvirt.ConnectListAllDomainsFlags, logger *zap.Logger) error {
 	domains, err := LibvirtInst.ListAllDomains(state)
 	if err != nil {
-		logger.Fatal("Failed to retrieve domains",zap.Error(err))
+		logger.Fatal("Failed to retrieve domains", zap.Error(err))
 		return err
 	}
 
@@ -126,4 +125,17 @@ func (DC *DomListControl) RetrieveAllDomain(LibvirtInst *libvirt.Connect, logger
 
 	logger.Info("retreiving intital vm", zap.Int("number", len(DC.DomainList)))
 	return nil
+}
+
+////////////////////////////////////////////////
+
+func (DC *DomListControl) GetAllUUIDs() []string {
+	DC.domainListMutex.Lock()
+	defer DC.domainListMutex.Unlock()
+
+	uuids := make([]string, 0, len(DC.DomainList))
+	for uuid := range DC.DomainList {
+		uuids = append(uuids, uuid)
+	}
+	return uuids
 }

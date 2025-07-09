@@ -107,7 +107,6 @@ const (
 	GuestInfoOS                         // 3
 	GuestInfoFS                         //4  이 숫자랑만 맞춰주면 됨
 	GuestInfoDisk
-	HostInfo // -ing
 )
 
 type DomainState struct {
