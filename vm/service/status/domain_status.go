@@ -4,8 +4,8 @@ import (
 	"errors"
 	"log"
 
-	domCon "github.com/easy-cloud-Knet/KWS_Core.git/DomCon"
-	virerr "github.com/easy-cloud-Knet/KWS_Core.git/error"
+	domCon "github.com/easy-cloud-Knet/KWS_Core/DomCon"
+	virerr "github.com/easy-cloud-Knet/KWS_Core/error"
 	"github.com/google/uuid"
 	"libvirt.org/go/libvirt"
 )

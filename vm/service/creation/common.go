@@ -5,7 +5,7 @@ import (
 	"os/exec"
 	"path/filepath"
 
-	virerr "github.com/easy-cloud-Knet/KWS_Core.git/error"
+	virerr "github.com/easy-cloud-Knet/KWS_Core/error"
 )
 
 

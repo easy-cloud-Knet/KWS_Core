@@ -1,8 +1,8 @@
 package creation
 
 import (
-	"github.com/easy-cloud-Knet/KWS_Core.git/vm/parsor"
-	userconfig "github.com/easy-cloud-Knet/KWS_Core.git/vm/parsor/cloud-init"
+	"github.com/easy-cloud-Knet/KWS_Core/vm/parsor"
+	userconfig "github.com/easy-cloud-Knet/KWS_Core/vm/parsor/cloud-init"
 	"go.uber.org/zap"
 	"libvirt.org/go/libvirt"
 )

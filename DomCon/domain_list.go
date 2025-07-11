@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"sync"
 
-	virerr "github.com/easy-cloud-Knet/KWS_Core.git/error"
+	virerr "github.com/easy-cloud-Knet/KWS_Core/error"
 	"go.uber.org/zap"
 	"libvirt.org/go/libvirt"
 )

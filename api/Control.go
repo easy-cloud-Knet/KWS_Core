@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"net/http"
 
-	domCon "github.com/easy-cloud-Knet/KWS_Core.git/DomCon"
-	virerr "github.com/easy-cloud-Knet/KWS_Core.git/error"
-	"github.com/easy-cloud-Knet/KWS_Core.git/vm/service/termination"
+	domCon "github.com/easy-cloud-Knet/KWS_Core/DomCon"
+	virerr "github.com/easy-cloud-Knet/KWS_Core/error"
+	"github.com/easy-cloud-Knet/KWS_Core/vm/service/termination"
 	"libvirt.org/go/libvirt"
 )
 

@@ -6,7 +6,7 @@ import (
 	"log"
 	"time"
 
-	virerr "github.com/easy-cloud-Knet/KWS_Core.git/error"
+	virerr "github.com/easy-cloud-Knet/KWS_Core/error"
 	"github.com/shirou/gopsutil/cpu"
 	"github.com/shirou/gopsutil/disk"
 	"github.com/shirou/gopsutil/host"

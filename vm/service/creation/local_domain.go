@@ -7,10 +7,10 @@ import (
 	"os/exec"
 	"path/filepath"
 
-	domCon "github.com/easy-cloud-Knet/KWS_Core.git/DomCon"
-	virerr "github.com/easy-cloud-Knet/KWS_Core.git/error"
-	"github.com/easy-cloud-Knet/KWS_Core.git/vm/parsor"
-	userconfig "github.com/easy-cloud-Knet/KWS_Core.git/vm/parsor/cloud-init"
+	domCon "github.com/easy-cloud-Knet/KWS_Core/DomCon"
+	virerr "github.com/easy-cloud-Knet/KWS_Core/error"
+	"github.com/easy-cloud-Knet/KWS_Core/vm/parsor"
+	userconfig "github.com/easy-cloud-Knet/KWS_Core/vm/parsor/cloud-init"
 	"go.uber.org/zap"
 	"libvirt.org/go/libvirt"
 )

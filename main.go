@@ -5,10 +5,10 @@ import (
 	_ "log"
 	"runtime/debug"
 
-	domCon "github.com/easy-cloud-Knet/KWS_Core.git/DomCon"
-	"github.com/easy-cloud-Knet/KWS_Core.git/api"
-	syslogger "github.com/easy-cloud-Knet/KWS_Core.git/logger"
-	"github.com/easy-cloud-Knet/KWS_Core.git/server"
+	domCon "github.com/easy-cloud-Knet/KWS_Core/DomCon"
+	"github.com/easy-cloud-Knet/KWS_Core/api"
+	syslogger "github.com/easy-cloud-Knet/KWS_Core/logger"
+	"github.com/easy-cloud-Knet/KWS_Core/server"
 )
 
 func main() {

@@ -5,8 +5,8 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/easy-cloud-Knet/KWS_Core.git/api"
-	syslogger "github.com/easy-cloud-Knet/KWS_Core.git/logger"
+	"github.com/easy-cloud-Knet/KWS_Core/api"
+	syslogger "github.com/easy-cloud-Knet/KWS_Core/logger"
 	"go.uber.org/zap"
 )
 

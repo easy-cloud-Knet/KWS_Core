@@ -3,7 +3,7 @@ package parsor
 import (
 	"encoding/xml"
 
-	network "github.com/easy-cloud-Knet/KWS_Core.git/net"
+	network "github.com/easy-cloud-Knet/KWS_Core/net"
 )
 
 // struct for detailed generation config

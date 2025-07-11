@@ -3,7 +3,7 @@ package domCon
 import (
 	"sync"
 
-	virerr "github.com/easy-cloud-Knet/KWS_Core.git/error"
+	virerr "github.com/easy-cloud-Knet/KWS_Core/error"
 	"github.com/google/uuid"
 	"libvirt.org/go/libvirt"
 )
