@@ -6,8 +6,8 @@ import (
 	"net/http"
 	"reflect"
 
-	virerr "github.com/easy-cloud-Knet/KWS_Core.git/error"
-	"github.com/easy-cloud-Knet/KWS_Core.git/vm/service/status"
+	virerr "github.com/easy-cloud-Knet/KWS_Core/error"
+	"github.com/easy-cloud-Knet/KWS_Core/vm/service/status"
 	"go.uber.org/zap"
 )
 

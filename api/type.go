@@ -1,9 +1,9 @@
 package api
 
 import (
-	domCon "github.com/easy-cloud-Knet/KWS_Core.git/DomCon"
-	"github.com/easy-cloud-Knet/KWS_Core.git/vm/service/status"
-	"github.com/easy-cloud-Knet/KWS_Core.git/vm/service/termination"
+	domCon "github.com/easy-cloud-Knet/KWS_Core/DomCon"
+	"github.com/easy-cloud-Knet/KWS_Core/vm/service/status"
+	"github.com/easy-cloud-Knet/KWS_Core/vm/service/termination"
 	"go.uber.org/zap"
 	"libvirt.org/go/libvirt"
 )
