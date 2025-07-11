@@ -1,4 +1,4 @@
-module github.com/easy-cloud-Knet/KWS_Core.git
+module github.com/easy-cloud-Knet/KWS_Core
 
 go 1.22.6
 
