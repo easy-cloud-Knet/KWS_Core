@@ -5,6 +5,7 @@ import (
 )
 
 func (XP *VM_CREATE_XML) XML_Parsor(spec *VM_Init_Info) error {
+	fmt.Println(spec.SDNUUID)
 	*XP = VM_CREATE_XML{
 		Type: "kvm",
 		Name: spec.DomName,
@@ -86,12 +87,15 @@ func (XP *VM_CREATE_XML) XML_Parsor(spec *VM_Init_Info) error {
 					Source: NetworkSource{
 						Bridge: "br-int", // br-int
 					},
-					Virtualport: virPort{
+					Virtualport: VirPort{
 						Type: "openvswitch",
+						Parameter: Parameter{
+							InterfaceID: spec.SDNUUID,
+						},
 					},
-					// Model: InterfaceModel{
-					// 	Type: "virtio",
-					// },
+					Model: InterfaceModel{
+						Type: "virtio",
+					},
 				},
 			},
 			Graphics: Graphics{
