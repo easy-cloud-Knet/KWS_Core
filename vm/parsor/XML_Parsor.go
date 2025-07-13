@@ -3,8 +3,9 @@ package parsor
 import (
 	"fmt"
 )
-func(XP *VM_CREATE_XML) XML_Parsor(spec *VM_Init_Info) error {
-	*XP= VM_CREATE_XML{
+
+func (XP *VM_CREATE_XML) XML_Parsor(spec *VM_Init_Info) error {
+	*XP = VM_CREATE_XML{
 		Type: "kvm",
 		Name: spec.DomName,
 		UUID: spec.UUID,
@@ -79,15 +80,18 @@ func(XP *VM_CREATE_XML) XML_Parsor(spec *VM_Init_Info) error {
 			Interfaces: []Interface{
 				{
 					Type: "bridge",
+					MacAddress: MacAddress{
+						Address: spec.MacAddr, // MAC 주소 설정
+					},
 					Source: NetworkSource{
-						Bridge: "virbr1",
+						Bridge: "br-int", // br-int
 					},
-					// Virtualport:virPort{
-					// 	Type:"openvswitch",
+					Virtualport: virPort{
+						Type: "openvswitch",
+					},
+					// Model: InterfaceModel{
+					// 	Type: "virtio",
 					// },
-					Model: InterfaceModel{
-						Type: "virtio",
-					},
 				},
 			},
 			Graphics: Graphics{
@@ -110,7 +114,5 @@ func(XP *VM_CREATE_XML) XML_Parsor(spec *VM_Init_Info) error {
 		},
 	}
 
-
 	return nil
 }
- 

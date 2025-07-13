@@ -16,6 +16,8 @@ type VM_Init_Info struct {
 	HardwardInfo HardwareInfo      `json:"HWInfo"`
 	NetConf      network.NetDefine `json:"network"`
 	Users        []User_info_VM    `json:"users"`
+	SDNUUID      string            `json:"sdnUUID"`
+	MacAddr      string            `json:"macAddr"`
 }
 
 type User_info_VM struct {
@@ -29,8 +31,6 @@ type HardwareInfo struct {
 	CPU    int `json:"cpu"`
 	Memory int `json:"memory"`
 }
-
-
 
 // gonna replace fields in VM_Init_Info
 //structure,need to modify parsor when implement this
@@ -147,18 +147,19 @@ type ConsoleTarget struct {
 }
 
 type Interface struct {
-	Type   string         `xml:"type,attr"`
-	Source NetworkSource  `xml:"source"`
-	//Virtualport virPort  `xml:"virtualport"`
-	Model  InterfaceModel `xml:"model"`
+	Type        string        `xml:"type,attr"`
+	Source      NetworkSource `xml:"source"`
+	Virtualport virPort       `xml:"virtualport"`
+	// Model       InterfaceModel `xml:"model"`
+	MacAddress MacAddress `xml:"mac"`
 }
-type virPort struct{
+type virPort struct {
 	Type string `xml:"type,attr"`
 }
 
 type NetworkSource struct {
-	Network string `xml:"network,attr"`
-	Bridge  string `xml:"bridge,attr"`
+	// Network string `xml:"network,attr"`
+	Bridge string `xml:"bridge,attr"`
 }
 
 type InterfaceModel struct {
@@ -169,4 +170,8 @@ type Graphics struct {
 	Type     string `xml:"type,attr"`
 	Port     int    `xml:"port,attr"`
 	AutoPort string `xml:"autoport,attr"`
+}
+
+type MacAddress struct {
+	Address string `xml:"address,attr"`
 }
