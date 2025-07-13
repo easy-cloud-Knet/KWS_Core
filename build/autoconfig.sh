@@ -86,6 +86,14 @@ sudo systemctl start promtail.service
 sudo systemctl enable node_exporter.service
 sudo systemctl start node_exporter.service
 
+echo '/usr/local/bin/ovs-vsctl ux' >> /etc/apparmor.d/usr.sbin.libvirtd
+
+sudo apparmor_parser -r /etc/apparmor.d/usr.sbin.libvirtd
+sudo systemctl restart apparmor
+sudo systemctl restart libvirtd
+
+
+
 if [[ "$shell_type" == "bash" ]]; then
     echo 'export PATH=$PATH:/usr/local/go/bin' >> ~/.bashrc
     echo "셸을 다시 시작하거나 'source ~/.bashrc'를 실행하세요."
