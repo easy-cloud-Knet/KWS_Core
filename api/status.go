@@ -1,6 +1,7 @@
 package api
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"net/http"
@@ -103,4 +104,52 @@ func (i *InstHandler) ReturnAllUUIDs(w http.ResponseWriter, r *http.Request) {
 	respData := UUIDListResponse{UUIDs: uuids}
 
 	resp.ResponseWriteOK(w, &respData)
+}
+
+//////////////////////////////////////////////////////////////////
+
+func (i *InstHandler) GetAllDomainStates() ([]DomainState_init, error) {
+	domains, err := i.LibvirtInst.ListAllDomains(0)
+	if err != nil {
+		return nil, err
+	}
+	defer func() {
+		for _, d := range domains {
+			d.Free() // libvirt의 도메인 객체 메모리 해제
+		}
+	}()
+
+	var result []DomainState_init
+	for _, domain := range domains {
+		uuid, err := domain.GetUUIDString()
+		if err != nil {
+			continue // UUID 조회 실패 시 건너뜀
+		}
+		state, _, err := domain.GetState()
+		if err != nil {
+			continue // 상태 조회 실패 시 건너뜀
+		}
+		result = append(result, DomainState_init{
+			UUID:        uuid,
+			DomainState: state,
+		})
+	}
+	return result, nil
+}
+
+func (i *InstHandler) ReturnAllDomainStates(w http.ResponseWriter, r *http.Request) {
+	i.Logger.Info("ReturnAllDomainStates handler entered")
+
+	states, err := i.GetAllDomainStates()
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	resp := struct {
+		Domains []DomainState_init `json:"domains"`
+	}{Domains: states}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(resp)
 }

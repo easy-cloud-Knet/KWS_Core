@@ -21,6 +21,7 @@ func InitServer(portNum int, libvirtInst *api.InstHandler, logger zap.Logger) {
 	mux.HandleFunc("GET /getStatusHost", libvirtInst.ReturnStatusHost)     //Get
 	mux.HandleFunc("GET /getInstAllInfo", libvirtInst.ReturnInstAllInfo)   //Get
 	mux.HandleFunc("GET /getAllUUIDs", libvirtInst.ReturnAllUUIDs)         //Get
+	mux.HandleFunc("GET /getAll-uuidstatusList", libvirtInst.ReturnAllDomainStates)
 
 	sysloggerHttp := syslogger.LoggerMiddleware(mux, &logger)
 
