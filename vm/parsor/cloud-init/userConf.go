@@ -64,7 +64,7 @@ func (u *User_data_yaml) ParseData(param *parsor.VM_Init_Info) error {
 		})
 	}
 	File_Appendor := u.configNetworkIP(param.NetConf.Ips)
-
+	File_Appendor = u.newWaitDisable(File_Appendor)
 	u.Users = Users_Detail
 	u.Write_files = File_Appendor
 
