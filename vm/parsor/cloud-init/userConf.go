@@ -99,7 +99,6 @@ func (u *User_data_yaml) newWaitDisable(File_Appendor []User_write_file) []User_
 			Permissions: "0644",
 			Content:     fmt.Sprintf("[Service]\nExecStart=\nExecStart=/usr/bin/true\n"),
 		})
-	}
 
 	return File_Appendor
 }
