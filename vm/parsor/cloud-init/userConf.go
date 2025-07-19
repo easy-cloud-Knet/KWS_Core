@@ -91,6 +91,19 @@ func (u *User_data_yaml) configNetworkIP(ips []string) []User_write_file {
 	return File_Appendor
 }
 
+
+func (u *User_data_yaml) newWaitDisable(File_Appendor []User_write_file) []User_write_file {
+
+		File_Appendor = append(File_Appendor, User_write_file{
+			Path:        "/etc/systemd/system/systemd-networkd-wait-online.service.d/override.conf",
+			Permissions: "0644",
+			Content:     fmt.Sprintf("[Service]\nExecStart=\nExecStart=/usr/bin/true\n"),
+		})
+	}
+
+	return File_Appendor
+}
+
 func (u *User_data_yaml) configSsh(){
 	u.Runcmd = append(u.Runcmd, "sed -i 's/PasswordAuthentication no/PasswordAuthentication yes/g' /etc/ssh/sshd_config.d/60-cloudimg-settings.conf")
 	u.Runcmd=append(u.Runcmd, "systemctl restart ssh")
