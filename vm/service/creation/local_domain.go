@@ -72,7 +72,15 @@ func (DCB *LocalCreator) CreateVM()(*domCon.Domain,error){
 
 
 func (DB localConfigurer) Generate(LibvirtInst *libvirt.Connect, logger *zap.Logger) (error) {
-	dirPath := fmt.Sprintf("/var/lib/kws/%s", DB.VMDescription.UUID)
+	dirPath,err := parsor.GetSafeFilePath("/var/lib/kws", DB.VMDescription.UUID)
+	if dirPath == "" {
+		errDesc := fmt.Errorf("failed to generate safe file path for UUID %s %v", DB.VMDescription.UUID, err)
+		logger.Error("failed to generate safe file path or some macilous attack happened. aborting", zap.Error(errDesc))
+		return virerr.ErrorGen(virerr.DomainGenerationError, errDesc)
+	}
+
+	
+	
 
 	if err := os.MkdirAll(dirPath, 0755); err != nil {
 		errDesc := fmt.Errorf("failed to create directory (%s)", dirPath)

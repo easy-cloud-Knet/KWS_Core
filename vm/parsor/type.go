@@ -179,3 +179,6 @@ type Graphics struct {
 type MacAddress struct {
 	Address string `xml:"address,attr"`
 }
+
+
+// func VM_Init_Info

@@ -10,6 +10,8 @@ import (
 	virerr "github.com/easy-cloud-Knet/KWS_Core/error"
 )
 
+
+
 type BaseResponse[T any] struct {
 	Information *T      `json:"information,omitempty"`
 	Message     string `json:"message"`
