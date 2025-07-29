@@ -7,6 +7,9 @@ get_shell_type() {
 curr_dir=$(pwd)
 shell_type=$(get_shell_type)
 
+target_file="/etc/libvirt/hooks/qemu"
+address_name="http://10.5.15.3:8082/vm/redis"
+
 wget https://github.com/prometheus/node_exporter/releases/download/v1.9.1/node_exporter-1.9.1.linux-amd64.tar.gz
 tar -xaf node_exporter-1.9.1.linux-amd64.tar.gz
 mv node_exporter-1.9.1.linux-amd64 node_exporter
@@ -77,6 +80,26 @@ ExecStart=${curr_dir}/node_exporter/node_exporter
 [Install]
 WantedBy=multi-user.target
 EOF
+
+sudo bash -c "cat << 'EOF' > $target_file
+#!/bin/bash
+
+GUEST_NAME=\"\$1\"
+EVENT=\"\$2\"
+SUB_EVENT=\"\$3\"
+UUID=\$(awk -F'[<>]' '/<uuid>/ {print \$3; exit}' <&0)
+
+LOG_FILE=\"/tmp/hook-test.log\"
+
+if [[ \"\$EVENT\" == \"start\" || \"\$EVENT\" == \"stopped\" ]]; then
+  JSON=\"{\\\"UUID\\\":\\\"\$UUID\\\", \\\"Status\\\":\\\"\$EVENT\\\"}\"
+
+  echo \" vm: \$GUEST_NAME | uuid: \$UUID | STATUS: \$EVENT\" >> \"\$LOG_FILE\"
+  /usr/bin/curl -X POST -H \"Content-Type: application/json\" -d \"\$JSON\" $address_name || echo \"curl fail\" >> \"\$LOG_FILE\"
+fi
+EOF"
+
+sudo chmod +x "$target_file"
 
 sudo rm promtail-linux-amd64.zip
 sudo rm node_exporter-1.9.1.linux-amd64.tar.gz
