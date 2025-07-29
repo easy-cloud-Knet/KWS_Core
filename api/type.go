@@ -51,3 +51,8 @@ type ReturnInstAllData struct {
 type UUIDListResponse struct {
 	UUIDs []string `json:"uuids"`
 }
+
+type DomainState_init struct {
+	DomainState libvirt.DomainState `json:"currentState"`
+	UUID        string              `json:"UUID"`
+}
