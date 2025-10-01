@@ -91,11 +91,9 @@ UUID=\$(awk -F'[<>]' '/<uuid>/ {print \$3; exit}' <&0)
 
 LOG_FILE=\"/tmp/hook-test.log\"
 
-if [[ \"\$EVENT\" == \"start\" || \"\$EVENT\" == \"stopped\" ]]; then
-  JSON=\"{\\\"UUID\\\":\\\"\$UUID\\\", \\\"Status\\\":\\\"\$EVENT\\\"}\"
-
-  echo \" vm: \$GUEST_NAME | uuid: \$UUID | STATUS: \$EVENT\" >> \"\$LOG_FILE\"
-  /usr/bin/curl -X POST -H \"Content-Type: application/json\" -d \"\$JSON\" $address_name || echo \"curl fail\" >> \"\$LOG_FILE\"
+JSON=\"{\\\"UUID\\\":\\\"\$UUID\\\", \\\"Status\\\":\\\"\$EVENT\\\"}\"
+echo \" vm: \$GUEST_NAME | uuid: \$UUID | STATUS: \$EVENT\" >> \"\$LOG_FILE\"
+/usr/bin/curl -X POST -H \"Content-Type: application/json\" -d \"\$JSON\" $address_name || echo \"curl fail\" >> \"\$LOG_FILE\"
 fi
 EOF"
 
