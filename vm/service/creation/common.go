@@ -9,14 +9,14 @@ import (
 )
 
 
-func (DB localConfigurer)CreateDiskImage(dirPath string) error {
+func (DB localConfigurer)CreateDiskImage(dirPath string, diskSize int) error {
 	baseImage := fmt.Sprintf("/var/lib/kws/baseimg/%s", DB.VMDescription.OS)
 	targetImage := filepath.Join(dirPath, fmt.Sprintf("%s.qcow2", DB.VMDescription.UUID))
 	qemuImgCmd := exec.Command("qemu-img", "create",
 		"-b", baseImage,
 		"-f", "qcow2",
 		"-F", "qcow2",
-		targetImage, "15G",
+		targetImage, fmt.Sprintf("%dG", diskSize), // 10G
 	)
 	if err := qemuImgCmd.Run(); err != nil {
 		errorDescription := fmt.Errorf("generating Disk image error, may have duplicdated uuid or lack of HD capacity %s, %v", dirPath, err)
