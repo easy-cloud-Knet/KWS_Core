@@ -50,6 +50,7 @@ func (i *InstHandler) CreateVMFromBase(w http.ResponseWriter, r *http.Request) {
 
 	resp := ResponseGen[libvirt.DomainInfo]("CreateVm")
 	param := &parsor.VM_Init_Info{}
+
 	domCon,_:= i.domainConGetter()
 	if domCon==nil{
 		fmt.Println("emrpy domcon")
