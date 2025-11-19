@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net/http"
 	"reflect"
+	"runtime"
 
 	virerr "github.com/easy-cloud-Knet/KWS_Core/error"
 	"github.com/easy-cloud-Knet/KWS_Core/vm/service/status"
@@ -14,17 +15,21 @@ import (
 
 func (i *InstHandler) CPU_set_test(w http.ResponseWriter, r *http.Request) {
 	// bmap,num,err:=i.LibvirtInst.GetCPUMap(0)
-	aa,err:= i.LibvirtInst.GetCPUStats(0,0)
-	if err!=nil{    
-		fmt.Println(err)
-		w.Write([]byte(err.Error()))
-	}
-	fmt.Println(aa)
+	cpuCount := runtime.NumCPU()
+
+	
+	fmt.Println(cpuCount)
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	w.Write( []byte("hey"))
 
 }
+// vcpu pinning 을 사용하지 않은 naive 한 연결, 
+// 추후에 cpu pinning에 대한 논의가 완료 된 후 추가할 예정,
+// 현재-> 인메모리에 메모리 저장, 부팅시 각각 vcpu 크기 초기화
+//  
+
+
 
 
 func (i *InstHandler) ReturnStatusUUID(w http.ResponseWriter, r *http.Request) {

@@ -20,6 +20,7 @@ func DomListConGen() *DomListControl {
 	return &DomListControl{
 		domainListMutex: sync.Mutex{},
 		DomainList:      make(map[string]*Domain),
+		DomainListStatus: &domainListStatus{},
 	}
 }
 
@@ -99,13 +100,13 @@ func (DC *DomListControl) retrieveDomainsByState(LibvirtInst *libvirt.Connect, s
 			logger.Sugar().Error("Failed to get UUID for domain", err)
 			continue
 		}
-
-		DC.DomainList[uuid] = &Domain{
+		NewDom:= &Domain{
 			Domain:      &dom,
 			domainMutex: sync.Mutex{},
 		}
-		// logger.Infof("Added domain: UUID=%s", uuid)
+		DC.AddNewDomain(NewDom,uuid)
 		logger.Sugar().Infof("Added domain: UUID=%s", uuid)
+
 	}
 
 	logger.Sugar().Infof("Total %d domains added (state: %d)", len(domains), state)
@@ -139,3 +140,5 @@ func (DC *DomListControl) GetAllUUIDs() []string {
 	}
 	return uuids
 }
+
+//////////////////////////////////////////////// 
