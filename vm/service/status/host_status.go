@@ -140,7 +140,7 @@ func HostDataTypeRouter(types HostDataType) (HostDataTypeHandler, error) {
 
 
 
-func HostDetailFactory(handler HostDataTypeHandler) (*HostDetail, error) {
+func HostInfoHandler(handler HostDataTypeHandler) (*HostDetail, error) {
 	if err := handler.GetHostInfo(); err != nil {
 		fmt.Println(err)
 		return nil, err
