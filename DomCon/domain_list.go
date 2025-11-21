@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"sync"
 
+	domStatus "github.com/easy-cloud-Knet/KWS_Core/DomCon/domain_status"
 	virerr "github.com/easy-cloud-Knet/KWS_Core/error"
 	"go.uber.org/zap"
 	"libvirt.org/go/libvirt"
@@ -20,7 +21,7 @@ func DomListConGen() *DomListControl {
 	return &DomListControl{
 		domainListMutex: sync.Mutex{},
 		DomainList:      make(map[string]*Domain),
-		DomainListStatus: &domainListStatus{},
+		DomainListStatus: &domStatus.DomainListStatus{},
 	}
 }
 
@@ -91,8 +92,7 @@ func (DC *DomListControl) retrieveDomainsByState(LibvirtInst *libvirt.Connect, s
 		return err
 	}
 
-	DC.domainListMutex.Lock()
-	defer DC.domainListMutex.Unlock()
+	
 
 	for _, dom := range domains {
 		uuid, err := dom.GetUUIDString()
@@ -105,6 +105,7 @@ func (DC *DomListControl) retrieveDomainsByState(LibvirtInst *libvirt.Connect, s
 			domainMutex: sync.Mutex{},
 		}
 		DC.AddNewDomain(NewDom,uuid)
+		domStatus.XMLUnparse(NewDom.Domain)
 		logger.Sugar().Infof("Added domain: UUID=%s", uuid)
 
 	}

@@ -3,6 +3,7 @@ package domCon
 import (
 	"sync"
 
+	domStatus "github.com/easy-cloud-Knet/KWS_Core/DomCon/domain_status"
 	"libvirt.org/go/libvirt"
 )
 
@@ -10,24 +11,15 @@ import (
 // libvirt 내에서 domain은 *libvirt.domain으로 관리 됨
 // DomainList 에서 uuid형태로 각각의 도메인을 관리
 
-type Status int
 
-type domainListStatus struct {
-	mutex sync.RWMutex
-	vcpuAll statusUpdate 
-	vcpuAllocated statusUpdate 
-	vcpuIdle statusUpdate	
-}
-// 현재는 cpu 상태만이 필요한 상황
-// 만약 추후에 메모리상에서 도메인 상태를 관리할 경우
-// 새로운 패키지에서 호출할예정
+
 
 
 
 type DomListControl struct {
 	DomainList map[string]*Domain
 	domainListMutex sync.Mutex 
-	DomainListStatus * domainListStatus
+	DomainListStatus * domStatus.DomainListStatus
 }
 
 type Domain struct {
