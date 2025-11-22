@@ -83,8 +83,13 @@ func (i *InstHandler) CreateVMFromBase(w http.ResponseWriter, r *http.Request) {
 		return		
 	}
 
-	domCon.AddNewDomain(newDomain,param.UUID)
-	
+	err =domCon.AddNewDomain(newDomain,param.UUID)
+	if err!=nil{
+		i.Logger.Error("error from createvm" , zap.Error(err))
+		resp.ResponseWriteErr(w, err, http.StatusInternalServerError)
+		return		
+	}
+
 	resp.ResponseWriteOK(w, nil)
 	
 }

@@ -32,6 +32,8 @@ func (CI *HostCpuInfo) GetHostInfo() error {
 	}
 	CI.Usage = p[0]
 
+
+	
 	return nil
 }
 
