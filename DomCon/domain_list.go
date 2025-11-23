@@ -23,7 +23,8 @@ func DomListConGen() *DomListControl {
 		DomainList:      make(map[string]*Domain),
 		DomainListStatus: &domStatus.DomainListStatus{},
 	}
-}
+}// 전역적으로 사용되는 도메인 리스트 컨트롤러 생성
+
 
 func (DC *DomListControl) AddNewDomain(domain *Domain, uuid string) error {
 	DC.domainListMutex.Lock()
