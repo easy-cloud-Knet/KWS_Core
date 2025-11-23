@@ -65,9 +65,9 @@ func (i *InstHandler) ReturnStatusHost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	
 	fmt.Println("data sending", reflect.TypeOf(dataHandle))
-	host, err := status.HostInfoHandler(dataHandle)
+	
+	host, err := status.HostInfoHandler(dataHandle, i.DomainControl.DomainListStatus)
 	if err != nil {
 		resp.ResponseWriteErr(w, err, http.StatusInternalServerError)
 	}

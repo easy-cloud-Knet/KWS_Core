@@ -39,6 +39,14 @@ func (i *InstHandler) BootVM(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	vcpu, err := DomainExisting.Domain.GetMaxVcpus()
+	if err != nil {
+		resp.ResponseWriteErr(w, err, http.StatusInternalServerError)
+		return
+	}
+	i.DomainControl.DomainListStatus.TakeSleepingCPU(int(vcpu))
+
+
 	resp.ResponseWriteOK(w, nil)
 	i.Logger.Info("Boot VM request handled successfully", zap.String("uuid", param.UUID))
 }

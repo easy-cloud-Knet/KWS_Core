@@ -30,6 +30,7 @@ func (ds *XMLStatus) Retreive(dom *libvirt.Domain,DLS *DomainListStatus, logger 
 		return nil
 	}
 		DLS.AddAllocatedCPU(int(domcnf.VCPU.Value))
+		DLS.AddSleepingCPU(int(domcnf.VCPU.Value))
 		return nil
 
 }	

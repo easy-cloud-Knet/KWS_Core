@@ -26,6 +26,12 @@ func (i *InstHandler)ForceShutDownVM(w http.ResponseWriter, r *http.Request){
 		resp.ResponseWriteErr(w,virerr.ErrorJoin(err,fmt.Errorf("error shutting down vm, retreving Get domin error ")), http.StatusInternalServerError)
 		return
 	}
+	vcpu, err := dom.Domain.GetMaxVcpus()
+	if err!= nil{
+		resp.ResponseWriteErr(w,virerr.ErrorJoin(err,fmt.Errorf("error shutting down vm, retreving Get domin error ")), http.StatusInternalServerError)
+		return
+	}
+	i.DomainControl.DomainListStatus.AddSleepingCPU(int(vcpu))
 
 	DomainTerminator,_:= termination.DomainTerminatorFactory(dom)
 

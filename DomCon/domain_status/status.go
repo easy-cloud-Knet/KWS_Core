@@ -19,12 +19,10 @@ type DataDog interface {
 }
 
 type XMLStatus struct{
-	deadCPU int
 }
 // 꺼져있는 도메인의 cpu 수
 
 type libvirtStatus struct{
-	liveCPU int
 }
 // 할당되어 활동중인 cpu 수
 
@@ -40,7 +38,7 @@ type DomainListStatus struct {
 
  
 type StatusEmitter interface{
-	EmitStatus() (VCPUStatus, error)
+	EmitStatus() ( error)
 }
 
 type VCPUStatus struct{
@@ -50,20 +48,26 @@ type VCPUStatus struct{
 	Idle int `json:"idle"`
 }
 
-func (vs *DomainListStatus) EmitStatus() (VCPUStatus, error) {
-	total := int(vs.VCPUTotal)
-	allocated := int(vs.VcpuAllocated)
-	sleeping := int(vs.VcpuSleeping)
-
-	idle := total - allocated
-	if idle < 0 {
-		idle = 0
+func (vs *VCPUStatus) EmitStatus(dls *DomainListStatus) ( error) {
+	vs.Total = int(dls.VCPUTotal)
+	vs.Allocated = int(dls.VcpuAllocated)
+	vs.Sleeping = int(dls.VcpuSleeping)
+	
+	vs.Idle = vs.Total - vs.Allocated
+	if vs.Idle < 0 {
+		vs.Idle = 0
 	}
 
-	return VCPUStatus{
-		Total:     total,
-		Allocated: allocated,
-		Sleeping:  sleeping,
-		Idle:      idle,
-	}, nil
+	return nil
+}
+
+
+func (dls *DomainListStatus) GetVCPUStatus() VCPUStatus {
+	status := VCPUStatus{
+		Total: int(dls.VCPUTotal),
+		Allocated: int(dls.VcpuAllocated),
+		Sleeping: int(dls.VcpuSleeping),
+		Idle: int(dls.VCPUTotal - dls.VcpuAllocated),
+	}
+	return status
 }

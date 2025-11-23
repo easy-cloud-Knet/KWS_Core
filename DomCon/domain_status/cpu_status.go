@@ -33,12 +33,4 @@ func (dls *DomainListStatus) TakeSleepingCPU(vcpu int) error {
 	return nil
 }
 
-func (dls *DomainListStatus) GetVCPUStatus() VCPUStatus {
-	status := VCPUStatus{
-		Total: int(dls.VCPUTotal),
-		Allocated: int(dls.VcpuAllocated),
-		Sleeping: int(dls.VcpuSleeping),
-		Idle: int(dls.VCPUTotal - dls.VcpuAllocated),
-	}
-	return status
-}
+
