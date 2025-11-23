@@ -7,29 +7,27 @@ import (
 
 func (dls *DomainListStatus) UpdateCPUTotal() {
 	totalCPU := runtime.NumCPU()
-	dls.VCPUTotal = int32(totalCPU)
+	dls.VCPUTotal = int64(totalCPU)
 }
 
 func (dls *DomainListStatus) AddAllocatedCPU(vcpu int) error {
-	atomic.AddInt32(&dls.VcpuAllocated, int32(vcpu))
+	atomic.AddInt64(&dls.VcpuAllocated, int64(vcpu))
 	return nil
 }
 
 func (dls *DomainListStatus) AddSleepingCPU(vcpu int) error {
-	atomic.AddInt32(&dls.VcpuSleeping, int32(vcpu))
+	atomic.AddInt64(&dls.VcpuSleeping, int64(vcpu))
 	return nil
 }
 func (dls *DomainListStatus) TakeAllocatedCPU(vcpu int) error {
-	num := int(dls.VcpuAllocated) 
 	
-	atomic.SwapInt32(&dls.VcpuAllocated, int32(num-vcpu))
+	atomic.AddInt64(&dls.VcpuAllocated, -int64(vcpu))
 	return nil
 }
 
 func (dls *DomainListStatus) TakeSleepingCPU(vcpu int) error {
-	num := int(dls.VcpuSleeping) 
 	
-	atomic.SwapInt32(&dls.VcpuSleeping, int32(num-vcpu))
+	atomic.AddInt64(&dls.VcpuSleeping, -int64(vcpu))
 	return nil
 }
 

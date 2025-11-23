@@ -27,9 +27,9 @@ type libvirtStatus struct{
 // 할당되어 활동중인 cpu 수
 
 type DomainListStatus struct {
-	VCPUTotal int32 // 호스트 전체 cpu 수
-	VcpuAllocated int32 // 할당 된 vcpu 수
-	VcpuSleeping int32 // 유휴 상태인 vcpu 수
+	VCPUTotal int64 // 호스트 전체 cpu 수
+	VcpuAllocated int64 // 할당 된 vcpu 수
+	VcpuSleeping int64 // 유휴 상태인 vcpu 수
 	// vcpuIdle = 할당되어 있지 않은 vcpu 수
 	//VcpuIdle = VcpuTotal-VcpuAllocated
 }
@@ -38,8 +38,12 @@ type DomainListStatus struct {
 
  
 type StatusEmitter interface{
-	EmitStatus() ( error)
+	EmitStatus(dls *DomainListStatus) ( error)
 }
+// 상태 반환을 위한 인터페이스
+// 각 상태 구조체는 EmitStatus 메서드를 구현해야함
+// status service 에서 사용	
+
 
 type VCPUStatus struct{
 	Total int `json:"total"`
@@ -47,6 +51,7 @@ type VCPUStatus struct{
 	Sleeping int `json:"sleeping"`
 	Idle int `json:"idle"`
 }
+// 인터페이스 구현체
 
 func (vs *VCPUStatus) EmitStatus(dls *DomainListStatus) ( error) {
 	vs.Total = int(dls.VCPUTotal)
@@ -59,15 +64,4 @@ func (vs *VCPUStatus) EmitStatus(dls *DomainListStatus) ( error) {
 	}
 
 	return nil
-}
-
-
-func (dls *DomainListStatus) GetVCPUStatus() VCPUStatus {
-	status := VCPUStatus{
-		Total: int(dls.VCPUTotal),
-		Allocated: int(dls.VcpuAllocated),
-		Sleeping: int(dls.VcpuSleeping),
-		Idle: int(dls.VCPUTotal - dls.VcpuAllocated),
-	}
-	return status
 }
