@@ -39,6 +39,14 @@ func (i *InstHandler) BootVM(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	vcpu, err := DomainExisting.Domain.GetMaxVcpus()
+	if err != nil {
+		resp.ResponseWriteErr(w, err, http.StatusInternalServerError)
+		return
+	}
+	i.DomainControl.DomainListStatus.TakeSleepingCPU(int(vcpu))
+
+
 	resp.ResponseWriteOK(w, nil)
 	i.Logger.Info("Boot VM request handled successfully", zap.String("uuid", param.UUID))
 }
@@ -83,8 +91,13 @@ func (i *InstHandler) CreateVMFromBase(w http.ResponseWriter, r *http.Request) {
 		return		
 	}
 
-	domCon.AddNewDomain(newDomain,param.UUID)
-	
+	err =domCon.AddNewDomain(newDomain,param.UUID)
+	if err!=nil{
+		i.Logger.Error("error from createvm" , zap.Error(err))
+		resp.ResponseWriteErr(w, err, http.StatusInternalServerError)
+		return		
+	}
+
 	resp.ResponseWriteOK(w, nil)
 	
 }

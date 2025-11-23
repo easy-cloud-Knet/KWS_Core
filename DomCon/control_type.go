@@ -3,6 +3,7 @@ package domCon
 import (
 	"sync"
 
+	domStatus "github.com/easy-cloud-Knet/KWS_Core/DomCon/domain_status"
 	"libvirt.org/go/libvirt"
 )
 
@@ -11,9 +12,14 @@ import (
 // DomainList 에서 uuid형태로 각각의 도메인을 관리
 
 
+
+
+
+
 type DomListControl struct {
 	DomainList map[string]*Domain
 	domainListMutex sync.Mutex 
+	DomainListStatus * domStatus.DomainListStatus
 }
 
 type Domain struct {

@@ -26,6 +26,12 @@ func (i *InstHandler)ForceShutDownVM(w http.ResponseWriter, r *http.Request){
 		resp.ResponseWriteErr(w,virerr.ErrorJoin(err,fmt.Errorf("error shutting down vm, retreving Get domin error ")), http.StatusInternalServerError)
 		return
 	}
+	vcpu, err := dom.Domain.GetMaxVcpus()
+	if err!= nil{
+		resp.ResponseWriteErr(w,virerr.ErrorJoin(err,fmt.Errorf("error shutting down vm, retreving Get domin error ")), http.StatusInternalServerError)
+		return
+	}
+	i.DomainControl.DomainListStatus.AddSleepingCPU(int(vcpu))
 
 	DomainTerminator,_:= termination.DomainTerminatorFactory(dom)
 
@@ -64,6 +70,13 @@ func (i *InstHandler)DeleteVM(w http.ResponseWriter, r *http.Request){
 		//error handling 
 	}
 
+	vcpu, err :=domain.Domain.GetMaxVcpus()
+	if err != nil {
+		resp.ResponseWriteErr(w,virerr.ErrorJoin(err,fmt.Errorf("error deleting vm, retreving Get domin error ")),http.StatusInternalServerError)
+		return
+	}// 삭제된 도메인에서는 vcpu count 를 가져올 수 없으므로 미리 가져옴 . 맘에 안듦. 나중에 수정할 예정
+
+
 	DomainDeleter,_:=termination.DomainDeleterFactory(domain, param.DeletionType, param.UUID)
 	domDeleted,err:=DomainDeleter.DeleteDomain()
 	if err!=nil{
@@ -71,7 +84,7 @@ func (i *InstHandler)DeleteVM(w http.ResponseWriter, r *http.Request){
 		fmt.Println(err)
 		return
 	}
-	i.DomainControl.DeleteDomain(domDeleted,param.UUID)
+	i.DomainControl.DeleteDomain(domDeleted,param.UUID, int(vcpu))
 	
 
 	resp.ResponseWriteOK(w,nil)
