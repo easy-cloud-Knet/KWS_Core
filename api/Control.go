@@ -17,18 +17,24 @@ func (i *InstHandler)ForceShutDownVM(w http.ResponseWriter, r *http.Request){
 	resp:=ResponseGen[any]("domain number of"+param.UUID+", Force Shutdown VM")
 
 	if err:=HttpDecoder(r,param); err!=nil{
-		resp.ResponseWriteErr(w,virerr.ErrorJoin(err,fmt.Errorf("error shutting down vm, from forceShutdown vm ")), http.StatusInternalServerError)
+		ERR:=virerr.ErrorJoin(err,fmt.Errorf("error shutting down vm, from forceShutdown vm "))
+		resp.ResponseWriteErr(w,ERR, http.StatusInternalServerError)
+		i.Logger.Error(ERR.Error())
 		return
 	}
 	fmt.Println(resp)
 	dom,err:= i.DomainControl.GetDomain(param.UUID,i.LibvirtInst)
 	if err!= nil{
-		resp.ResponseWriteErr(w,virerr.ErrorJoin(err,fmt.Errorf("error shutting down vm, retreving Get domin error ")), http.StatusInternalServerError)
+		ERR:=virerr.ErrorJoin(err,fmt.Errorf("error shutting down vm, retreving Get domin error "))
+		resp.ResponseWriteErr(w,ERR, http.StatusInternalServerError)
+		i.Logger.Error(ERR.Error())
 		return
 	}
 	vcpu, err := dom.Domain.GetMaxVcpus()
 	if err!= nil{
-		resp.ResponseWriteErr(w,virerr.ErrorJoin(err,fmt.Errorf("error shutting down vm, retreving Get domin error ")), http.StatusInternalServerError)
+		ERR:=virerr.ErrorJoin(err,fmt.Errorf("error shutting down vm, retreving Get domin error "))
+		resp.ResponseWriteErr(w,ERR, http.StatusInternalServerError)
+		i.Logger.Error(ERR.Error())
 		return
 	}
 	i.DomainControl.DomainListStatus.AddSleepingCPU(int(vcpu))
@@ -53,11 +59,15 @@ func (i *InstHandler)DeleteVM(w http.ResponseWriter, r *http.Request){
 	resp:= ResponseGen[libvirt.DomainInfo]("Deleting Vm")
 
 	if err:=HttpDecoder(r,param); err!=nil{
-		resp.ResponseWriteErr(w,virerr.ErrorJoin(err,fmt.Errorf("error deleting vm, retreving Get domin error ")),http.StatusInternalServerError)
+		ERR:=virerr.ErrorJoin(err,fmt.Errorf("error deleting vm, unparsing HTTP request "))
+		resp.ResponseWriteErr(w,ERR,http.StatusInternalServerError)
+		i.Logger.Error(ERR.Error())
 		return
 	}
 	if _, err := domCon.ReturnUUID(param.UUID); err!=nil{
-		resp.ResponseWriteErr(w,virerr.ErrorJoin(err,fmt.Errorf("error deleting vm, retreving Get domin error ")),http.StatusInternalServerError)
+		ERR:=virerr.ErrorJoin(err,fmt.Errorf("error deleting vm,	invalid UUID "))
+		resp.ResponseWriteErr(w,ERR,http.StatusInternalServerError)
+		i.Logger.Error(ERR.Error())
 		return
 	}
 	// uuid 가 적합한지 확인
@@ -65,23 +75,32 @@ func (i *InstHandler)DeleteVM(w http.ResponseWriter, r *http.Request){
 	
 	domain, err := i.DomainControl.GetDomain(param.UUID,i.LibvirtInst)
 	if err!=nil{
-		resp.ResponseWriteErr(w,virerr.ErrorJoin(err,fmt.Errorf("error deleting vm, retreving Get domin error ")),http.StatusInternalServerError)
+		ERR:=virerr.ErrorJoin(err,fmt.Errorf("error deleting vm, retreving Get domin error "))
+		resp.ResponseWriteErr(w,ERR,http.StatusInternalServerError)
+		i.Logger.Error(ERR.Error())
 		return
 		//error handling 
 	}
 
 	vcpu, err :=domain.Domain.GetMaxVcpus()
 	if err != nil {
-		resp.ResponseWriteErr(w,virerr.ErrorJoin(err,fmt.Errorf("error deleting vm, retreving Get domin error ")),http.StatusInternalServerError)
-		return
+		ERR:=virerr.ErrorJoin(err,fmt.Errorf("error can't retreving vcpu count "))
+		resp.ResponseWriteErr(w,ERR,http.StatusInternalServerError)
+		i.Logger.Error(ERR.Error())
+	
+		vcpu=2
+		//return
+		//일단 지금은 해당 경우에 vcpu 숫자를 2로 설정
 	}// 삭제된 도메인에서는 vcpu count 를 가져올 수 없으므로 미리 가져옴 . 맘에 안듦. 나중에 수정할 예정
+	// TODO: GETMAXVCPU는 꺼진 도메인에 대해 동작하지 않음. DATADOG와 같은 인터페이스를 활용해서 상관없이 삭제할 수 있도록
 
 
 	DomainDeleter,_:=termination.DomainDeleterFactory(domain, param.DeletionType, param.UUID)
 	domDeleted,err:=DomainDeleter.DeleteDomain()
 	if err!=nil{
-		resp.ResponseWriteErr(w,virerr.ErrorJoin(err,fmt.Errorf("error deleting vm, retreving Get domin error ")),http.StatusInternalServerError)
-		fmt.Println(err)
+		ERR:=virerr.ErrorJoin(err,fmt.Errorf("error deleting vm, retreving Get domin error "))
+		resp.ResponseWriteErr(w,ERR,http.StatusInternalServerError)
+		i.Logger.Error(ERR.Error())
 		return
 	}
 	i.DomainControl.DeleteDomain(domDeleted,param.UUID, int(vcpu))
