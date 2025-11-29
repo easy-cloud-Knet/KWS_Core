@@ -15,7 +15,6 @@ import (
 	"libvirt.org/go/libvirt"
 )
 
-
 func LocalConfFactory(param *parsor.VM_Init_Info, logger *zap.Logger) *localConfigurer {
 	return &localConfigurer{
 		VMDescription:  param,
@@ -25,77 +24,75 @@ func LocalConfFactory(param *parsor.VM_Init_Info, logger *zap.Logger) *localConf
 	}
 
 }
-func LocalCreatorFactory(confige *localConfigurer,libvirtInst *libvirt.Connect,logger *zap.Logger )(*LocalCreator){
+func LocalCreatorFactory(confige *localConfigurer, libvirtInst *libvirt.Connect, logger *zap.Logger) *LocalCreator {
 	return &LocalCreator{
-		DomainConfiger:confige,
-		libvirtInst:libvirtInst,
-		logger:logger,
+		DomainConfiger: confige,
+		libvirtInst:    libvirtInst,
+		logger:         logger,
 	}
 }
 
-
-
-
-func (DCB *LocalCreator) CreateVM()(*domCon.Domain,error){
-	//DomainConfiger 를 인터페이스로 둔다면 타입 체크로 분기 가능 
-	err:= DCB.DomainConfiger.Generate(DCB.libvirtInst,DCB.logger)
-	if err!=nil{
+func (DCB *LocalCreator) CreateVM() (*domCon.Domain, error) {
+	//DomainConfiger 를 인터페이스로 둔다면 타입 체크로 분기 가능
+	err := DCB.DomainConfiger.Generate(DCB.libvirtInst, DCB.logger)
+	if err != nil {
 		DCB.logger.Warn("error whiling configuring base Configures, ", zap.Error(err))
 	}
 
+	// 도메인 struct를 libvirt로 보낼 XML text로 변환
 	output, err := xml.MarshalIndent(*DCB.DomainConfiger.DeviceDefiner, "", "  ")
 	if err != nil {
 		errDesc := virerr.ErrorGen(virerr.DomainGenerationError, fmt.Errorf("in domain-Creator, XML marshaling error: %w", err))
 		DCB.logger.Error(errDesc.Error())
-		return nil,errDesc
+		return nil, errDesc
 	}
 
-	domain,err :=CreateDomainWithXML(DCB.libvirtInst,output)
+	//XML로 libvirt Domain 객체 생성
+	domain, err := CreateDomainWithXML(DCB.libvirtInst, output)
 	fmt.Println(string(output))
-	if err!=nil{
+	if err != nil {
 		errDesc := virerr.ErrorGen(virerr.DomainGenerationError, fmt.Errorf("in domain-Creator, error occured from creating with libvirt: %w", err))
 		DCB.logger.Error(errDesc.Error())
-		return nil,errDesc
-		
+		return nil, errDesc
+
 	}
-	err=domain.Create()
-	if err!=nil{
+	err = domain.Create()
+	if err != nil {
 		errDesc := virerr.ErrorGen(virerr.DomainGenerationError, fmt.Errorf("in domain-Creator, XML marshaling error: %w", err))
 		DCB.logger.Error(errDesc.Error())
-		return nil,errDesc
+		return nil, errDesc
 	}
-	domconDom:=domCon.NewDomainInstance(domain)
-	return domconDom,nil
+	domconDom := domCon.NewDomainInstance(domain)
+	return domconDom, nil
 }
 
+// Instance를 만들기 위해 필요한 파일/disk/ISO Generate
+func (DB localConfigurer) Generate(LibvirtInst *libvirt.Connect, logger *zap.Logger) error {
 
-
-
-func (DB localConfigurer) Generate(LibvirtInst *libvirt.Connect, logger *zap.Logger) (error) {
-	dirPath,err := parsor.GetSafeFilePath("/var/lib/kws", DB.VMDescription.UUID)
+	//디렉토리 경로 설정 (/var/lib/kws/{UUID})
+	dirPath, err := parsor.GetSafeFilePath("/var/lib/kws", DB.VMDescription.UUID)
 	if dirPath == "" {
 		errDesc := fmt.Errorf("failed to generate safe file path for UUID %s %v", DB.VMDescription.UUID, err)
 		logger.Error("failed to generate safe file path or some macilous attack happened. aborting", zap.Error(errDesc))
 		return virerr.ErrorGen(virerr.DomainGenerationError, errDesc)
 	}
 
-	
-	
-
+	//디렉토리 생성
 	if err := os.MkdirAll(dirPath, 0755); err != nil {
 		errDesc := fmt.Errorf("failed to create directory (%s)", dirPath)
 		logger.Error("failed making directory", zap.Error(errDesc))
-		return  virerr.ErrorGen(virerr.DomainGenerationError, errDesc)
+		return virerr.ErrorGen(virerr.DomainGenerationError, errDesc)
 	}
 
 	// cloud-init 파일 처리
 	if err := DB.processCloudInitFiles(dirPath); err != nil {
 		errorEncapsed := virerr.ErrorJoin(err, fmt.Errorf("in domain-parsor,"))
 		logger.Error(errorEncapsed.Error())
-		return  errorEncapsed
+		return errorEncapsed
 	}
 	logger.Info("generating configuration file successfully done", zap.String("filePath", dirPath))
 
+	//disk 이미지 생성
 	if err := DB.CreateDiskImage(dirPath, DB.VMDescription.HardwardInfo.Disk); err != nil {
 		errorEncapsed := virerr.ErrorJoin(err, fmt.Errorf("in domain-parsor,"))
 		logger.Error(errorEncapsed.Error())
@@ -136,7 +133,6 @@ func (DB localConfigurer) processCloudInitFiles(dirPath string) error {
 	return nil
 }
 
-
 func (DB localConfigurer) CreateISOFile(dirPath string) error {
 
 	isoOutput := filepath.Join(dirPath, "cidata.iso")
@@ -157,16 +153,16 @@ func (DB localConfigurer) CreateISOFile(dirPath string) error {
 	return nil
 }
 
-
-func CreateDomainWithXML(LibvirtInst *libvirt.Connect ,config []byte) (*libvirt.Domain, error) {
+func CreateDomainWithXML(LibvirtInst *libvirt.Connect, config []byte) (*libvirt.Domain, error) {
 
 	// DomainCreateXMLWithFiles를 호출하여 도메인을 생성합니다.
 	domain, err := LibvirtInst.DomainDefineXML(string(config))
 	if err != nil {
-		return nil, virerr.ErrorGen(virerr.DomainGenerationError,fmt.Errorf("domain creating with libvirt daemon from xml err %w", err))
+		return nil, virerr.ErrorGen(virerr.DomainGenerationError, fmt.Errorf("domain creating with libvirt daemon from xml err %w", err))
 		// cpu나 ip 중복 등을 검사하는 코드를 삽입하고, 그에 맞는 에러 반환 필요
-	} 
+	}
 	//이전까지 생성 된 파일 삭제 해야됨.
-  return domain ,nil
+	return domain, nil
 }
+
 // local 파일에서 vm을 생성할 경우 사용
