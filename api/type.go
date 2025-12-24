@@ -2,6 +2,7 @@ package api
 
 import (
 	domCon "github.com/easy-cloud-Knet/KWS_Core/DomCon"
+	snapmgr "github.com/easy-cloud-Knet/KWS_Core/vm/service/snapshot"
 	"github.com/easy-cloud-Knet/KWS_Core/vm/service/status"
 	"github.com/easy-cloud-Knet/KWS_Core/vm/service/termination"
 	"go.uber.org/zap"
@@ -9,9 +10,10 @@ import (
 )
 
 type InstHandler struct {
-	LibvirtInst   *libvirt.Connect
-	DomainControl *domCon.DomListControl
-	Logger        *zap.Logger
+	LibvirtInst     *libvirt.Connect
+	DomainControl   *domCon.DomListControl
+	Logger          *zap.Logger
+	SnapshotManager snapmgr.SnapshotManager
 }
 
 // InstHandler 는
