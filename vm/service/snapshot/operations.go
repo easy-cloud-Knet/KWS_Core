@@ -2,7 +2,6 @@ package snapshot
 
 import (
 	"fmt"
-	"time"
 
 	domCon "github.com/easy-cloud-Knet/KWS_Core/DomCon"
 	"libvirt.org/go/libvirt"
@@ -26,17 +25,6 @@ func CreateSnapshot(domain *domCon.Domain, name string) (string, error) {
 	if err != nil {
 		return "", fmt.Errorf("snapshot created but failed to read name: %w", err)
 	}
-
-	// try to collect additional snapshot info from libvirt
-	xmlDesc, _ := snap.GetXMLDesc(0)
-	// persist metadata (include libvirt name and xml if available)
-	meta := SnapshotMeta{
-		Name:        snapName,
-		LibvirtName: snapName,
-		XMLDesc:     xmlDesc,
-		CreatedAt:   time.Now(),
-	}
-	_ = SaveSnapshotMetaForDomain(domain, meta)
 
 	return snapName, nil
 }
@@ -96,11 +84,41 @@ func RevertToSnapshot(domain *domCon.Domain, snapName string) error {
 		return fmt.Errorf("snapshot %s not found", snapName)
 	}
 
-	// Call the libvirt-go binding's DomainSnapshot.RevertToSnapshot method.
-	// Use zero flags for default behavior.
 	if err := target.RevertToSnapshot(0); err != nil {
 		return fmt.Errorf("failed to revert to snapshot %s: %w", snapName, err)
 	}
 
 	return nil
+}
+
+// DeleteSnapshot deletes a snapshot by name.
+func DeleteSnapshot(domain *domCon.Domain, snapName string) error {
+	if domain == nil || domain.Domain == nil {
+		return fmt.Errorf("nil domain")
+	}
+
+	snaps, err := domain.Domain.ListAllSnapshots(0)
+	if err != nil {
+		return fmt.Errorf("failed to list snapshots: %w", err)
+	}
+	defer func() {
+		for _, s := range snaps {
+			s.Free()
+		}
+	}()
+
+	for _, s := range snaps {
+		n, err := s.GetName()
+		if err != nil {
+			continue
+		}
+		if n == snapName {
+			if err := s.Delete(0); err != nil {
+				return fmt.Errorf("failed to delete snapshot %s: %w", snapName, err)
+			}
+			return nil
+		}
+	}
+
+	return fmt.Errorf("snapshot %s not found", snapName)
 }
