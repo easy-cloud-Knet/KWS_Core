@@ -1,8 +1,6 @@
 package domStatus
 
 import (
-	"fmt"
-
 	"go.uber.org/zap"
 	"libvirt.org/go/libvirt"
 )
@@ -12,10 +10,8 @@ import (
 func NewDataDog(state libvirt.ConnectListAllDomainsFlags) DataDog {
 	switch state {
 		case libvirt.CONNECT_LIST_DOMAINS_ACTIVE:
-			fmt.Println("returning active")
 			return &libvirtStatus{}
 		case libvirt.CONNECT_LIST_DOMAINS_INACTIVE:
-			fmt.Println("returning inactive")
 			return &XMLStatus{}
 		default:
 			return nil
@@ -42,7 +38,6 @@ func (ls *libvirtStatus) Retreive(dom *libvirt.Domain, DLS *DomainListStatus, lo
 		return nil
 	}
 
-	fmt.Printf("%+v", cpuCount)
 	DLS.AddAllocatedCPU(int(cpuCount))
 	return nil
 	

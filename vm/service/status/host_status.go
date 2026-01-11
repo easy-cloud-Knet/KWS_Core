@@ -3,7 +3,6 @@ package status
 import (
 	"errors"
 	"fmt"
-	"log"
 	"time"
 
 	domStatus "github.com/easy-cloud-Knet/KWS_Core/DomCon/domain_status"
@@ -17,13 +16,11 @@ import (
 func (CI *HostCpuInfo) GetHostInfo(status *domStatus.DomainListStatus) error {
 	t, err := cpu.Times(false) //time
 	if err != nil {
-		log.Println(err) 
 		return virerr.ErrorGen(virerr.HostStatusError, err)
 	}
 
 	p, err := cpu.Percent(time.Second, false)
 	if err != nil {
-		log.Println(err)
 		return virerr.ErrorGen(virerr.HostStatusError, err)
 	}
 
@@ -43,7 +40,6 @@ func (CI *HostCpuInfo) GetHostInfo(status *domStatus.DomainListStatus) error {
 func (MI *HostMemoryInfo) GetHostInfo(status *domStatus.DomainListStatus) error {
 	v, err := mem.VirtualMemory()
 	if err != nil {
-		log.Println(err)
 		return virerr.ErrorGen(virerr.HostStatusError, err)
 
 	}
@@ -59,7 +55,6 @@ func (MI *HostMemoryInfo) GetHostInfo(status *domStatus.DomainListStatus) error 
 func (HDI *HostDiskInfo) GetHostInfo(status *domStatus.DomainListStatus) error {
 	d, err := disk.Usage("/")
 	if err != nil {
-		log.Println(err)
 		return virerr.ErrorGen(virerr.HostStatusError, err)
 
 	}
@@ -96,14 +91,12 @@ func (SI *HostGeneralInfo) GetHostInfo(status *domStatus.DomainListStatus) error
 func (HSI *HostSystemInfo) GetHostInfo(status *domStatus.DomainListStatus) error {
 	u, err := host.Uptime()
 	if err != nil {
-		log.Println(err)
 		return virerr.ErrorGen(virerr.HostStatusError, err)
 
 	}
 
 	b, err := host.BootTime()
 	if err != nil {
-		log.Println(err)
 		return virerr.ErrorGen(virerr.HostStatusError, err)
 
 	}
@@ -155,7 +148,6 @@ func HostDataTypeRouter(types HostDataType) (HostDataTypeHandler, error) {
 
 func HostInfoHandler(handler HostDataTypeHandler, status *domStatus.DomainListStatus) (*HostDetail, error) {
 	if err := handler.GetHostInfo(status); err != nil {
-		fmt.Println(err)
 		return nil, err
 	}
 	return &HostDetail{

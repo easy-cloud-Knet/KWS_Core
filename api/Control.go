@@ -20,7 +20,6 @@ func (i *InstHandler) ForceShutDownVM(w http.ResponseWriter, r *http.Request) {
 		i.Logger.Error(ERR.Error())
 		return
 	}
-	fmt.Println(resp)
 	dom, err := i.DomainControl.GetDomain(param.UUID, i.LibvirtInst)
 	if err != nil {
 		ERR := virerr.ErrorJoin(err, fmt.Errorf("error shutting down vm, retreving Get domin error "))

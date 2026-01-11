@@ -3,9 +3,7 @@ package api
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
 	"net/http"
-	"reflect"
 
 	virerr "github.com/easy-cloud-Knet/KWS_Core/error"
 	"github.com/easy-cloud-Knet/KWS_Core/vm/service/status"
@@ -42,7 +40,6 @@ func (i *InstHandler) ReturnStatusUUID(w http.ResponseWriter, r *http.Request) {
 
 	outputStruct.GetInfo(dom)
 	DomainDetail.DataHandle = outputStruct
-	fmt.Println(outputStruct)
 	resp.ResponseWriteOK(w, &DomainDetail.DataHandle)
 
 }
@@ -65,7 +62,6 @@ func (i *InstHandler) ReturnStatusHost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	fmt.Println("data sending", reflect.TypeOf(dataHandle))
 	
 	host, err := status.HostInfoHandler(dataHandle, i.DomainControl.DomainListStatus)
 	if err != nil {
@@ -90,7 +86,6 @@ func (i *InstHandler) ReturnInstAllInfo(w http.ResponseWriter, r *http.Request) 
 		resp.ResponseWriteErr(w, err, http.StatusInternalServerError)
 		return
 	}
-	fmt.Println("data sending", reflect.TypeOf(dataHandle))
 	inst, err := status.InstDetailFactory(dataHandle, i.LibvirtInst)
 	if err != nil {
 		resp.ResponseWriteErr(w, err, http.StatusInternalServerError)
