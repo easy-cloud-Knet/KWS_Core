@@ -19,7 +19,6 @@ func (AII *AllInstInfo) GetAllinstInfo(LibvirtInst *libvirt.Connect) error {
 	for _, dom := range domains {
 		data, err := dom.GetInfo()
 		if err != nil {
-			log.Println(err)
 			dom.Free()
 			continue
 		}

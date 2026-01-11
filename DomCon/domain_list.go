@@ -49,7 +49,6 @@ func (DC *DomListControl) AddExistingDomain(domain *Domain, uuid string) {
 // Exstring Domain only called from initial booting, and adding specs is not its role
 
 func (DC *DomListControl) GetDomain(uuid string, LibvirtInst *libvirt.Connect) (*Domain, error) {
-	fmt.Println(DC)
 	DC.domainListMutex.Lock()
 	domain, Exist := DC.DomainList[uuid]
 	DC.domainListMutex.Unlock()
@@ -57,14 +56,11 @@ func (DC *DomListControl) GetDomain(uuid string, LibvirtInst *libvirt.Connect) (
 		DomainSeeker := DomSeekUUIDFactory(LibvirtInst, uuid)
 		dom, err := DomainSeeker.ReturnDomain()
 		if err != nil {
-			fmt.Println(err)
 			return nil, err
 		}
-		fmt.Println(dom)
 		DC.AddNewDomain(dom, uuid)
 		return dom, nil
 	}
-	fmt.Println(domain)	
 
 	return domain, nil
 }
@@ -138,7 +134,6 @@ func (DC *DomListControl) retrieveDomainsByState(LibvirtInst *libvirt.Connect, s
 		logger.Sugar().Infof("Added domain: UUID=%s", uuid)
 	}
 	wg.Wait()
-	fmt.Printf("%+v", *DC.DomainListStatus)
 	
 	logger.Sugar().Infof("Total %d domains added (state: %d)", len(domains), state)
 	return nil

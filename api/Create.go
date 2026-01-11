@@ -61,7 +61,7 @@ func (i *InstHandler) CreateVMFromBase(w http.ResponseWriter, r *http.Request) {
 
 	domCon,_:= i.domainConGetter()
 	if domCon==nil{
-		fmt.Println("emrpy domcon")
+		fmt.Println("empty domcon")
 	}
 	
 
@@ -74,7 +74,6 @@ func (i *InstHandler) CreateVMFromBase(w http.ResponseWriter, r *http.Request) {
 
 	domainExisting,_:=domCon.GetDomain(param.UUID, i.LibvirtInst)
 	if (domainExisting!=nil){
-		fmt.Println(domainExisting)
 		resp.ResponseWriteErr(w, nil, http.StatusBadRequest)
 		i.Logger.Error("error handling creating vm, domain already exists", zap.String("uuid",param.UUID))
 		return
