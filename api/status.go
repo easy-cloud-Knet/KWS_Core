@@ -12,6 +12,11 @@ import (
 	"go.uber.org/zap"
 )
 
+
+
+
+
+
 func (i *InstHandler) ReturnStatusUUID(w http.ResponseWriter, r *http.Request) {
 	param := &ReturnDomainFromUUID{}
 	resp := ResponseGen[status.DataTypeHandler]("domain Status UUID")
@@ -42,6 +47,8 @@ func (i *InstHandler) ReturnStatusUUID(w http.ResponseWriter, r *http.Request) {
 
 }
 
+
+
 func (i *InstHandler) ReturnStatusHost(w http.ResponseWriter, r *http.Request) {
 	param := &ReturnHostFromStatus{}
 	resp := ResponseGen[status.HostDataTypeHandler]("Host Status Return")
@@ -57,8 +64,10 @@ func (i *InstHandler) ReturnStatusHost(w http.ResponseWriter, r *http.Request) {
 		resp.ResponseWriteErr(w, err, http.StatusInternalServerError)
 		return
 	}
+
 	fmt.Println("data sending", reflect.TypeOf(dataHandle))
-	host, err := status.HostDetailFactory(dataHandle)
+	
+	host, err := status.HostInfoHandler(dataHandle, i.DomainControl.DomainListStatus)
 	if err != nil {
 		resp.ResponseWriteErr(w, err, http.StatusInternalServerError)
 	}

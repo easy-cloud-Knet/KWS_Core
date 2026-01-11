@@ -6,6 +6,7 @@ import (
 	"log"
 	"time"
 
+	domStatus "github.com/easy-cloud-Knet/KWS_Core/DomCon/domain_status"
 	virerr "github.com/easy-cloud-Knet/KWS_Core/error"
 	"github.com/shirou/gopsutil/cpu"
 	"github.com/shirou/gopsutil/disk"
@@ -13,7 +14,7 @@ import (
 	"github.com/shirou/gopsutil/mem"
 )
 
-func (CI *HostCpuInfo) GetHostInfo() error {
+func (CI *HostCpuInfo) GetHostInfo(status *domStatus.DomainListStatus) error {
 	t, err := cpu.Times(false) //time
 	if err != nil {
 		log.Println(err) 
@@ -32,10 +33,14 @@ func (CI *HostCpuInfo) GetHostInfo() error {
 	}
 	CI.Usage = p[0]
 
+	CI.Desc.EmitStatus(status)
+
+
+
 	return nil
 }
 
-func (MI *HostMemoryInfo) GetHostInfo() error {
+func (MI *HostMemoryInfo) GetHostInfo(status *domStatus.DomainListStatus) error {
 	v, err := mem.VirtualMemory()
 	if err != nil {
 		log.Println(err)
@@ -51,7 +56,7 @@ func (MI *HostMemoryInfo) GetHostInfo() error {
 	return nil
 }
 
-func (HDI *HostDiskInfo) GetHostInfo() error {
+func (HDI *HostDiskInfo) GetHostInfo(status *domStatus.DomainListStatus) error {
 	d, err := disk.Usage("/")
 	if err != nil {
 		log.Println(err)
@@ -67,16 +72,16 @@ func (HDI *HostDiskInfo) GetHostInfo() error {
 	return nil
 }
 
-func (SI *HostGeneralInfo) GetHostInfo() error {
-	err:=SI.CPU.GetHostInfo()
+func (SI *HostGeneralInfo) GetHostInfo(status *domStatus.DomainListStatus) error {
+	err:=SI.CPU.GetHostInfo(status)
 	if err!=nil{
 		return virerr.ErrorGen(virerr.HostStatusError, fmt.Errorf("general Status:error retreving host Status %w",err))
 	}
-	err=SI.Disk.GetHostInfo()
+	err=SI.Disk.GetHostInfo(status)
 	if err!=nil{
 		return virerr.ErrorGen(virerr.HostStatusError, fmt.Errorf("general Status:error retreving host Status %w",err))
 	}
-	err=SI.Memory.GetHostInfo()
+	err=SI.Memory.GetHostInfo(status)
 	if err!=nil{
 		return virerr.ErrorGen(virerr.HostStatusError, fmt.Errorf("general Status:error retreving host Status %w",err))
 	}
@@ -88,7 +93,7 @@ func (SI *HostGeneralInfo) GetHostInfo() error {
 
 
 
-func (HSI *HostSystemInfo) GetHostInfo() error {
+func (HSI *HostSystemInfo) GetHostInfo(status *domStatus.DomainListStatus) error {
 	u, err := host.Uptime()
 	if err != nil {
 		log.Println(err)
@@ -121,14 +126,22 @@ func (HSI *HostSystemInfo) GetHostInfo() error {
 }
 
 func HostDataTypeRouter(types HostDataType) (HostDataTypeHandler, error) {
+	// implemeantation of factory pattern
+	// can be extened as DI pattern if there are more complex dependencies
 
 	switch types {
 	case CpuInfo:
-		return &HostCpuInfo{}, nil
+		return &HostCpuInfo{
+			Desc: &domStatus.VCPUStatus{},
+		}, nil
 	case MemInfo:
-		return &HostMemoryInfo{}, nil
+		return &HostMemoryInfo{
+			Desc: &domStatus.VCPUStatus{},// --- IGNORE ---
+		}, nil
 	case DiskInfoHi:
-		return &HostDiskInfo{}, nil
+		return &HostDiskInfo{
+			Desc: &domStatus.VCPUStatus{},// --- IGNORE ---
+		}, nil
 	case SystemInfoHi:
 		return &HostSystemInfo{}, nil
 	case GeneralInfo:
@@ -140,8 +153,8 @@ func HostDataTypeRouter(types HostDataType) (HostDataTypeHandler, error) {
 
 
 
-func HostDetailFactory(handler HostDataTypeHandler) (*HostDetail, error) {
-	if err := handler.GetHostInfo(); err != nil {
+func HostInfoHandler(handler HostDataTypeHandler, status *domStatus.DomainListStatus) (*HostDetail, error) {
+	if err := handler.GetHostInfo(status); err != nil {
 		fmt.Println(err)
 		return nil, err
 	}
