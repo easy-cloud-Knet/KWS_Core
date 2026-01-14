@@ -93,6 +93,7 @@ func (XP *VM_CREATE_XML) XML_Parsor(spec *VM_Init_Info) error {
 							InterfaceID: spec.SDNUUID,
 						},
 					},
+					MTU: MTU{ Size: 1450}, // MTU 설정 추가
 					Model: InterfaceModel{
 						Type: "virtio",
 					},

@@ -3,6 +3,7 @@ package userconfig
 import (
 	"bytes"
 	"fmt"
+	"log"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -64,14 +65,35 @@ func (u *User_data_yaml) ParseData(param *parsor.VM_Init_Info) error {
 		})
 	}
 	File_Appendor := u.configNetworkIP(param.NetConf.Ips)
-	File_Appendor = u.newWaitDisable(File_Appendor)
+	appending,err:= u.fetchos()
+	if err!=nil{
+		log.Printf("error from appending file, %v, ignoring", err)
+	}
+	File_Appendor = append(File_Appendor,appending... )
 	u.Users = Users_Detail
 	u.Write_files = File_Appendor
 
 	u.configNetworkCommand()
 	u.configQEMU()
 	u.configSsh()
+
 	return nil
+}
+
+func (u *User_data_yaml) fetchos() ([]User_write_file,error){    
+    var fetchFile []User_write_file
+
+	data, err := os.ReadFile("/var/lib/kws/baseimg/fetchos")
+    if err != nil {
+        return  fetchFile,fmt.Errorf("fetchos parsing error, ingnorable but needs report%v",err)
+    }
+
+	fetchFile= append(fetchFile, User_write_file{
+		Path: "/etc/profile.d/99-my-motd.sh",
+		Permissions: "0644",
+		Content: string(data),
+	})    
+    return fetchFile,nil
 }
 
 func (u *User_data_yaml) configNetworkIP(ips []string) []User_write_file {
@@ -92,16 +114,7 @@ func (u *User_data_yaml) configNetworkIP(ips []string) []User_write_file {
 }
 
 
-func (u *User_data_yaml) newWaitDisable(File_Appendor []User_write_file) []User_write_file {
 
-		File_Appendor = append(File_Appendor, User_write_file{
-			Path:        "/etc/systemd/system/systemd-networkd-wait-online.service.d/override.conf",
-			Permissions: "0644",
-			Content:     fmt.Sprintf("[Service]\nExecStart=\nExecStart=/usr/bin/true\n"),
-		})
-
-	return File_Appendor
-}
 
 func (u *User_data_yaml) configSsh(){
 	u.Runcmd = append(u.Runcmd, "sed -i 's/PasswordAuthentication no/PasswordAuthentication yes/g' /etc/ssh/sshd_config.d/60-cloudimg-settings.conf")
