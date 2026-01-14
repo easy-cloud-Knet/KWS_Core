@@ -2,7 +2,6 @@ package main
 
 import (
 	_ "context"
-	"fmt"
 	_ "log"
 	"runtime/debug"
 
@@ -28,7 +27,6 @@ func main() {
 	libvirtInst.DomainControl.RetrieveAllDomain(libvirtInst.LibvirtInst, logger)
 
 	go server.InitServer(8080, &libvirtInst, *logger)
-	fmt.Println("asfd")
 	defer func() {
 		logger.Info("Shutting down gracefully...") // 종료 시 로깅
 		logger.Sync()

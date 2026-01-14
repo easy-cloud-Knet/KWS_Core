@@ -51,7 +51,6 @@ func (DCB *LocalCreator) CreateVM()(*domCon.Domain,error){
 	}
 
 	domain,err :=CreateDomainWithXML(DCB.libvirtInst,output)
-	fmt.Println(string(output))
 	if err!=nil{
 		errDesc := virerr.ErrorGen(virerr.DomainGenerationError, fmt.Errorf("in domain-Creator, error occured from creating with libvirt: %w", err))
 		DCB.logger.Error(errDesc.Error())
