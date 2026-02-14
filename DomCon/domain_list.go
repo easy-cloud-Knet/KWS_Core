@@ -33,8 +33,7 @@ func (DC *DomListControl) AddNewDomain(domain *Domain, uuid string) error {
 	DC.DomainList[uuid] = domain
 	vcpu, err :=domain.Domain.GetMaxVcpus()
 	if err != nil {
-		Err:=fmt.Errorf("%v error while getting vcpu count during adding new domain",err)
-		return Err
+		return virerr.ErrorGen(virerr.DomainGenerationError, fmt.Errorf("error while getting vcpu count during adding new domain: %w", err))
 	}
 	DC.DomainListStatus.AddAllocatedCPU(int(vcpu))
 	return nil
