@@ -25,7 +25,7 @@ func InitialLogger() *zap.Logger{
 
 	config:= zap.Config{
 		Level:  zap.NewAtomicLevelAt(zapcore.DebugLevel),
-		Development: true,	
+		Development: true,
 		DisableCaller: true,
 		DisableStacktrace: true,
 		Encoding: "json",
@@ -39,19 +39,29 @@ func InitialLogger() *zap.Logger{
 
 }
 
+type responseWriter struct {
+	http.ResponseWriter
+	statusCode int
+}
 
+func (rw *responseWriter) WriteHeader(code int) {
+	rw.statusCode = code
+	rw.ResponseWriter.WriteHeader(code)
+}
 
 func LoggerMiddleware(next http.Handler, logger *zap.Logger) http.Handler{
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request){
 		start:= time.Now()
 
-		next.ServeHTTP(w,r)
+		wrapped := &responseWriter{ResponseWriter: w, statusCode: http.StatusOK}
+		next.ServeHTTP(wrapped, r)
 
 		elapsed := time.Since(start)
-		logger.Info("http response sent",zap.Duration("time elapsed", elapsed))
+		logger.Info("http response sent",
+			zap.String("method", r.Method),
+			zap.String("path", r.URL.Path),
+			zap.Int("status", wrapped.statusCode),
+			zap.Duration("duration", elapsed),
+		)
 	})
 }
-
-
-
-

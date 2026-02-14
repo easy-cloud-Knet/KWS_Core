@@ -1,7 +1,6 @@
 package server
 
 import (
-	"log"
 	"net/http"
 	"strconv"
 
@@ -10,7 +9,7 @@ import (
 	"go.uber.org/zap"
 )
 
-func InitServer(portNum int, libvirtInst *api.InstHandler, logger zap.Logger) {
+func InitServer(portNum int, libvirtInst *api.InstHandler, logger *zap.Logger) {
 	logger.Sugar().Infof("Starting server on %d", portNum)
 	mux := http.NewServeMux()
 
@@ -30,8 +29,10 @@ func InitServer(portNum int, libvirtInst *api.InstHandler, logger zap.Logger) {
 	mux.HandleFunc("POST /RevertSnapshot", libvirtInst.RevertSnapshot)
 	mux.HandleFunc("POST /DeleteSnapshot", libvirtInst.DeleteSnapshot)
 
-	sysloggerHttp := syslogger.LoggerMiddleware(mux, &logger)
+	sysloggerHttp := syslogger.LoggerMiddleware(mux, logger)
 
-	log.Fatal(http.ListenAndServe(":"+strconv.Itoa(portNum), sysloggerHttp))
+	if err := http.ListenAndServe(":"+strconv.Itoa(portNum), sysloggerHttp); err != nil {
+		logger.Fatal("server failed", zap.Error(err))
+	}
 
 }
