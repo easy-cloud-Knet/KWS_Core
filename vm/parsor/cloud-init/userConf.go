@@ -3,7 +3,6 @@ package userconfig
 import (
 	"bytes"
 	"fmt"
-	"log"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -67,7 +66,7 @@ func (u *User_data_yaml) ParseData(param *parsor.VM_Init_Info) error {
 	File_Appendor := u.configNetworkIP(param.NetConf.Ips)
 	appending,err:= u.fetchos()
 	if err!=nil{
-		log.Printf("error from appending file, %v, ignoring", err)
+		_ = err
 	}
 	File_Appendor = append(File_Appendor,appending... )
 	u.Users = Users_Detail
