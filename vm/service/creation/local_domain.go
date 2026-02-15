@@ -51,7 +51,6 @@ func (DCB *LocalCreator) CreateVM()(*domCon.Domain,error){
 	}
 
 	domain,err :=CreateDomainWithXML(DCB.libvirtInst,output)
-	fmt.Println(string(output))
 	if err!=nil{
 		errDesc := virerr.ErrorGen(virerr.DomainGenerationError, fmt.Errorf("in domain-Creator, error occured from creating with libvirt: %w", err))
 		DCB.logger.Error(errDesc.Error())
@@ -96,7 +95,7 @@ func (DB localConfigurer) Generate(LibvirtInst *libvirt.Connect, logger *zap.Log
 	}
 	logger.Info("generating configuration file successfully done", zap.String("filePath", dirPath))
 
-	if err := DB.CreateDiskImage(dirPath); err != nil {
+	if err := DB.CreateDiskImage(dirPath, DB.VMDescription.HardwardInfo.Disk); err != nil {
 		errorEncapsed := virerr.ErrorJoin(err, fmt.Errorf("in domain-parsor,"))
 		logger.Error(errorEncapsed.Error())
 		return errorEncapsed

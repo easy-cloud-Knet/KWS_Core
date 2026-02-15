@@ -11,15 +11,55 @@ import (
 	"libvirt.org/go/libvirt"
 )
 
+func (i *InstHandler) BootVM(w http.ResponseWriter, r *http.Request) {
+	resp := ResponseGen[libvirt.DomainInfo]("BootVM")
+	param := &StartDomain{}
+
+	if err := HttpDecoder(r, param); err != nil {
+		resp.ResponseWriteErr(w, err, http.StatusBadRequest)
+		i.Logger.Error("error occured while decoding user's parameter of requested creation")
+		return
+	}
+	i.Logger.Info("Handling Boot VM", zap.String("uuid", param.UUID))
+
+	domCon,_:= i.domainConGetter()
+
+	DomainExisting, _ := domCon.GetDomain(param.UUID, i.LibvirtInst)
+	if (DomainExisting==nil){
+		resp.ResponseWriteErr(w, nil, http.StatusBadRequest)
+		i.Logger.Error("error handling booting vm, domain not found", zap.String("uuid",param.UUID))
+		return
+	}
+
+	err:= DomainExisting.Domain.Create()
+	if err != nil {
+		newErr := virerr.ErrorGen(virerr.DomainGenerationError, fmt.Errorf(" %w error while booting domain, from BootVM", err))
+		i.Logger.Error("error from booting vm", zap.Error(newErr))
+		resp.ResponseWriteErr(w, newErr, http.StatusInternalServerError)
+		return
+	}
+
+	vcpu, err := DomainExisting.Domain.GetMaxVcpus()
+	if err != nil {
+		resp.ResponseWriteErr(w, err, http.StatusInternalServerError)
+		return
+	}
+	i.DomainControl.DomainListStatus.TakeSleepingCPU(int(vcpu))
+
+
+	resp.ResponseWriteOK(w, nil)
+	i.Logger.Info("Boot VM request handled successfully", zap.String("uuid", param.UUID))
+}
+
+
+
 
 func (i *InstHandler) CreateVMFromBase(w http.ResponseWriter, r *http.Request) {
 
 	resp := ResponseGen[libvirt.DomainInfo]("CreateVm")
 	param := &parsor.VM_Init_Info{}
+
 	domCon,_:= i.domainConGetter()
-	if domCon==nil{
-		fmt.Println("emrpy domcon")
-	}
 	
 
 	if err := HttpDecoder(r, param); err != nil {
@@ -31,7 +71,6 @@ func (i *InstHandler) CreateVMFromBase(w http.ResponseWriter, r *http.Request) {
 
 	domainExisting,_:=domCon.GetDomain(param.UUID, i.LibvirtInst)
 	if (domainExisting!=nil){
-		fmt.Println(domainExisting)
 		resp.ResponseWriteErr(w, nil, http.StatusBadRequest)
 		i.Logger.Error("error handling creating vm, domain already exists", zap.String("uuid",param.UUID))
 		return
@@ -48,8 +87,13 @@ func (i *InstHandler) CreateVMFromBase(w http.ResponseWriter, r *http.Request) {
 		return		
 	}
 
-	domCon.AddNewDomain(newDomain,param.UUID)
-	
+	err =domCon.AddNewDomain(newDomain,param.UUID)
+	if err!=nil{
+		i.Logger.Error("error from createvm" , zap.Error(err))
+		resp.ResponseWriteErr(w, err, http.StatusInternalServerError)
+		return		
+	}
+
 	resp.ResponseWriteOK(w, nil)
 	
 }

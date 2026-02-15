@@ -23,7 +23,6 @@ func (DD *DomainTerminator) TerminateDomain() (*libvirt.Domain, error) {
 	}
 
 	if err := dom.Domain.Destroy(); err != nil {
-		fmt.Println("error occured while deleting Domain")
 		return nil,virerr.ErrorGen(virerr.DomainShutdownError, fmt.Errorf("error shutting down domain, from libvirt. %w, %v", err,DD))
 	}
 
