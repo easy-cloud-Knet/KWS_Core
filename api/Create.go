@@ -60,9 +60,6 @@ func (i *InstHandler) CreateVMFromBase(w http.ResponseWriter, r *http.Request) {
 	param := &parsor.VM_Init_Info{}
 
 	domCon,_:= i.domainConGetter()
-	if domCon==nil{
-		fmt.Println("empty domcon")
-	}
 	
 
 	if err := HttpDecoder(r, param); err != nil {

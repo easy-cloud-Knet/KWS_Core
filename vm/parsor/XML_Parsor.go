@@ -5,7 +5,6 @@ import (
 )
 
 func (XP *VM_CREATE_XML) XML_Parsor(spec *VM_Init_Info) error {
-	fmt.Println(spec.SDNUUID)
 	*XP = VM_CREATE_XML{
 		Type: "kvm",
 		Name: spec.DomName,

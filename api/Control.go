@@ -7,6 +7,7 @@ import (
 	domCon "github.com/easy-cloud-Knet/KWS_Core/DomCon"
 	virerr "github.com/easy-cloud-Knet/KWS_Core/error"
 	"github.com/easy-cloud-Knet/KWS_Core/vm/service/termination"
+	"go.uber.org/zap"
 	"libvirt.org/go/libvirt"
 )
 
@@ -17,21 +18,21 @@ func (i *InstHandler) ForceShutDownVM(w http.ResponseWriter, r *http.Request) {
 	if err := HttpDecoder(r, param); err != nil {
 		ERR := virerr.ErrorJoin(err, fmt.Errorf("error shutting down vm, from forceShutdown vm "))
 		resp.ResponseWriteErr(w, ERR, http.StatusInternalServerError)
-		i.Logger.Error(ERR.Error())
+		i.Logger.Error("failed to decode forceShutdown request", zap.Error(ERR))
 		return
 	}
 	dom, err := i.DomainControl.GetDomain(param.UUID, i.LibvirtInst)
 	if err != nil {
 		ERR := virerr.ErrorJoin(err, fmt.Errorf("error shutting down vm, retreving Get domin error "))
 		resp.ResponseWriteErr(w, ERR, http.StatusInternalServerError)
-		i.Logger.Error(ERR.Error())
+		i.Logger.Error("failed to get domain for forceShutdown", zap.String("uuid", param.UUID), zap.Error(ERR))
 		return
 	}
 	vcpu, err := dom.Domain.GetMaxVcpus()
 	if err != nil {
 		ERR := virerr.ErrorJoin(err, fmt.Errorf("error shutting down vm, retreving Get domin error "))
 		resp.ResponseWriteErr(w, ERR, http.StatusInternalServerError)
-		i.Logger.Error(ERR.Error())
+		i.Logger.Error("failed to get vcpu count for forceShutdown", zap.String("uuid", param.UUID), zap.Error(ERR))
 		return
 	}
 	i.DomainControl.DomainListStatus.AddSleepingCPU(int(vcpu))
@@ -54,13 +55,13 @@ func (i *InstHandler) DeleteVM(w http.ResponseWriter, r *http.Request) {
 	if err := HttpDecoder(r, param); err != nil {
 		ERR := virerr.ErrorJoin(err, fmt.Errorf("error deleting vm, unparsing HTTP request "))
 		resp.ResponseWriteErr(w, ERR, http.StatusInternalServerError)
-		i.Logger.Error(ERR.Error())
+		i.Logger.Error("failed to decode deleteVM request", zap.Error(ERR))
 		return
 	}
 	if _, err := domCon.ReturnUUID(param.UUID); err != nil {
 		ERR := virerr.ErrorJoin(err, fmt.Errorf("error deleting vm,	invalid UUID "))
 		resp.ResponseWriteErr(w, ERR, http.StatusInternalServerError)
-		i.Logger.Error(ERR.Error())
+		i.Logger.Error("invalid UUID for deleteVM", zap.String("uuid", param.UUID), zap.Error(ERR))
 		return
 	}
 	// uuid 가 적합한지 확인
@@ -69,7 +70,7 @@ func (i *InstHandler) DeleteVM(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		ERR := virerr.ErrorJoin(err, fmt.Errorf("error deleting vm, retreving Get domin error "))
 		resp.ResponseWriteErr(w, ERR, http.StatusInternalServerError)
-		i.Logger.Error(ERR.Error())
+		i.Logger.Error("failed to get domain for deleteVM", zap.String("uuid", param.UUID), zap.Error(ERR))
 		return
 		//error handling
 	}
@@ -78,7 +79,7 @@ func (i *InstHandler) DeleteVM(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		ERR := virerr.ErrorJoin(err, fmt.Errorf("error can't retreving vcpu count "))
 		resp.ResponseWriteErr(w, ERR, http.StatusInternalServerError)
-		i.Logger.Error(ERR.Error())
+		i.Logger.Error("failed to get vcpu count for deleteVM", zap.String("uuid", param.UUID), zap.Error(ERR))
 
 		vcpu = 2
 		//return
@@ -91,7 +92,7 @@ func (i *InstHandler) DeleteVM(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		ERR := virerr.ErrorJoin(err, fmt.Errorf("error deleting vm, retreving Get domin error "))
 		resp.ResponseWriteErr(w, ERR, http.StatusInternalServerError)
-		i.Logger.Error(ERR.Error())
+		i.Logger.Error("failed to delete domain", zap.String("uuid", param.UUID), zap.Error(ERR))
 		return
 	}
 	i.DomainControl.DeleteDomain(domDeleted, param.UUID, int(vcpu))
