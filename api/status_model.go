@@ -5,35 +5,28 @@ import (
 	"libvirt.org/go/libvirt"
 )
 
-//// income api Structures
-
-type ShutDownDomain struct {
-	UUID string `json:"UUID"`
-}
-type StartDomain struct {
+type DomainBootRequest struct {
 	UUID string `json:"UUID"`
 }
 
-type ReturnDomainFromUUID struct {
+type DomainStatusRequest struct {
 	DataType status.DomainDataType `json:"dataType"`
 	UUID     string                `json:"UUID"`
 }
 
-// host
-type ReturnHostFromStatus struct {
+type HostStatusRequest struct {
 	HostDataType status.HostDataType `json:"host_dataType"`
 }
 
-type ReturnInstAllData struct {
+type InstInfoRequest struct {
 	InstDataType status.InstDataType `json:"dataType"`
 }
 
-// //////////////////////
 type UUIDListResponse struct {
 	UUIDs []string `json:"uuids"`
 }
 
-type DomainState_init struct {
+type DomainStateResponse struct {
 	DomainState libvirt.DomainState `json:"currentState"`
 	UUID        string              `json:"UUID"`
 }

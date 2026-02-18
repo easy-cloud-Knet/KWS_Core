@@ -13,7 +13,7 @@ import (
 
 func (i *InstHandler) BootVM(w http.ResponseWriter, r *http.Request) {
 	resp := ResponseGen[libvirt.DomainInfo]("BootVM")
-	param := &StartDomain{}
+	param := &DomainBootRequest{}
 
 	if err := HttpDecoder(r, param); err != nil {
 		resp.ResponseWriteErr(w, err, http.StatusBadRequest)
