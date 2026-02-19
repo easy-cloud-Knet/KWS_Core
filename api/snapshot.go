@@ -25,6 +25,16 @@ type ExternalSnapshotRequest struct {
 	Live        bool   `json:"Live,omitempty"`
 }
 
+type ExternalSnapshotResponse struct {
+	UUID     string `json:"UUID"`
+	SnapName string `json:"SnapName"`
+}
+
+type ExternalSnapshotListResponse struct {
+	UUID      string   `json:"UUID"`
+	SnapNames []string `json:"SnapNames"`
+}
+
 // CreateSnapshot creates a snapshot for the specified domain UUID
 func (i *InstHandler) CreateSnapshot(w http.ResponseWriter, r *http.Request) {
 	param := &SnapshotRequest{}
@@ -73,7 +83,7 @@ func (i *InstHandler) CreateSnapshot(w http.ResponseWriter, r *http.Request) {
 // CreateExternalSnapshot creates an external snapshot for the specified domain UUID
 func (i *InstHandler) CreateExternalSnapshot(w http.ResponseWriter, r *http.Request) {
 	param := &ExternalSnapshotRequest{}
-	resp := ResponseGen[string]("Create External Snapshot")
+	resp := ResponseGen[ExternalSnapshotResponse]("Create External Snapshot")
 
 	if err := HttpDecoder(r, param); err != nil {
 		resp.ResponseWriteErr(w, err, http.StatusInternalServerError)
@@ -101,7 +111,8 @@ func (i *InstHandler) CreateExternalSnapshot(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	snapName, err := snapshotpkg.CreateExternalSnapshot(dom, name, &snapshotpkg.ExternalSnapshotOptions{
+	snapName := name
+	createdName, err := snapshotpkg.CreateExternalSnapshot(dom, name, &snapshotpkg.ExternalSnapshotOptions{
 		BaseDir:     param.BaseDir,
 		Description: param.Description,
 		Quiesce:     param.Quiesce,
@@ -109,18 +120,22 @@ func (i *InstHandler) CreateExternalSnapshot(w http.ResponseWriter, r *http.Requ
 	})
 	if err != nil {
 		resp.ResponseWriteErr(w, err, http.StatusInternalServerError)
-		i.Logger.Error("external snapshot create failed", zap.String("domain_uuid", param.UUID), zap.String("snapshot_name", name), zap.Error(err))
+		i.Logger.Error("external snapshot create failed", zap.String("domain_uuid", param.UUID), zap.String("snapshot_name", snapName), zap.Error(err))
 		return
 	}
+	snapName = createdName
 
 	i.Logger.Info("external snapshot create success", zap.String("domain_uuid", param.UUID), zap.String("snapshot_name", snapName))
-	resp.ResponseWriteOK(w, &snapName)
+	resp.ResponseWriteOK(w, &ExternalSnapshotResponse{
+		UUID:     param.UUID,
+		SnapName: snapName,
+	})
 }
 
 // ListExternalSnapshots returns external snapshot names for the specified domain UUID
 func (i *InstHandler) ListExternalSnapshots(w http.ResponseWriter, r *http.Request) {
 	param := &ExternalSnapshotRequest{}
-	resp := ResponseGen[[]string]("List External Snapshots")
+	resp := ResponseGen[ExternalSnapshotListResponse]("List External Snapshots")
 
 	if err := HttpDecoder(r, param); err != nil {
 		resp.ResponseWriteErr(w, err, http.StatusInternalServerError)
@@ -151,13 +166,16 @@ func (i *InstHandler) ListExternalSnapshots(w http.ResponseWriter, r *http.Reque
 	}
 
 	i.Logger.Info("external snapshot list success", zap.String("domain_uuid", param.UUID), zap.Int("snapshot_count", len(names)))
-	resp.ResponseWriteOK(w, &names)
+	resp.ResponseWriteOK(w, &ExternalSnapshotListResponse{
+		UUID:      param.UUID,
+		SnapNames: names,
+	})
 }
 
 // RevertExternalSnapshot reverts the domain to a named external snapshot
 func (i *InstHandler) RevertExternalSnapshot(w http.ResponseWriter, r *http.Request) {
 	param := &ExternalSnapshotRequest{}
-	resp := ResponseGen[any]("Revert External Snapshot")
+	resp := ResponseGen[ExternalSnapshotResponse]("Revert External Snapshot")
 
 	if err := HttpDecoder(r, param); err != nil {
 		resp.ResponseWriteErr(w, err, http.StatusInternalServerError)
@@ -192,7 +210,10 @@ func (i *InstHandler) RevertExternalSnapshot(w http.ResponseWriter, r *http.Requ
 	}
 
 	i.Logger.Info("external snapshot revert success", zap.String("domain_uuid", param.UUID), zap.String("snapshot_name", param.Name))
-	resp.ResponseWriteOK(w, nil)
+	resp.ResponseWriteOK(w, &ExternalSnapshotResponse{
+		UUID:     param.UUID,
+		SnapName: param.Name,
+	})
 }
 
 // ListSnapshots returns all snapshot names for the specified domain UUID

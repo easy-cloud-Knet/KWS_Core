@@ -7,11 +7,6 @@ import (
 	"libvirt.org/go/libvirt"
 )
 
-type SnapshotOptions struct {
-	Description string
-	Quiesce     bool
-}
-
 // CreateSnapshot creates a libvirt snapshot and records basic metadata.
 func CreateSnapshot(domain *domCon.Domain, name string, opts *SnapshotOptions) (string, error) {
 	if domain == nil || domain.Domain == nil {
@@ -50,7 +45,8 @@ func ListSnapshots(domain *domCon.Domain) ([]string, error) {
 		return nil, fmt.Errorf("nil domain")
 	}
 
-	snaps, err := domain.Domain.ListAllSnapshots(0)
+	var listFlags libvirt.DomainSnapshotListFlags
+	snaps, err := domain.Domain.ListAllSnapshots(listFlags)
 	if err != nil {
 		return nil, fmt.Errorf("failed to list snapshots: %w", err)
 	}
@@ -73,7 +69,8 @@ func RevertToSnapshot(domain *domCon.Domain, snapName string) error {
 		return fmt.Errorf("nil domain")
 	}
 
-	snaps, err := domain.Domain.ListAllSnapshots(0)
+	var listFlags libvirt.DomainSnapshotListFlags
+	snaps, err := domain.Domain.ListAllSnapshots(listFlags)
 	if err != nil {
 		return fmt.Errorf("failed to list snapshots: %w", err)
 	}
@@ -112,7 +109,8 @@ func DeleteSnapshot(domain *domCon.Domain, snapName string) error {
 		return fmt.Errorf("nil domain")
 	}
 
-	snaps, err := domain.Domain.ListAllSnapshots(0)
+	var listFlags libvirt.DomainSnapshotListFlags
+	snaps, err := domain.Domain.ListAllSnapshots(listFlags)
 	if err != nil {
 		return fmt.Errorf("failed to list snapshots: %w", err)
 	}
