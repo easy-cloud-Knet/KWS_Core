@@ -5,13 +5,6 @@ import (
 	"sync/atomic"
 )
 
-type VCPUStatus struct {
-	Total     int `json:"total"`
-	Allocated int `json:"allocated"`
-	Sleeping  int `json:"sleeping"`
-	Idle      int `json:"idle"`
-}
-
 // 인터페이스 구현체
 
 func (vs *VCPUStatus) EmitStatus(dls *DomainListStatus) error {

@@ -5,7 +5,7 @@ import (
 	"libvirt.org/go/libvirt"
 )
 
-func (ds *XMLStatus) RetrieveStatus(dom *libvirt.Domain, sources []SourceType, logger zap.Logger) (interface{}, error) {
+func (ds *XMLStatus) RetrieveStatus(dom *libvirt.Domain, sources []SourceType, logger *zap.Logger) (interface{}, error) {
 	domcnf, err := XMLUnparse(dom)
 	if err != nil {
 		logger.Error("failed to unparse domain XML", zap.Error(err))
@@ -26,13 +26,13 @@ func (ds *XMLStatus) RetrieveStatus(dom *libvirt.Domain, sources []SourceType, l
 
 }
 
-func (ls *LibvirtStatus) RetrieveStatus(dom *libvirt.Domain, sources []SourceType, logger zap.Logger) (interface{}, error) {
+func (ls *LibvirtStatus) RetrieveStatus(dom *libvirt.Domain, sources []SourceType, logger *zap.Logger) (interface{}, error) {
 
 	mapSource := make(map[SourceType]int)
 	for _, source := range sources {
 		switch source {
 		case CPU:
-			cpu, err := ls.RetrieveCPU(dom, logger)
+			cpu, err := ls.RetrieveCPU(dom, *logger)
 			if err != nil {
 				logger.Error("failed to retrieve CPU count", zap.Error(err))
 				return nil, err

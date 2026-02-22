@@ -124,7 +124,7 @@ func (DC *DomListControl) retrieveDomainsByState(LibvirtInst *libvirt.Connect, s
 		wg.Add(1)
 		go func(targetDom libvirt.Domain) {
 			defer wg.Done()
-			if err := DC.DomainListStatus.UpdateFromDomain(dataDog, &targetDom, state, []domainStatus.SourceType{domainStatus.CPU}, *logger); err != nil {
+			if err := DC.DomainListStatus.UpdateFromDomain(dataDog, &targetDom, state, []domainStatus.SourceType{domainStatus.CPU}, logger); err != nil {
 				logger.Sugar().Errorf("Failed to retrieve status for domain UUID=%s: %v", uuid, err)
 			}
 		}(dom)

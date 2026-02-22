@@ -20,7 +20,7 @@ const (
 
 type DataDog interface {
 	// 아작 반환 타입이 정해져 있지 않기 때문에, interface{} 로 반환 타입을 설정. 필요에 따라 구체적인 타입으로 변환하여 사용.
-	RetrieveStatus(*libvirt.Domain, []SourceType, zap.Logger) (interface{}, error)
+	RetrieveStatus(*libvirt.Domain, []SourceType, *zap.Logger) (interface{}, error)
 }
 
 type XMLStatus struct{}
