@@ -23,7 +23,7 @@ func main() {
 	}
 
 	libvirtInst.LibvirtConnection()
-	libvirtInst.DomainControl.DomainListStatus.UpdateCPUTotal()
+	libvirtInst.DomainControl.DomainListStatus.Update()
 	libvirtInst.DomainControl.RetrieveAllDomain(libvirtInst.LibvirtInst, logger)
 
 	go server.InitServer(8080, &libvirtInst, logger)
