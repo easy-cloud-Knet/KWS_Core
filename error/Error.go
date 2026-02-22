@@ -27,8 +27,6 @@ const (
 
 	DeletionDomainError VirError= "Error Deleting Domain"
 	DomainShutdownError VirError= "failed in Deleting domain"
-
-	SnapshotError VirError = "Error in Snapshot Operation"
 )
 
  

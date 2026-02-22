@@ -3,9 +3,9 @@ package status
 import (
 	"errors"
 	"fmt"
+	"log"
 	"time"
 
-	domStatus "github.com/easy-cloud-Knet/KWS_Core/DomCon/domain_status"
 	virerr "github.com/easy-cloud-Knet/KWS_Core/error"
 	"github.com/shirou/gopsutil/cpu"
 	"github.com/shirou/gopsutil/disk"
@@ -13,14 +13,16 @@ import (
 	"github.com/shirou/gopsutil/mem"
 )
 
-func (CI *HostCpuInfo) GetHostInfo(status *domStatus.DomainListStatus) error {
+func (CI *HostCpuInfo) GetHostInfo() error {
 	t, err := cpu.Times(false) //time
 	if err != nil {
+		log.Println(err) 
 		return virerr.ErrorGen(virerr.HostStatusError, err)
 	}
 
 	p, err := cpu.Percent(time.Second, false)
 	if err != nil {
+		log.Println(err)
 		return virerr.ErrorGen(virerr.HostStatusError, err)
 	}
 
@@ -30,16 +32,13 @@ func (CI *HostCpuInfo) GetHostInfo(status *domStatus.DomainListStatus) error {
 	}
 	CI.Usage = p[0]
 
-	CI.Desc.EmitStatus(status)
-
-
-
 	return nil
 }
 
-func (MI *HostMemoryInfo) GetHostInfo(status *domStatus.DomainListStatus) error {
+func (MI *HostMemoryInfo) GetHostInfo() error {
 	v, err := mem.VirtualMemory()
 	if err != nil {
+		log.Println(err)
 		return virerr.ErrorGen(virerr.HostStatusError, err)
 
 	}
@@ -52,9 +51,10 @@ func (MI *HostMemoryInfo) GetHostInfo(status *domStatus.DomainListStatus) error 
 	return nil
 }
 
-func (HDI *HostDiskInfo) GetHostInfo(status *domStatus.DomainListStatus) error {
+func (HDI *HostDiskInfo) GetHostInfo() error {
 	d, err := disk.Usage("/")
 	if err != nil {
+		log.Println(err)
 		return virerr.ErrorGen(virerr.HostStatusError, err)
 
 	}
@@ -67,16 +67,16 @@ func (HDI *HostDiskInfo) GetHostInfo(status *domStatus.DomainListStatus) error {
 	return nil
 }
 
-func (SI *HostGeneralInfo) GetHostInfo(status *domStatus.DomainListStatus) error {
-	err:=SI.CPU.GetHostInfo(status)
+func (SI *HostGeneralInfo) GetHostInfo() error {
+	err:=SI.CPU.GetHostInfo()
 	if err!=nil{
 		return virerr.ErrorGen(virerr.HostStatusError, fmt.Errorf("general Status:error retreving host Status %w",err))
 	}
-	err=SI.Disk.GetHostInfo(status)
+	err=SI.Disk.GetHostInfo()
 	if err!=nil{
 		return virerr.ErrorGen(virerr.HostStatusError, fmt.Errorf("general Status:error retreving host Status %w",err))
 	}
-	err=SI.Memory.GetHostInfo(status)
+	err=SI.Memory.GetHostInfo()
 	if err!=nil{
 		return virerr.ErrorGen(virerr.HostStatusError, fmt.Errorf("general Status:error retreving host Status %w",err))
 	}
@@ -88,15 +88,17 @@ func (SI *HostGeneralInfo) GetHostInfo(status *domStatus.DomainListStatus) error
 
 
 
-func (HSI *HostSystemInfo) GetHostInfo(status *domStatus.DomainListStatus) error {
+func (HSI *HostSystemInfo) GetHostInfo() error {
 	u, err := host.Uptime()
 	if err != nil {
+		log.Println(err)
 		return virerr.ErrorGen(virerr.HostStatusError, err)
 
 	}
 
 	b, err := host.BootTime()
 	if err != nil {
+		log.Println(err)
 		return virerr.ErrorGen(virerr.HostStatusError, err)
 
 	}
@@ -119,22 +121,14 @@ func (HSI *HostSystemInfo) GetHostInfo(status *domStatus.DomainListStatus) error
 }
 
 func HostDataTypeRouter(types HostDataType) (HostDataTypeHandler, error) {
-	// implemeantation of factory pattern
-	// can be extened as DI pattern if there are more complex dependencies
 
 	switch types {
 	case CpuInfo:
-		return &HostCpuInfo{
-			Desc: &domStatus.VCPUStatus{},
-		}, nil
+		return &HostCpuInfo{}, nil
 	case MemInfo:
-		return &HostMemoryInfo{
-			Desc: &domStatus.VCPUStatus{},// --- IGNORE ---
-		}, nil
+		return &HostMemoryInfo{}, nil
 	case DiskInfoHi:
-		return &HostDiskInfo{
-			Desc: &domStatus.VCPUStatus{},// --- IGNORE ---
-		}, nil
+		return &HostDiskInfo{}, nil
 	case SystemInfoHi:
 		return &HostSystemInfo{}, nil
 	case GeneralInfo:
@@ -146,8 +140,9 @@ func HostDataTypeRouter(types HostDataType) (HostDataTypeHandler, error) {
 
 
 
-func HostInfoHandler(handler HostDataTypeHandler, status *domStatus.DomainListStatus) (*HostDetail, error) {
-	if err := handler.GetHostInfo(status); err != nil {
+func HostDetailFactory(handler HostDataTypeHandler) (*HostDetail, error) {
+	if err := handler.GetHostInfo(); err != nil {
+		fmt.Println(err)
 		return nil, err
 	}
 	return &HostDetail{

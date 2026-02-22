@@ -7,7 +7,6 @@ import (
 	"path/filepath"
 
 	domCon "github.com/easy-cloud-Knet/KWS_Core/DomCon"
-	virerr "github.com/easy-cloud-Knet/KWS_Core/error"
 	"libvirt.org/go/libvirt"
 )
 
@@ -25,13 +24,13 @@ func (DD *DomainDeleter) DeleteDomain() (*libvirt.Domain,error){
 
 	isRunning, _ := dom.Domain.IsActive()
 	if isRunning && DD.DeletionType == SoftDelete {
-
-		return  nil,virerr.ErrorGen(virerr.DeletionDomainError, fmt.Errorf("domain is running, cannot softDelete running domain"))
+		
+		return  nil,fmt.Errorf("domain Is Running %w, cannot softDelete running Domain", nil)
 	} else if isRunning && DD.DeletionType == HardDelete {
 		DomainTerminator := &DomainTerminator{domain: dom}
 		_,err := DomainTerminator.TerminateDomain()
 		if err != nil {
-			return nil,virerr.ErrorGen(virerr.DeletionDomainError, fmt.Errorf("failed deleting domain in libvirt instance: %w", err))
+			return nil,fmt.Errorf("%w, failed deleting Domain in libvirt Instance, ", err)
 		}
 	}
 	basicFilePath := "/var/lib/kws/"
@@ -41,13 +40,15 @@ func (DD *DomainDeleter) DeleteDomain() (*libvirt.Domain,error){
 	deleteCmd.Stderr = os.Stderr
 
 	if err := deleteCmd.Run(); err != nil {
-		return nil,virerr.ErrorGen(virerr.DeletionDomainError, fmt.Errorf("failed deleting files in %s: %w", FilePath, err))
+		return nil,fmt.Errorf("%w failed deleteing files in %s", err, FilePath)
 	}
 
 	if err := dom.Domain.Undefine(); err != nil {
-		return nil,virerr.ErrorGen(virerr.DeletionDomainError, fmt.Errorf("failed deleting domain in libvirt instance: %w", err))
+		return nil,fmt.Errorf("%w, failed deleting Domain in libvirt Instance, ", err)
 	}
-
+	
 
 	return dom.Domain,nil
 }
+
+
