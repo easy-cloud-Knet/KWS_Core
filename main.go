@@ -23,10 +23,10 @@ func main() {
 	}
 
 	libvirtInst.LibvirtConnection()
+	libvirtInst.DomainControl.DomainListStatus.UpdateCPUTotal()
 	libvirtInst.DomainControl.RetrieveAllDomain(libvirtInst.LibvirtInst, logger)
 
-	go server.InitServer(8080, &libvirtInst, *logger)
-
+	go server.InitServer(8080, &libvirtInst, logger)
 	defer func() {
 		logger.Info("Shutting down gracefully...") // 종료 시 로깅
 		logger.Sync()

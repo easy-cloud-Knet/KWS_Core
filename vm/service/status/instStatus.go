@@ -2,8 +2,8 @@ package status
 
 import (
 	"fmt"
-	"log"
 
+	virerr "github.com/easy-cloud-Knet/KWS_Core/error"
 	"libvirt.org/go/libvirt"
 )
 
@@ -11,7 +11,7 @@ func (AII *AllInstInfo) GetAllinstInfo(LibvirtInst *libvirt.Connect) error {
 
 	domains, err := LibvirtInst.ListAllDomains(0) //alldomain
 	if err != nil {
-		log.Println(err)
+		return virerr.ErrorGen(virerr.HostStatusError, fmt.Errorf("failed to list all domains: %w", err))
 	}
 
 	var totalMaxMem uint64
@@ -19,7 +19,6 @@ func (AII *AllInstInfo) GetAllinstInfo(LibvirtInst *libvirt.Connect) error {
 	for _, dom := range domains {
 		data, err := dom.GetInfo()
 		if err != nil {
-			log.Println(err)
 			dom.Free()
 			continue
 		}
@@ -39,12 +38,11 @@ func InstDataTypeRouter(types InstDataType) (InstDataTypeHandler, error) {
 		return &AllInstInfo{}, nil
 	}
 
-	return nil, fmt.Errorf("unsupported type")
+	return nil, virerr.ErrorGen(virerr.InvalidParameter, fmt.Errorf("unsupported type"))
 }
 
 func InstDetailFactory(handler InstDataTypeHandler, LibvirtInst *libvirt.Connect) (*InstDetail, error) {
 	if err := handler.GetAllinstInfo(LibvirtInst); err != nil {
-		fmt.Println(err)
 		return nil, err
 	}
 	return &InstDetail{

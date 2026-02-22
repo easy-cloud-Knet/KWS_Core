@@ -3,17 +3,20 @@ package api
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
 	"net/http"
-	"reflect"
 
 	virerr "github.com/easy-cloud-Knet/KWS_Core/error"
 	"github.com/easy-cloud-Knet/KWS_Core/vm/service/status"
 	"go.uber.org/zap"
 )
 
+
+
+
+
+
 func (i *InstHandler) ReturnStatusUUID(w http.ResponseWriter, r *http.Request) {
-	param := &ReturnDomainFromUUID{}
+	param := &DomainStatusRequest{}
 	resp := ResponseGen[status.DataTypeHandler]("domain Status UUID")
 
 	if err := HttpDecoder(r, param); err != nil {
@@ -37,13 +40,14 @@ func (i *InstHandler) ReturnStatusUUID(w http.ResponseWriter, r *http.Request) {
 
 	outputStruct.GetInfo(dom)
 	DomainDetail.DataHandle = outputStruct
-	fmt.Println(outputStruct)
 	resp.ResponseWriteOK(w, &DomainDetail.DataHandle)
 
 }
 
+
+
 func (i *InstHandler) ReturnStatusHost(w http.ResponseWriter, r *http.Request) {
-	param := &ReturnHostFromStatus{}
+	param := &HostStatusRequest{}
 	resp := ResponseGen[status.HostDataTypeHandler]("Host Status Return")
 
 	if err := HttpDecoder(r, param); err != nil {
@@ -57,8 +61,9 @@ func (i *InstHandler) ReturnStatusHost(w http.ResponseWriter, r *http.Request) {
 		resp.ResponseWriteErr(w, err, http.StatusInternalServerError)
 		return
 	}
-	fmt.Println("data sending", reflect.TypeOf(dataHandle))
-	host, err := status.HostDetailFactory(dataHandle)
+
+	
+	host, err := status.HostInfoHandler(dataHandle, i.DomainControl.DomainListStatus)
 	if err != nil {
 		resp.ResponseWriteErr(w, err, http.StatusInternalServerError)
 	}
@@ -67,7 +72,7 @@ func (i *InstHandler) ReturnStatusHost(w http.ResponseWriter, r *http.Request) {
 }
 
 func (i *InstHandler) ReturnInstAllInfo(w http.ResponseWriter, r *http.Request) {
-	param := &ReturnInstAllData{}
+	param := &InstInfoRequest{}
 	resp := ResponseGen[status.InstDataTypeHandler]("Inst Hardware Return")
 
 	if err := HttpDecoder(r, param); err != nil {
@@ -81,7 +86,6 @@ func (i *InstHandler) ReturnInstAllInfo(w http.ResponseWriter, r *http.Request) 
 		resp.ResponseWriteErr(w, err, http.StatusInternalServerError)
 		return
 	}
-	fmt.Println("data sending", reflect.TypeOf(dataHandle))
 	inst, err := status.InstDetailFactory(dataHandle, i.LibvirtInst)
 	if err != nil {
 		resp.ResponseWriteErr(w, err, http.StatusInternalServerError)
@@ -108,7 +112,7 @@ func (i *InstHandler) ReturnAllUUIDs(w http.ResponseWriter, r *http.Request) {
 
 //////////////////////////////////////////////////////////////////
 
-func (i *InstHandler) GetAllDomainStates() ([]DomainState_init, error) {
+func (i *InstHandler) GetAllDomainStates() ([]DomainStateResponse, error) {
 	domains, err := i.LibvirtInst.ListAllDomains(0)
 	if err != nil {
 		return nil, err
@@ -119,7 +123,7 @@ func (i *InstHandler) GetAllDomainStates() ([]DomainState_init, error) {
 		}
 	}()
 
-	var result []DomainState_init
+	var result []DomainStateResponse
 	for _, domain := range domains {
 		uuid, err := domain.GetUUIDString()
 		if err != nil {
@@ -129,7 +133,7 @@ func (i *InstHandler) GetAllDomainStates() ([]DomainState_init, error) {
 		if err != nil {
 			continue // 상태 조회 실패 시 건너뜀
 		}
-		result = append(result, DomainState_init{
+		result = append(result, DomainStateResponse{
 			UUID:        uuid,
 			DomainState: state,
 		})
@@ -147,7 +151,7 @@ func (i *InstHandler) ReturnAllDomainStates(w http.ResponseWriter, r *http.Reque
 	}
 
 	resp := struct {
-		Domains []DomainState_init `json:"domains"`
+		Domains []DomainStateResponse `json:"domains"`
 	}{Domains: states}
 
 	w.Header().Set("Content-Type", "application/json")

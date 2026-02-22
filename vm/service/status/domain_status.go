@@ -2,7 +2,7 @@ package status
 
 import (
 	"errors"
-	"log"
+	"fmt"
 
 	domCon "github.com/easy-cloud-Knet/KWS_Core/DomCon"
 	virerr "github.com/easy-cloud-Knet/KWS_Core/error"
@@ -44,8 +44,7 @@ func (DP *DomainState) GetInfo(domain *domCon.Domain) error {
 	DP.UUID = string(uuidParsed.String())
 	userInfo, err := domain.Domain.GetGuestInfo(libvirt.DOMAIN_GUEST_INFO_USERS, 0)
 	if err != nil {
-		log.Println("error retreving guest info")
-		return err
+		return virerr.ErrorGen(virerr.DomainStatusError, fmt.Errorf("error retreving guest info: %w", err))
 	}
 	DP.Users = userInfo.Users
 	return nil
