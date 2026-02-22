@@ -1,9 +1,31 @@
-package domStatus
+package domListStatus
 
 import (
 	"runtime"
 	"sync/atomic"
 )
+
+type VCPUStatus struct {
+	Total     int `json:"total"`
+	Allocated int `json:"allocated"`
+	Sleeping  int `json:"sleeping"`
+	Idle      int `json:"idle"`
+}
+
+// 인터페이스 구현체
+
+func (vs *VCPUStatus) EmitStatus(dls *DomainListStatus) error {
+	vs.Total = int(dls.VCPUTotal)
+	vs.Allocated = int(dls.VcpuAllocated)
+	vs.Sleeping = int(dls.VcpuSleeping)
+
+	vs.Idle = vs.Total - vs.Allocated
+	if vs.Idle < 0 {
+		vs.Idle = 0
+	}
+
+	return nil
+}
 
 func (dls *DomainListStatus) Update() {
 	dls.UpdateCPUTotal()

@@ -1,41 +1,47 @@
-package domStatus
+package domainStatus
 
 import (
 	"go.uber.org/zap"
 	"libvirt.org/go/libvirt"
 )
 
-func NewDataDog(state libvirt.ConnectListAllDomainsFlags) DataDog {
-	switch state {
-	case libvirt.CONNECT_LIST_DOMAINS_ACTIVE:
-		return &libvirtStatus{}
-	case libvirt.CONNECT_LIST_DOMAINS_INACTIVE:
-		return &XMLStatus{}
-	default:
-		return nil
-	}
-}
-
-func (ds *XMLStatus) UpdateStatus(dom *libvirt.Domain, DLS *DomainListStatus, logger zap.Logger) error {
+func (ds *XMLStatus) RetrieveStatus(dom *libvirt.Domain, sources []SourceType, logger zap.Logger) (interface{}, error) {
 	domcnf, err := XMLUnparse(dom)
 	if err != nil {
 		logger.Error("failed to unparse domain XML", zap.Error(err))
-		return err
+		return nil, err
 	}
-	DLS.AddAllocatedCPU(int(domcnf.VCPU.Value))
-	DLS.AddSleepingCPU(int(domcnf.VCPU.Value))
-	return nil
+	mapSource := make(map[SourceType]int)
+	for _, source := range sources {
+		switch source {
+		case CPU:
+			mapSource[CPU] = int(domcnf.VCPU.Value)
+		case Memory:
+			mapSource[Memory] = int(domcnf.Memory.Value)
+		default:
+			logger.Warn("unknown source type", zap.String("source", string(source)))
+		}
+	}
+	return mapSource, nil
 
 }
 
-func (ls *libvirtStatus) UpdateStatus(dom *libvirt.Domain, DLS *DomainListStatus, logger zap.Logger) error {
-	cpuCount, err := dom.GetMaxVcpus()
-	if err != nil {
-		logger.Error("failed to get live vcpu count", zap.Error(err))
-		return err
-	}
+func (ls *LibvirtStatus) RetrieveStatus(dom *libvirt.Domain, sources []SourceType, logger zap.Logger) (interface{}, error) {
 
-	DLS.AddAllocatedCPU(int(cpuCount))
-	return nil
+	mapSource := make(map[SourceType]int)
+	for _, source := range sources {
+		switch source {
+		case CPU:
+			cpu, err := ls.RetrieveCPU(dom, logger)
+			if err != nil {
+				logger.Error("failed to retrieve CPU count", zap.Error(err))
+				return nil, err
+			}
+			mapSource[CPU] = cpu
+		default:
+			logger.Warn("unknown source type", zap.String("source", string(source)))
+		}
+	}
+	return mapSource, nil
 
 }

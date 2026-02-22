@@ -1,69 +1,28 @@
-package domStatus
+package domainStatus
 
 import (
 	"go.uber.org/zap"
 	"libvirt.org/go/libvirt"
 )
 
-// cpu 는 각각 4개의 상태를 가짐
-// 할당되어 활동중임
-// 할당되어 있으나 유휴상태임(도메인이 꺼져있는 상태)
-// 할당되어 있지 않음
-// 총 cpu 수
+type SourceType string
 
-// 우선순위 = 할당 되어 있지 않은 cpu 부터
-// 그 이후 할당되어 있으나 유휴 상태인 cpu
+const (
+	CPU    SourceType = "cpu"
+	Memory SourceType = "memory"
+)
+
+// DataDog interface 는 도메인의 상태를 가져오는 인터페이스로, XMLStatus 와 LibvirtStatus 가 구현한다.
+// 도메인의 상태에 따라 상태를 가져오는 방식이 다르기 때문에, 인터페이스로 추상화하여 구현체에서 각각의 방식으로 상태를 가져오도록 한다.
+// source.go 에 각각 의 상태를 가져오는 함수를 구현한다. (RetrieveCPU, RetrieveMemory, RetrieveHDD 등)
+// RetrieveStatus 함수는 도메인의 상태를 가져오는 함수로, enum 상태를 읽고 요구하는 데이터를 가져옴.
+// 각각 다르게 구현하면 좋겠지만, libvirt 나 xml 메모리 크기를 고려해서 한번에 가져오는 식으로 구현 했음.
 
 type DataDog interface {
-	UpdateStatus(*libvirt.Domain, *DomainListStatus, zap.Logger) error
+	// 아작 반환 타입이 정해져 있지 않기 때문에, interface{} 로 반환 타입을 설정. 필요에 따라 구체적인 타입으로 변환하여 사용.
+	RetrieveStatus(*libvirt.Domain, []SourceType, zap.Logger) (interface{}, error)
 }
 
-type XMLStatus struct {
-}
+type XMLStatus struct{}
 
-// 꺼져있는 도메인의 cpu 수
-
-type libvirtStatus struct {
-}
-
-// 할당되어 활동중인 cpu 수
-
-type DomainListStatus struct {
-	VCPUTotal     int64 // 호스트 전체 cpu 수
-	VcpuAllocated int64 // 할당 된 vcpu 수
-	VcpuSleeping  int64 // 유휴 상태인 vcpu 수
-	// vcpuIdle = 할당되어 있지 않은 vcpu 수
-	//VcpuIdle = VcpuTotal-VcpuAllocated
-}
-
-//////////////////////////////
-
-type StatusEmitter interface {
-	EmitStatus(dls *DomainListStatus) error
-}
-
-// 상태 반환을 위한 인터페이스
-// 각 상태 구조체는 EmitStatus 메서드를 구현해야함
-// status service 에서 사용
-
-type VCPUStatus struct {
-	Total     int `json:"total"`
-	Allocated int `json:"allocated"`
-	Sleeping  int `json:"sleeping"`
-	Idle      int `json:"idle"`
-}
-
-// 인터페이스 구현체
-
-func (vs *VCPUStatus) EmitStatus(dls *DomainListStatus) error {
-	vs.Total = int(dls.VCPUTotal)
-	vs.Allocated = int(dls.VcpuAllocated)
-	vs.Sleeping = int(dls.VcpuSleeping)
-
-	vs.Idle = vs.Total - vs.Allocated
-	if vs.Idle < 0 {
-		vs.Idle = 0
-	}
-
-	return nil
-}
+type LibvirtStatus struct{}
