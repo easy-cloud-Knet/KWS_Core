@@ -2,7 +2,6 @@ package status
 
 import (
 	domCon "github.com/easy-cloud-Knet/KWS_Core/DomCon"
-	domStatus "github.com/easy-cloud-Knet/KWS_Core/DomCon/domain_status"
 	"libvirt.org/go/libvirt"
 )
 
@@ -11,7 +10,7 @@ type HostDetail struct {
 }
 
 type HostDataTypeHandler interface {
-	GetHostInfo(*domStatus.DomainListStatus) error
+	GetHostInfo() error
 }
 
 type HostDataType uint
@@ -29,7 +28,6 @@ type HostCpuInfo struct {
 	System float64 `json:"system_time"`
 	Idle   float64 `json:"idle_time"`
 	Usage  float64 `json:"usage_percent"`
-	Desc   *domStatus.VCPUStatus `json:"vcpu_status"`
 }
 
 type HostMemoryInfo struct {
@@ -38,8 +36,6 @@ type HostMemoryInfo struct {
 	Available      uint64  `json:"available_gb"`
 	UsedPercent    float64 `json:"used_percent"`
 	ReservedMemory uint64  `json:"reservedmem"`
-	Desc   *domStatus.VCPUStatus `json:"vcpu_status"`
-
 }
 
 type HostDiskInfo struct {
@@ -47,8 +43,6 @@ type HostDiskInfo struct {
 	Used        uint64  `json:"used_gb"`
 	Free        uint64  `json:"free_gb"`
 	UsedPercent float64 `json:"used_percent"`
-	Desc   *domStatus.VCPUStatus `json:"vcpu_status"`
-
 }
 
 type HostSystemInfo struct {
