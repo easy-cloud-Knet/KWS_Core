@@ -12,7 +12,7 @@ import (
 )
 
 func (i *InstHandler) ForceShutDownVM(w http.ResponseWriter, r *http.Request) {
-	param := &DeleteDomain{}
+	param := &DomainControlRequest{}
 	resp := ResponseGen[any]("domain number of" + param.UUID + ", Force Shutdown VM")
 
 	if err := HttpDecoder(r, param); err != nil {
@@ -49,7 +49,7 @@ func (i *InstHandler) ForceShutDownVM(w http.ResponseWriter, r *http.Request) {
 }
 
 func (i *InstHandler) DeleteVM(w http.ResponseWriter, r *http.Request) {
-	param := &DeleteDomain{}
+	param := &DomainControlRequest{}
 	resp := ResponseGen[libvirt.DomainInfo]("Deleting Vm")
 
 	if err := HttpDecoder(r, param); err != nil {

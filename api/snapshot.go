@@ -9,12 +9,6 @@ import (
 	"go.uber.org/zap"
 )
 
-// Snapshot API structures
-type SnapshotRequest struct {
-	UUID string `json:"UUID"`
-	Name string `json:"Name,omitempty"`
-}
-
 // CreateSnapshot creates a snapshot for the specified domain UUID
 func (i *InstHandler) CreateSnapshot(w http.ResponseWriter, r *http.Request) {
 	param := &SnapshotRequest{}
