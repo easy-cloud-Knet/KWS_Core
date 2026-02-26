@@ -54,7 +54,8 @@ func (i *InstHandler) CreateSnapshot(w http.ResponseWriter, r *http.Request) {
 
 	name := param.Name
 	if name == "" {
-		name = param.UUID + "-snap"
+		resp.ResponseWriteErr(w, fmt.Errorf("snapshot name required"), http.StatusBadRequest)
+		return
 	}
 
 	i.Logger.Info("snapshot create start", zap.String("domain_uuid", param.UUID), zap.String("snapshot_name", name))
@@ -99,7 +100,8 @@ func (i *InstHandler) CreateExternalSnapshot(w http.ResponseWriter, r *http.Requ
 
 	name := param.Name
 	if name == "" {
-		name = param.UUID + "-extsnap"
+		resp.ResponseWriteErr(w, fmt.Errorf("snapshot name required"), http.StatusBadRequest)
+		return
 	}
 
 	i.Logger.Info("external snapshot create start", zap.String("domain_uuid", param.UUID), zap.String("snapshot_name", name))
