@@ -4,13 +4,14 @@ import (
 	"fmt"
 
 	domCon "github.com/easy-cloud-Knet/KWS_Core/DomCon"
+	virerr "github.com/easy-cloud-Knet/KWS_Core/error"
 	"libvirt.org/go/libvirt"
 )
 
 // CreateSnapshot creates a libvirt snapshot and records basic metadata.
 func CreateSnapshot(domain *domCon.Domain, name string, opts *SnapshotOptions) (string, error) {
 	if domain == nil || domain.Domain == nil {
-		return "", fmt.Errorf("nil domain")
+		return "", virerr.ErrorGen(virerr.InvalidParameter, fmt.Errorf("nil domain"))
 	}
 
 	description := "snapshot created by KWS"
@@ -27,13 +28,13 @@ func CreateSnapshot(domain *domCon.Domain, name string, opts *SnapshotOptions) (
 
 	snap, err := domain.Domain.CreateSnapshotXML(snapXML, flags)
 	if err != nil {
-		return "", fmt.Errorf("failed to create snapshot: %w", err)
+		return "", virerr.ErrorGen(virerr.SnapshotError, fmt.Errorf("failed to create snapshot: %w", err))
 	}
 	defer snap.Free()
 
 	snapName, err := snap.GetName()
 	if err != nil {
-		return "", fmt.Errorf("snapshot created but failed to read name: %w", err)
+		return "", virerr.ErrorGen(virerr.SnapshotError, fmt.Errorf("snapshot created but failed to read name: %w", err))
 	}
 
 	return snapName, nil
@@ -42,13 +43,13 @@ func CreateSnapshot(domain *domCon.Domain, name string, opts *SnapshotOptions) (
 // ListSnapshots lists snapshot names for the domain.
 func ListSnapshots(domain *domCon.Domain) ([]string, error) {
 	if domain == nil || domain.Domain == nil {
-		return nil, fmt.Errorf("nil domain")
+		return nil, virerr.ErrorGen(virerr.InvalidParameter, fmt.Errorf("nil domain"))
 	}
 
 	var listFlags libvirt.DomainSnapshotListFlags
 	snaps, err := domain.Domain.ListAllSnapshots(listFlags)
 	if err != nil {
-		return nil, fmt.Errorf("failed to list snapshots: %w", err)
+		return nil, virerr.ErrorGen(virerr.SnapshotError, fmt.Errorf("failed to list snapshots: %w", err))
 	}
 
 	names := make([]string, 0, len(snaps))
@@ -66,13 +67,13 @@ func ListSnapshots(domain *domCon.Domain) ([]string, error) {
 // RevertToSnapshot reverts the domain to the given snapshot name.
 func RevertToSnapshot(domain *domCon.Domain, snapName string) error {
 	if domain == nil || domain.Domain == nil {
-		return fmt.Errorf("nil domain")
+		return virerr.ErrorGen(virerr.InvalidParameter, fmt.Errorf("nil domain"))
 	}
 
 	var listFlags libvirt.DomainSnapshotListFlags
 	snaps, err := domain.Domain.ListAllSnapshots(listFlags)
 	if err != nil {
-		return fmt.Errorf("failed to list snapshots: %w", err)
+		return virerr.ErrorGen(virerr.SnapshotError, fmt.Errorf("failed to list snapshots: %w", err))
 	}
 	defer func() {
 		for _, s := range snaps {
@@ -93,11 +94,11 @@ func RevertToSnapshot(domain *domCon.Domain, snapName string) error {
 	}
 
 	if target == nil {
-		return fmt.Errorf("snapshot %s not found", snapName)
+		return virerr.ErrorGen(virerr.SnapshotError, fmt.Errorf("snapshot %s not found", snapName))
 	}
 
 	if err := target.RevertToSnapshot(0); err != nil {
-		return fmt.Errorf("failed to revert to snapshot %s: %w", snapName, err)
+		return virerr.ErrorGen(virerr.SnapshotError, fmt.Errorf("failed to revert to snapshot %s: %w", snapName, err))
 	}
 
 	return nil
@@ -106,13 +107,13 @@ func RevertToSnapshot(domain *domCon.Domain, snapName string) error {
 // DeleteSnapshot deletes a snapshot by name.
 func DeleteSnapshot(domain *domCon.Domain, snapName string) error {
 	if domain == nil || domain.Domain == nil {
-		return fmt.Errorf("nil domain")
+		return virerr.ErrorGen(virerr.InvalidParameter, fmt.Errorf("nil domain"))
 	}
 
 	var listFlags libvirt.DomainSnapshotListFlags
 	snaps, err := domain.Domain.ListAllSnapshots(listFlags)
 	if err != nil {
-		return fmt.Errorf("failed to list snapshots: %w", err)
+		return virerr.ErrorGen(virerr.SnapshotError, fmt.Errorf("failed to list snapshots: %w", err))
 	}
 	defer func() {
 		for _, s := range snaps {
@@ -127,11 +128,11 @@ func DeleteSnapshot(domain *domCon.Domain, snapName string) error {
 		}
 		if n == snapName {
 			if err := s.Delete(0); err != nil {
-				return fmt.Errorf("failed to delete snapshot %s: %w", snapName, err)
+				return virerr.ErrorGen(virerr.SnapshotError, fmt.Errorf("failed to delete snapshot %s: %w", snapName, err))
 			}
 			return nil
 		}
 	}
 
-	return fmt.Errorf("snapshot %s not found", snapName)
+	return virerr.ErrorGen(virerr.SnapshotError, fmt.Errorf("snapshot %s not found", snapName))
 }
