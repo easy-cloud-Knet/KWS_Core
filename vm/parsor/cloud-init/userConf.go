@@ -106,24 +106,22 @@ func (u *User_data_yaml) configNetworkIP(ips []string) []User_write_file {
 	return File_Appendor
 }
 
-
-
-
-func (u *User_data_yaml) configSsh(){
+func (u *User_data_yaml) configSsh() {
 	u.Runcmd = append(u.Runcmd, "sed -i 's/PasswordAuthentication no/PasswordAuthentication yes/g' /etc/ssh/sshd_config.d/60-cloudimg-settings.conf")
-	u.Runcmd=append(u.Runcmd, "systemctl restart ssh")
-	u.Runcmd=append(u.Runcmd, "systemctl enable ssh")
+	u.Runcmd = append(u.Runcmd, "systemctl restart ssh")
+	u.Runcmd = append(u.Runcmd, "systemctl enable ssh")
 
 }
 
-
+// For PasswdEncryption, we can only use mkpasswd in linux enviroment,
+// postpone the test when we have a linux enviroment to test
 
 func (u *User_data_yaml) configNetworkCommand() {
 	u.Runcmd = append(u.Runcmd, "systemctl enable systemd-networkd")
 	u.Runcmd = append(u.Runcmd, "systemctl start systemd-networkd")
 	u.Runcmd = append(u.Runcmd, "sudo systemctl disable systemd-networkd-wait-online.service")
 	u.Runcmd = append(u.Runcmd, "sudo systemctl mask systemd-networkd-wait-online.service")
-	
+
 	u.Runcmd = append(u.Runcmd, "sudo netplan apply")
 }
 

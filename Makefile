@@ -1,6 +1,6 @@
 kws :=KWS_Core
 
-.PHONY: build run clean conf
+.PHONY: build run clean conf test test-v
 
 conf:	
 	./build/go.sh
@@ -17,5 +17,11 @@ run:	build
 
 
 
-clean: 
+test:
+	go test ./...
+
+test-v:
+	go test -v ./...
+
+clean:
 	rm -rf $(kws)
