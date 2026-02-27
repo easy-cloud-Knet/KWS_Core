@@ -95,9 +95,7 @@ KWS_Core/
   build/                     -- Setup scripts (go.sh, autoconfig.sh, etc.)
 ```
 
-## Contributing
 
-See [`CLAUDE.md`](CLAUDE.md) for code conventions, patterns, and architectural guidelines.
 
 ## License
 
