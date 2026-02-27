@@ -98,7 +98,9 @@ func (DB localConfigurer) Generate(LibvirtInst *libvirt.Connect, logger *zap.Log
 		return err
 	}
 
-	DB.DeviceDefiner.XML_Parsor(DB.VMDescription)
+	if err := DB.DeviceDefiner.XML_Parsor(DB.VMDescription); err != nil {
+		return virerr.ErrorGen(virerr.DomainGenerationError, fmt.Errorf("XML_Parsor error: %w", err))
+	}
 	return nil
 }
 

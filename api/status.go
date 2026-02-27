@@ -33,7 +33,10 @@ func (i *InstHandler) ReturnStatusUUID(w http.ResponseWriter, r *http.Request) {
 
 	DomainDetail := status.DomainDetailFactory(outputStruct, dom)
 
-	outputStruct.GetInfo(dom)
+	if err := outputStruct.GetInfo(dom); err != nil {
+		resp.ResponseWriteErr(w, err, http.StatusInternalServerError)
+		return
+	}
 	DomainDetail.DataHandle = outputStruct
 	resp.ResponseWriteOK(w, &DomainDetail.DataHandle)
 
