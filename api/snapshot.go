@@ -47,12 +47,6 @@ func (i *InstHandler) CreateSnapshot(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if i.LibvirtInst == nil || i.DomainControl == nil {
-		resp.ResponseWriteErr(w, virerr.ErrorGen(virerr.InvalidParameter, fmt.Errorf("libvirt not initialized")), http.StatusInternalServerError)
-		i.Logger.Error("libvirt not initialized")
-		return
-	}
-
 	name := param.Name
 	if name == "" {
 		resp.ResponseWriteErr(w, fmt.Errorf("snapshot name required"), http.StatusBadRequest)
@@ -90,12 +84,6 @@ func (i *InstHandler) CreateExternalSnapshot(w http.ResponseWriter, r *http.Requ
 	if err := HttpDecoder(r, param); err != nil {
 		resp.ResponseWriteErr(w, err, http.StatusInternalServerError)
 		i.Logger.Error("external snapshot create decode failed", zap.Error(err))
-		return
-	}
-
-	if i.LibvirtInst == nil || i.DomainControl == nil {
-		resp.ResponseWriteErr(w, fmt.Errorf("libvirt not initialized"), http.StatusInternalServerError)
-		i.Logger.Error("libvirt not initialized")
 		return
 	}
 
@@ -146,12 +134,6 @@ func (i *InstHandler) ListExternalSnapshots(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	if i.LibvirtInst == nil || i.DomainControl == nil {
-		resp.ResponseWriteErr(w, fmt.Errorf("libvirt not initialized"), http.StatusInternalServerError)
-		i.Logger.Error("libvirt not initialized")
-		return
-	}
-
 	i.Logger.Info("external snapshot list start", zap.String("domain_uuid", param.UUID))
 
 	dom, err := i.DomainControl.GetDomain(param.UUID, i.LibvirtInst)
@@ -183,12 +165,6 @@ func (i *InstHandler) RevertExternalSnapshot(w http.ResponseWriter, r *http.Requ
 	if err := HttpDecoder(r, param); err != nil {
 		resp.ResponseWriteErr(w, err, http.StatusInternalServerError)
 		i.Logger.Error("external snapshot revert decode failed", zap.Error(err))
-		return
-	}
-
-	if i.LibvirtInst == nil || i.DomainControl == nil {
-		resp.ResponseWriteErr(w, fmt.Errorf("libvirt not initialized"), http.StatusInternalServerError)
-		i.Logger.Error("libvirt not initialized")
 		return
 	}
 
@@ -230,12 +206,6 @@ func (i *InstHandler) ListSnapshots(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if i.LibvirtInst == nil || i.DomainControl == nil {
-		resp.ResponseWriteErr(w, virerr.ErrorGen(virerr.InvalidParameter, fmt.Errorf("libvirt not initialized")), http.StatusInternalServerError)
-		i.Logger.Error("libvirt not initialized")
-		return
-	}
-
 	i.Logger.Info("snapshot list start", zap.String("uuid", param.UUID))
 
 	dom, err := i.DomainControl.GetDomain(param.UUID, i.LibvirtInst)
@@ -264,12 +234,6 @@ func (i *InstHandler) RevertSnapshot(w http.ResponseWriter, r *http.Request) {
 	if err := HttpDecoder(r, param); err != nil {
 		resp.ResponseWriteErr(w, err, http.StatusInternalServerError)
 		i.Logger.Error("snapshot revert decode failed", zap.Error(err))
-		return
-	}
-
-	if i.LibvirtInst == nil || i.DomainControl == nil {
-		resp.ResponseWriteErr(w, virerr.ErrorGen(virerr.InvalidParameter, fmt.Errorf("libvirt not initialized")), http.StatusInternalServerError)
-		i.Logger.Error("libvirt not initialized")
 		return
 	}
 
@@ -305,12 +269,6 @@ func (i *InstHandler) DeleteSnapshot(w http.ResponseWriter, r *http.Request) {
 	if err := HttpDecoder(r, param); err != nil {
 		resp.ResponseWriteErr(w, err, http.StatusInternalServerError)
 		i.Logger.Error("snapshot delete decode failed", zap.Error(err))
-		return
-	}
-
-	if i.LibvirtInst == nil || i.DomainControl == nil {
-		resp.ResponseWriteErr(w, virerr.ErrorGen(virerr.InvalidParameter, fmt.Errorf("libvirt not initialized")), http.StatusInternalServerError)
-		i.Logger.Error("libvirt not initialized")
 		return
 	}
 

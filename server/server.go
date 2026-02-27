@@ -5,7 +5,7 @@ import (
 	"strconv"
 
 	"github.com/easy-cloud-Knet/KWS_Core/api"
-	syslogger "github.com/easy-cloud-Knet/KWS_Core/logger"
+	"github.com/easy-cloud-Knet/KWS_Core/server/middleware"
 	"go.uber.org/zap"
 )
 
@@ -32,7 +32,8 @@ func InitServer(portNum int, libvirtInst *api.InstHandler, logger *zap.Logger) {
 	mux.HandleFunc("POST /RevertExternalSnapshot", libvirtInst.RevertExternalSnapshot)
 	mux.HandleFunc("POST /DeleteSnapshot", libvirtInst.DeleteSnapshot)
 
-	sysloggerHttp := syslogger.LoggerMiddleware(mux, logger)
+	libvirtHandler := middleware.LibvirtMiddleware(libvirtInst.IsConnected, logger)(mux)
+	sysloggerHttp := middleware.LoggerMiddleware(libvirtHandler, logger)
 
 	if err := http.ListenAndServe(":"+strconv.Itoa(portNum), sysloggerHttp); err != nil {
 		logger.Fatal("server failed", zap.Error(err))
