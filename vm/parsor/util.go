@@ -30,6 +30,9 @@ func UUIDValidator(uuid string) bool {
 }
 
 func GetSafeFilePath(baseDir, uuid string) (string, bool) {
+    if !filepath.IsAbs(baseDir) {
+        return "", false
+    }
     if !UUIDValidator(uuid) {
         return "", false
     }
