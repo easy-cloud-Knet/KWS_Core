@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	domCon "github.com/easy-cloud-Knet/KWS_Core/DomCon"
+	domainStatus "github.com/easy-cloud-Knet/KWS_Core/DomCon/domain_status"
 	virerr "github.com/easy-cloud-Knet/KWS_Core/error"
 	"github.com/easy-cloud-Knet/KWS_Core/vm/service/termination"
 	"go.uber.org/zap"
@@ -28,14 +29,6 @@ func (i *InstHandler) ForceShutDownVM(w http.ResponseWriter, r *http.Request) {
 		i.Logger.Error("failed to get domain for forceShutdown", zap.String("uuid", param.UUID), zap.Error(ERR))
 		return
 	}
-	vcpu, err := dom.Domain.GetMaxVcpus()
-	if err != nil {
-		ERR := virerr.ErrorJoin(err, fmt.Errorf("error shutting down vm, retreving Get domin error "))
-		resp.ResponseWriteErr(w, ERR, http.StatusInternalServerError)
-		i.Logger.Error("failed to get vcpu count for forceShutdown", zap.String("uuid", param.UUID), zap.Error(ERR))
-		return
-	}
-	i.DomainControl.DomainListStatus.AddSleepingCPU(int(vcpu))
 
 	DomainTerminator, _ := termination.DomainTerminatorFactory(dom)
 
@@ -44,6 +37,17 @@ func (i *InstHandler) ForceShutDownVM(w http.ResponseWriter, r *http.Request) {
 		resp.ResponseWriteErr(w, virerr.ErrorJoin(err, fmt.Errorf("error shutting down vm, retreving Get domin error ")), http.StatusInternalServerError)
 		return
 	}
+
+	stat, err := i.DomainControl.DomainListStatus.GetDomStatus(dom.Domain, []domainStatus.SourceType{domainStatus.CPU}, i.Logger)
+	if err != nil {
+		ERR := virerr.ErrorJoin(err, fmt.Errorf("error getting domain status for forceShutdown"))
+		resp.ResponseWriteErr(w, ERR, http.StatusInternalServerError)
+		i.Logger.Error("failed to get domain status for forceShutdown", zap.String("uuid", param.UUID), zap.Error(ERR))
+		return
+	}
+	i.Logger.Info("Domain status retrieved", zap.Any("status", stat))
+
+	i.DomainControl.DomainListStatus.AddSleepingCPU(int(stat.(map[domainStatus.SourceType]int)[domainStatus.CPU]))
 
 	resp.ResponseWriteOK(w, nil)
 }
@@ -75,17 +79,14 @@ func (i *InstHandler) DeleteVM(w http.ResponseWriter, r *http.Request) {
 		//error handling
 	}
 
-	vcpu, err := domain.Domain.GetMaxVcpus()
+	stat, err := i.DomainControl.DomainListStatus.GetDomStatus(domain.Domain, []domainStatus.SourceType{domainStatus.CPU}, i.Logger)
 	if err != nil {
-		ERR := virerr.ErrorJoin(err, fmt.Errorf("error can't retreving vcpu count "))
+		ERR := virerr.ErrorJoin(err, fmt.Errorf("error getting domain status for deleteVM"))
 		resp.ResponseWriteErr(w, ERR, http.StatusInternalServerError)
-		i.Logger.Error("failed to get vcpu count for deleteVM", zap.String("uuid", param.UUID), zap.Error(ERR))
-
-		vcpu = 2
-		//return
-		//일단 지금은 해당 경우에 vcpu 숫자를 2로 설정
-	} // 삭제된 도메인에서는 vcpu count 를 가져올 수 없으므로 미리 가져옴 . 맘에 안듦. 나중에 수정할 예정
-	// TODO: GETMAXVCPU는 꺼진 도메인에 대해 동작하지 않음. DATADOG와 같은 인터페이스를 활용해서 상관없이 삭제할 수 있도록
+		i.Logger.Error("failed to get domain status for deleteVM", zap.String("uuid", param.UUID), zap.Error(ERR))
+		return
+	}
+	i.Logger.Info("Domain status retrieved", zap.Any("status", stat))
 
 	DomainDeleter, _ := termination.DomainDeleterFactory(domain, param.DeletionType, param.UUID)
 	domDeleted, err := DomainDeleter.DeleteDomain()
@@ -95,7 +96,9 @@ func (i *InstHandler) DeleteVM(w http.ResponseWriter, r *http.Request) {
 		i.Logger.Error("failed to delete domain", zap.String("uuid", param.UUID), zap.Error(ERR))
 		return
 	}
-	i.DomainControl.DeleteDomain(domDeleted, param.UUID, int(vcpu))
+	// stat.( map[domainStatus.SourceType]int )[domainStatus.CPU]
+	// interface{}로 반환하다보니 좀 못생겨졌는데, 나중에 타입 결정하고 변경하면 될 거 같음, 일단은 이렇게 구현
+	i.DomainControl.DeleteDomain(domDeleted, param.UUID, int(stat.(map[domainStatus.SourceType]int)[domainStatus.CPU]))
 
 	resp.ResponseWriteOK(w, nil)
 }

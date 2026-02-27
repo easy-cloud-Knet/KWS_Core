@@ -1,9 +1,28 @@
-package domStatus
+package domListStatus
 
 import (
 	"runtime"
 	"sync/atomic"
 )
+
+// 인터페이스 구현체
+
+func (vs *VCPUStatus) EmitStatus(dls *DomainListStatus) error {
+	vs.Total = int(dls.VCPUTotal)
+	vs.Allocated = int(dls.VcpuAllocated)
+	vs.Sleeping = int(dls.VcpuSleeping)
+
+	vs.Idle = vs.Total - vs.Allocated
+	if vs.Idle < 0 {
+		vs.Idle = 0
+	}
+
+	return nil
+}
+
+func (dls *DomainListStatus) Update() {
+	dls.UpdateCPUTotal()
+}
 
 func (dls *DomainListStatus) UpdateCPUTotal() {
 	totalCPU := runtime.NumCPU()
@@ -20,15 +39,13 @@ func (dls *DomainListStatus) AddSleepingCPU(vcpu int) error {
 	return nil
 }
 func (dls *DomainListStatus) TakeAllocatedCPU(vcpu int) error {
-	
+
 	atomic.AddInt64(&dls.VcpuAllocated, -int64(vcpu))
 	return nil
 }
 
 func (dls *DomainListStatus) TakeSleepingCPU(vcpu int) error {
-	
+
 	atomic.AddInt64(&dls.VcpuSleeping, -int64(vcpu))
 	return nil
 }
-
-

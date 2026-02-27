@@ -4,7 +4,8 @@ import (
 	"fmt"
 	"sync"
 
-	domStatus "github.com/easy-cloud-Knet/KWS_Core/DomCon/domain_status"
+	domStatus "github.com/easy-cloud-Knet/KWS_Core/DomCon/domainList_status"
+	domainStatus "github.com/easy-cloud-Knet/KWS_Core/DomCon/domain_status"
 	virerr "github.com/easy-cloud-Knet/KWS_Core/error"
 	"go.uber.org/zap"
 	"libvirt.org/go/libvirt"
@@ -19,19 +20,18 @@ func NewDomainInstance(Dom *libvirt.Domain) *Domain {
 
 func DomListConGen() *DomListControl {
 	return &DomListControl{
-		domainListMutex: sync.Mutex{},
-		DomainList:      make(map[string]*Domain),
+		domainListMutex:  sync.Mutex{},
+		DomainList:       make(map[string]*Domain),
 		DomainListStatus: &domStatus.DomainListStatus{},
 	}
-}// 전역적으로 사용되는 도메인 리스트 컨트롤러 생성
-
+} // 전역적으로 사용되는 도메인 리스트 컨트롤러 생성
 
 func (DC *DomListControl) AddNewDomain(domain *Domain, uuid string) error {
 	DC.domainListMutex.Lock()
 	defer DC.domainListMutex.Unlock()
 
 	DC.DomainList[uuid] = domain
-	vcpu, err :=domain.Domain.GetMaxVcpus()
+	vcpu, err := domain.Domain.GetMaxVcpus()
 	if err != nil {
 		return virerr.ErrorGen(virerr.DomainGenerationError, fmt.Errorf("error while getting vcpu count during adding new domain: %w", err))
 	}
@@ -45,6 +45,7 @@ func (DC *DomListControl) AddExistingDomain(domain *Domain, uuid string) {
 
 	DC.DomainList[uuid] = domain
 }
+
 // Exstring Domain only called from initial booting, and adding specs is not its role
 
 func (DC *DomListControl) GetDomain(uuid string, LibvirtInst *libvirt.Connect) (*Domain, error) {
@@ -106,34 +107,31 @@ func (DC *DomListControl) retrieveDomainsByState(LibvirtInst *libvirt.Connect, s
 		return err
 	}
 
-
-	dataDog := domStatus.NewDataDog(state)
-	wg:= &sync.WaitGroup{}
+	dataDog := DC.DomainListStatus.NewDataDogs(state)
+	wg := &sync.WaitGroup{}
 	for _, dom := range domains {
 		uuid, err := dom.GetUUIDString()
 		if err != nil {
 			logger.Sugar().Error("Failed to get UUID for domain", err)
 			continue
 		}
-		NewDom:= &Domain{
+		NewDom := &Domain{
 			Domain:      &dom,
 			domainMutex: sync.Mutex{},
 		}
-		DC.AddExistingDomain(NewDom,uuid)
-		
-		wg.Add(1)
-		go func(targetDom libvirt.Domain) { 
-		defer wg.Done()
-		retrieveFunc := dataDog.Retreive(&targetDom, DC.DomainListStatus, *logger)
-		if retrieveFunc != nil {
-			logger.Sugar().Errorf("Failed to retrieve status for domain UUID=%s: %v", uuid, retrieveFunc)
-		}
+		DC.AddExistingDomain(NewDom, uuid)
 
+		wg.Add(1)
+		go func(targetDom libvirt.Domain) {
+			defer wg.Done()
+			if err := DC.DomainListStatus.UpdateFromDomain(dataDog, &targetDom, state, []domainStatus.SourceType{domainStatus.CPU}, logger); err != nil {
+				logger.Sugar().Errorf("Failed to retrieve status for domain UUID=%s: %v", uuid, err)
+			}
 		}(dom)
 		logger.Sugar().Infof("Added domain: UUID=%s", uuid)
 	}
 	wg.Wait()
-	
+
 	logger.Sugar().Infof("Total %d domains added (state: %d)", len(domains), state)
 	return nil
 }
@@ -166,4 +164,4 @@ func (DC *DomListControl) GetAllUUIDs() []string {
 	return uuids
 }
 
-//////////////////////////////////////////////// 
+////////////////////////////////////////////////

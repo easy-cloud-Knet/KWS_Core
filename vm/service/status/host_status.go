@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	domStatus "github.com/easy-cloud-Knet/KWS_Core/DomCon/domain_status"
+	domStatus "github.com/easy-cloud-Knet/KWS_Core/DomCon/domainList_status"
 	virerr "github.com/easy-cloud-Knet/KWS_Core/error"
 	"github.com/shirou/gopsutil/cpu"
 	"github.com/shirou/gopsutil/disk"
@@ -31,8 +31,6 @@ func (CI *HostCpuInfo) GetHostInfo(status *domStatus.DomainListStatus) error {
 	CI.Usage = p[0]
 
 	CI.Desc.EmitStatus(status)
-
-
 
 	return nil
 }
@@ -68,25 +66,21 @@ func (HDI *HostDiskInfo) GetHostInfo(status *domStatus.DomainListStatus) error {
 }
 
 func (SI *HostGeneralInfo) GetHostInfo(status *domStatus.DomainListStatus) error {
-	err:=SI.CPU.GetHostInfo(status)
-	if err!=nil{
-		return virerr.ErrorGen(virerr.HostStatusError, fmt.Errorf("general Status:error retreving host Status %w",err))
+	err := SI.CPU.GetHostInfo(status)
+	if err != nil {
+		return virerr.ErrorGen(virerr.HostStatusError, fmt.Errorf("general Status:error retreving host Status %w", err))
 	}
-	err=SI.Disk.GetHostInfo(status)
-	if err!=nil{
-		return virerr.ErrorGen(virerr.HostStatusError, fmt.Errorf("general Status:error retreving host Status %w",err))
+	err = SI.Disk.GetHostInfo(status)
+	if err != nil {
+		return virerr.ErrorGen(virerr.HostStatusError, fmt.Errorf("general Status:error retreving host Status %w", err))
 	}
-	err=SI.Memory.GetHostInfo(status)
-	if err!=nil{
-		return virerr.ErrorGen(virerr.HostStatusError, fmt.Errorf("general Status:error retreving host Status %w",err))
+	err = SI.Memory.GetHostInfo(status)
+	if err != nil {
+		return virerr.ErrorGen(virerr.HostStatusError, fmt.Errorf("general Status:error retreving host Status %w", err))
 	}
 
 	return nil
 }
-
-
-
-
 
 func (HSI *HostSystemInfo) GetHostInfo(status *domStatus.DomainListStatus) error {
 	u, err := host.Uptime()
@@ -113,7 +107,7 @@ func (HSI *HostSystemInfo) GetHostInfo(status *domStatus.DomainListStatus) error
 				HSI.RAM_Temp = t.Temperature
 			}
 		}
-	}// 에러가 발생했을때 대처가 부족한거 같음
+	} // 에러가 발생했을때 대처가 부족한거 같음
 
 	return nil
 }
@@ -129,22 +123,20 @@ func HostDataTypeRouter(types HostDataType) (HostDataTypeHandler, error) {
 		}, nil
 	case MemInfo:
 		return &HostMemoryInfo{
-			Desc: &domStatus.VCPUStatus{},// --- IGNORE ---
+			Desc: &domStatus.VCPUStatus{}, // --- IGNORE ---
 		}, nil
 	case DiskInfoHi:
 		return &HostDiskInfo{
-			Desc: &domStatus.VCPUStatus{},// --- IGNORE ---
+			Desc: &domStatus.VCPUStatus{}, // --- IGNORE ---
 		}, nil
 	case SystemInfoHi:
 		return &HostSystemInfo{}, nil
 	case GeneralInfo:
-		return &HostGeneralInfo{},nil
+		return &HostGeneralInfo{}, nil
 	}
-		
-		return nil, virerr.ErrorGen(virerr.HostStatusError, errors.New("not valid parameters for HostDataType provided"))
+
+	return nil, virerr.ErrorGen(virerr.HostStatusError, errors.New("not valid parameters for HostDataType provided"))
 }
-
-
 
 func HostInfoHandler(handler HostDataTypeHandler, status *domStatus.DomainListStatus) (*HostDetail, error) {
 	if err := handler.GetHostInfo(status); err != nil {
@@ -154,4 +146,3 @@ func HostInfoHandler(handler HostDataTypeHandler, status *domStatus.DomainListSt
 		HostDataHandle: handler,
 	}, nil
 }
-
