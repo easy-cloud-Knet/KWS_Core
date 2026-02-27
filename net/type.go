@@ -28,7 +28,5 @@ type NetInterface struct {
 type VnetInterface struct {
 }
 
-
-type Networkd struct{
-	
+type Networkd struct {
 }

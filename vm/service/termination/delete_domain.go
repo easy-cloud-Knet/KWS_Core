@@ -11,27 +11,26 @@ import (
 	"libvirt.org/go/libvirt"
 )
 
-
 func DomainDeleterFactory(Domain *domCon.Domain, DelType DomainDeleteType, uuid string) (*DomainDeleter, error) {
 	return &DomainDeleter{
-		uuid:uuid,
-		domain: Domain,
+		uuid:         uuid,
+		domain:       Domain,
 		DeletionType: DelType,
-		}, nil
+	}, nil
 }
 
-func (DD *DomainDeleter) DeleteDomain() (*libvirt.Domain,error){
+func (DD *DomainDeleter) DeleteDomain() (*libvirt.Domain, error) {
 	dom := DD.domain
 
 	isRunning, _ := dom.Domain.IsActive()
 	if isRunning && DD.DeletionType == SoftDelete {
 
-		return  nil,virerr.ErrorGen(virerr.DeletionDomainError, fmt.Errorf("domain is running, cannot softDelete running domain"))
+		return nil, virerr.ErrorGen(virerr.DeletionDomainError, fmt.Errorf("domain is running, cannot softDelete running domain"))
 	} else if isRunning && DD.DeletionType == HardDelete {
 		DomainTerminator := &DomainTerminator{domain: dom}
-		_,err := DomainTerminator.TerminateDomain()
+		_, err := DomainTerminator.TerminateDomain()
 		if err != nil {
-			return nil,virerr.ErrorGen(virerr.DeletionDomainError, fmt.Errorf("failed deleting domain in libvirt instance: %w", err))
+			return nil, virerr.ErrorGen(virerr.DeletionDomainError, fmt.Errorf("failed deleting domain in libvirt instance: %w", err))
 		}
 	}
 	basicFilePath := "/var/lib/kws/"
@@ -41,13 +40,12 @@ func (DD *DomainDeleter) DeleteDomain() (*libvirt.Domain,error){
 	deleteCmd.Stderr = os.Stderr
 
 	if err := deleteCmd.Run(); err != nil {
-		return nil,virerr.ErrorGen(virerr.DeletionDomainError, fmt.Errorf("failed deleting files in %s: %w", FilePath, err))
+		return nil, virerr.ErrorGen(virerr.DeletionDomainError, fmt.Errorf("failed deleting files in %s: %w", FilePath, err))
 	}
 
 	if err := dom.Domain.Undefine(); err != nil {
-		return nil,virerr.ErrorGen(virerr.DeletionDomainError, fmt.Errorf("failed deleting domain in libvirt instance: %w", err))
+		return nil, virerr.ErrorGen(virerr.DeletionDomainError, fmt.Errorf("failed deleting domain in libvirt instance: %w", err))
 	}
 
-
-	return dom.Domain,nil
+	return dom.Domain, nil
 }

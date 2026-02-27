@@ -30,7 +30,7 @@ type User_info_VM struct {
 type HardwareInfo struct {
 	CPU    int `json:"cpu"`
 	Memory int `json:"memory"`
-	Disk int `json:"disk"`
+	Disk   int `json:"disk"`
 }
 
 // gonna replace fields in VM_Init_Info
@@ -148,19 +148,19 @@ type ConsoleTarget struct {
 }
 
 type Interface struct {
-	Type        string        `xml:"type,attr"`
-	Source      NetworkSource `xml:"source"`
-	Virtualport VirPort       `xml:"virtualport"`
+	Type        string         `xml:"type,attr"`
+	Source      NetworkSource  `xml:"source"`
+	Virtualport VirPort        `xml:"virtualport"`
 	Model       InterfaceModel `xml:"model"`
-	MacAddress MacAddress `xml:"mac"`
-	MTU 	   MTU          `xml:"mtu"`
+	MacAddress  MacAddress     `xml:"mac"`
+	MTU         MTU            `xml:"mtu"`
 }
 type MTU struct {
 	Size int `xml:"size,attr"`
 }
 
 type VirPort struct {
-	Type string `xml:"type,attr"`
+	Type      string    `xml:"type,attr"`
 	Parameter Parameter `xml:"parameters"`
 }
 type Parameter struct {
@@ -185,6 +185,5 @@ type Graphics struct {
 type MacAddress struct {
 	Address string `xml:"address,attr"`
 }
-
 
 // func VM_Init_Info

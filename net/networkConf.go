@@ -5,4 +5,3 @@ import (
 )
 
 //  systemd networkd 관리
-
