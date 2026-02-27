@@ -25,8 +25,11 @@ func InitServer(portNum int, libvirtInst *api.InstHandler, logger *zap.Logger) {
 
 	// Snapshot operations
 	mux.HandleFunc("POST /CreateSnapshot", libvirtInst.CreateSnapshot)
+	mux.HandleFunc("POST /CreateExternalSnapshot", libvirtInst.CreateExternalSnapshot)
 	mux.HandleFunc("GET /ListSnapshots", libvirtInst.ListSnapshots)
+	mux.HandleFunc("GET /ListExternalSnapshots", libvirtInst.ListExternalSnapshots)
 	mux.HandleFunc("POST /RevertSnapshot", libvirtInst.RevertSnapshot)
+	mux.HandleFunc("POST /RevertExternalSnapshot", libvirtInst.RevertExternalSnapshot)
 	mux.HandleFunc("POST /DeleteSnapshot", libvirtInst.DeleteSnapshot)
 
 	sysloggerHttp := syslogger.LoggerMiddleware(mux, logger)

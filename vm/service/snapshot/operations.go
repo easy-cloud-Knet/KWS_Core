@@ -9,14 +9,24 @@ import (
 )
 
 // CreateSnapshot creates a libvirt snapshot and records basic metadata.
-func CreateSnapshot(domain *domCon.Domain, name string) (string, error) {
+func CreateSnapshot(domain *domCon.Domain, name string, opts *SnapshotOptions) (string, error) {
 	if domain == nil || domain.Domain == nil {
 		return "", virerr.ErrorGen(virerr.InvalidParameter, fmt.Errorf("nil domain"))
 	}
 
-	snapXML := fmt.Sprintf(`<domainsnapshot><name>%s</name><description>snapshot created by KWS</description></domainsnapshot>`, name)
+	description := "snapshot created by KWS"
+	if opts != nil && opts.Description != "" {
+		description = opts.Description
+	}
 
-	snap, err := domain.Domain.CreateSnapshotXML(snapXML, 0)
+	snapXML := fmt.Sprintf(`<domainsnapshot><name>%s</name><description>%s</description></domainsnapshot>`, name, description)
+
+	flags := libvirt.DomainSnapshotCreateFlags(0)
+	if opts != nil && opts.Quiesce {
+		flags |= libvirt.DOMAIN_SNAPSHOT_CREATE_QUIESCE
+	}
+
+	snap, err := domain.Domain.CreateSnapshotXML(snapXML, flags)
 	if err != nil {
 		return "", virerr.ErrorGen(virerr.SnapshotError, fmt.Errorf("failed to create snapshot: %w", err))
 	}
@@ -36,7 +46,8 @@ func ListSnapshots(domain *domCon.Domain) ([]string, error) {
 		return nil, virerr.ErrorGen(virerr.InvalidParameter, fmt.Errorf("nil domain"))
 	}
 
-	snaps, err := domain.Domain.ListAllSnapshots(0)
+	var listFlags libvirt.DomainSnapshotListFlags
+	snaps, err := domain.Domain.ListAllSnapshots(listFlags)
 	if err != nil {
 		return nil, virerr.ErrorGen(virerr.SnapshotError, fmt.Errorf("failed to list snapshots: %w", err))
 	}
@@ -59,7 +70,8 @@ func RevertToSnapshot(domain *domCon.Domain, snapName string) error {
 		return virerr.ErrorGen(virerr.InvalidParameter, fmt.Errorf("nil domain"))
 	}
 
-	snaps, err := domain.Domain.ListAllSnapshots(0)
+	var listFlags libvirt.DomainSnapshotListFlags
+	snaps, err := domain.Domain.ListAllSnapshots(listFlags)
 	if err != nil {
 		return virerr.ErrorGen(virerr.SnapshotError, fmt.Errorf("failed to list snapshots: %w", err))
 	}
@@ -98,7 +110,8 @@ func DeleteSnapshot(domain *domCon.Domain, snapName string) error {
 		return virerr.ErrorGen(virerr.InvalidParameter, fmt.Errorf("nil domain"))
 	}
 
-	snaps, err := domain.Domain.ListAllSnapshots(0)
+	var listFlags libvirt.DomainSnapshotListFlags
+	snaps, err := domain.Domain.ListAllSnapshots(listFlags)
 	if err != nil {
 		return virerr.ErrorGen(virerr.SnapshotError, fmt.Errorf("failed to list snapshots: %w", err))
 	}

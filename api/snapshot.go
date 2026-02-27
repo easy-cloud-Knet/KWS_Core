@@ -9,6 +9,33 @@ import (
 	"go.uber.org/zap"
 )
 
+// Snapshot API structures
+type SnapshotRequest struct {
+	UUID        string `json:"UUID"`
+	Name        string `json:"Name,omitempty"`
+	Description string `json:"Description,omitempty"`
+	Quiesce     bool   `json:"Quiesce,omitempty"`
+}
+
+type ExternalSnapshotRequest struct {
+	UUID        string `json:"UUID"`
+	Name        string `json:"Name,omitempty"`
+	Description string `json:"Description,omitempty"`
+	BaseDir     string `json:"BaseDir,omitempty"`
+	Quiesce     bool   `json:"Quiesce,omitempty"`
+	Live        bool   `json:"Live,omitempty"`
+}
+
+type ExternalSnapshotResponse struct {
+	UUID     string `json:"UUID"`
+	SnapName string `json:"SnapName"`
+}
+
+type ExternalSnapshotListResponse struct {
+	UUID      string   `json:"UUID"`
+	SnapNames []string `json:"SnapNames"`
+}
+
 // CreateSnapshot creates a snapshot for the specified domain UUID
 func (i *InstHandler) CreateSnapshot(w http.ResponseWriter, r *http.Request) {
 	param := &SnapshotRequest{}
@@ -28,7 +55,8 @@ func (i *InstHandler) CreateSnapshot(w http.ResponseWriter, r *http.Request) {
 
 	name := param.Name
 	if name == "" {
-		name = param.UUID + "-snap"
+		resp.ResponseWriteErr(w, fmt.Errorf("snapshot name required"), http.StatusBadRequest)
+		return
 	}
 
 	i.Logger.Info("snapshot create start", zap.String("uuid", param.UUID), zap.String("snapshot_name", name))
@@ -40,7 +68,10 @@ func (i *InstHandler) CreateSnapshot(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	snapName, err := snapshotpkg.CreateSnapshot(dom, name)
+	snapName, err := snapshotpkg.CreateSnapshot(dom, name, &snapshotpkg.SnapshotOptions{
+		Description: param.Description,
+		Quiesce:     param.Quiesce,
+	})
 	if err != nil {
 		resp.ResponseWriteErr(w, err, http.StatusInternalServerError)
 		i.Logger.Error("snapshot create failed", zap.String("uuid", param.UUID), zap.String("snapshot_name", name), zap.Error(err))
@@ -49,6 +80,143 @@ func (i *InstHandler) CreateSnapshot(w http.ResponseWriter, r *http.Request) {
 
 	i.Logger.Info("snapshot create success", zap.String("uuid", param.UUID), zap.String("snapshot_name", snapName))
 	resp.ResponseWriteOK(w, &snapName)
+}
+
+// CreateExternalSnapshot creates an external snapshot for the specified domain UUID
+func (i *InstHandler) CreateExternalSnapshot(w http.ResponseWriter, r *http.Request) {
+	param := &ExternalSnapshotRequest{}
+	resp := ResponseGen[ExternalSnapshotResponse]("Create External Snapshot")
+
+	if err := HttpDecoder(r, param); err != nil {
+		resp.ResponseWriteErr(w, err, http.StatusInternalServerError)
+		i.Logger.Error("external snapshot create decode failed", zap.Error(err))
+		return
+	}
+
+	if i.LibvirtInst == nil || i.DomainControl == nil {
+		resp.ResponseWriteErr(w, fmt.Errorf("libvirt not initialized"), http.StatusInternalServerError)
+		i.Logger.Error("libvirt not initialized")
+		return
+	}
+
+	name := param.Name
+	if name == "" {
+		resp.ResponseWriteErr(w, fmt.Errorf("snapshot name required"), http.StatusBadRequest)
+		return
+	}
+
+	i.Logger.Info("external snapshot create start", zap.String("domain_uuid", param.UUID), zap.String("snapshot_name", name))
+
+	dom, err := i.DomainControl.GetDomain(param.UUID, i.LibvirtInst)
+	if err != nil {
+		resp.ResponseWriteErr(w, err, http.StatusInternalServerError)
+		i.Logger.Error("external snapshot create failed - domain not found", zap.String("domain_uuid", param.UUID), zap.Error(err))
+		return
+	}
+
+	snapName := name
+	createdName, err := snapshotpkg.CreateExternalSnapshot(dom, name, &snapshotpkg.ExternalSnapshotOptions{
+		BaseDir:     param.BaseDir,
+		Description: param.Description,
+		Quiesce:     param.Quiesce,
+		Live:        param.Live,
+	})
+	if err != nil {
+		resp.ResponseWriteErr(w, err, http.StatusInternalServerError)
+		i.Logger.Error("external snapshot create failed", zap.String("domain_uuid", param.UUID), zap.String("snapshot_name", snapName), zap.Error(err))
+		return
+	}
+	snapName = createdName
+
+	i.Logger.Info("external snapshot create success", zap.String("domain_uuid", param.UUID), zap.String("snapshot_name", snapName))
+	resp.ResponseWriteOK(w, &ExternalSnapshotResponse{
+		UUID:     param.UUID,
+		SnapName: snapName,
+	})
+}
+
+// ListExternalSnapshots returns external snapshot names for the specified domain UUID
+func (i *InstHandler) ListExternalSnapshots(w http.ResponseWriter, r *http.Request) {
+	param := &ExternalSnapshotRequest{}
+	resp := ResponseGen[ExternalSnapshotListResponse]("List External Snapshots")
+
+	if err := HttpDecoder(r, param); err != nil {
+		resp.ResponseWriteErr(w, err, http.StatusInternalServerError)
+		i.Logger.Error("external snapshot list decode failed", zap.Error(err))
+		return
+	}
+
+	if i.LibvirtInst == nil || i.DomainControl == nil {
+		resp.ResponseWriteErr(w, fmt.Errorf("libvirt not initialized"), http.StatusInternalServerError)
+		i.Logger.Error("libvirt not initialized")
+		return
+	}
+
+	i.Logger.Info("external snapshot list start", zap.String("domain_uuid", param.UUID))
+
+	dom, err := i.DomainControl.GetDomain(param.UUID, i.LibvirtInst)
+	if err != nil {
+		resp.ResponseWriteErr(w, err, http.StatusInternalServerError)
+		i.Logger.Error("external snapshot list failed - domain not found", zap.String("domain_uuid", param.UUID), zap.Error(err))
+		return
+	}
+
+	names, err := snapshotpkg.ListExternalSnapshots(dom)
+	if err != nil {
+		resp.ResponseWriteErr(w, err, http.StatusInternalServerError)
+		i.Logger.Error("external snapshot list failed", zap.String("domain_uuid", param.UUID), zap.Error(err))
+		return
+	}
+
+	i.Logger.Info("external snapshot list success", zap.String("domain_uuid", param.UUID), zap.Int("snapshot_count", len(names)))
+	resp.ResponseWriteOK(w, &ExternalSnapshotListResponse{
+		UUID:      param.UUID,
+		SnapNames: names,
+	})
+}
+
+// RevertExternalSnapshot reverts the domain to a named external snapshot
+func (i *InstHandler) RevertExternalSnapshot(w http.ResponseWriter, r *http.Request) {
+	param := &ExternalSnapshotRequest{}
+	resp := ResponseGen[ExternalSnapshotResponse]("Revert External Snapshot")
+
+	if err := HttpDecoder(r, param); err != nil {
+		resp.ResponseWriteErr(w, err, http.StatusInternalServerError)
+		i.Logger.Error("external snapshot revert decode failed", zap.Error(err))
+		return
+	}
+
+	if i.LibvirtInst == nil || i.DomainControl == nil {
+		resp.ResponseWriteErr(w, fmt.Errorf("libvirt not initialized"), http.StatusInternalServerError)
+		i.Logger.Error("libvirt not initialized")
+		return
+	}
+
+	if param.Name == "" {
+		resp.ResponseWriteErr(w, fmt.Errorf("snapshot name required"), http.StatusBadRequest)
+		return
+	}
+
+	i.Logger.Info("external snapshot revert start", zap.String("domain_uuid", param.UUID), zap.String("snapshot_name", param.Name))
+
+	dom, err := i.DomainControl.GetDomain(param.UUID, i.LibvirtInst)
+	if err != nil {
+		resp.ResponseWriteErr(w, err, http.StatusInternalServerError)
+		i.Logger.Error("external snapshot revert failed - domain not found", zap.String("domain_uuid", param.UUID), zap.Error(err))
+		return
+	}
+
+	if err := snapshotpkg.RevertExternalSnapshot(dom, param.Name); err != nil {
+		resp.ResponseWriteErr(w, err, http.StatusInternalServerError)
+		i.Logger.Error("external snapshot revert failed", zap.String("domain_uuid", param.UUID), zap.String("snapshot_name", param.Name), zap.Error(err))
+		return
+	}
+
+	i.Logger.Info("external snapshot revert success", zap.String("domain_uuid", param.UUID), zap.String("snapshot_name", param.Name))
+	resp.ResponseWriteOK(w, &ExternalSnapshotResponse{
+		UUID:     param.UUID,
+		SnapName: param.Name,
+	})
 }
 
 // ListSnapshots returns all snapshot names for the specified domain UUID
