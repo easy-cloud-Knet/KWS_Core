@@ -7,7 +7,7 @@ import (
 
 // 인터페이스 구현체
 
-func (vs *VCPUStatus) EmitStatus(dls *DomainListStatus) error {
+func (vs *VCPUStatus) EmitStatus(dls *DomainListStatus) {
 	vs.Total = int(dls.VCPUTotal)
 	vs.Allocated = int(dls.VcpuAllocated)
 	vs.Sleeping = int(dls.VcpuSleeping)
@@ -16,8 +16,6 @@ func (vs *VCPUStatus) EmitStatus(dls *DomainListStatus) error {
 	if vs.Idle < 0 {
 		vs.Idle = 0
 	}
-
-	return nil
 }
 
 func (dls *DomainListStatus) Update() {
