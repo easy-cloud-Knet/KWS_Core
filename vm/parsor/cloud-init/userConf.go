@@ -2,6 +2,7 @@ package userconfig
 
 import (
 	"bytes"
+	_ "embed"
 	"fmt"
 	"os"
 	"os/exec"
@@ -11,6 +12,9 @@ import (
 	"github.com/easy-cloud-Knet/KWS_Core/vm/parsor"
 	"gopkg.in/yaml.v3"
 )
+
+//go:embed scripts/fetchos.sh
+var fetchosScript string
 
 func (u *User_data_yaml) WriteFile(dirPath string) error {
 	marshalledData, err := yaml.Marshal(u)
@@ -64,11 +68,7 @@ func (u *User_data_yaml) ParseData(param *parsor.VM_Init_Info) error {
 		})
 	}
 	File_Appendor := u.configNetworkIP(param.NetConf.Ips)
-	appending,err:= u.fetchos()
-	if err!=nil{
-		_ = err
-	}
-	File_Appendor = append(File_Appendor,appending... )
+	File_Appendor = append(File_Appendor, u.fetchos()...)
 	u.Users = Users_Detail
 	u.Write_files = File_Appendor
 
@@ -79,20 +79,14 @@ func (u *User_data_yaml) ParseData(param *parsor.VM_Init_Info) error {
 	return nil
 }
 
-func (u *User_data_yaml) fetchos() ([]User_write_file,error){    
-    var fetchFile []User_write_file
-
-	data, err := os.ReadFile("/var/lib/kws/baseimg/fetchos")
-    if err != nil {
-        return  fetchFile,fmt.Errorf("fetchos parsing error, ingnorable but needs report%v",err)
-    }
-
-	fetchFile= append(fetchFile, User_write_file{
-		Path: "/etc/profile.d/99-my-motd.sh",
-		Permissions: "0644",
-		Content: string(data),
-	})    
-    return fetchFile,nil
+func (u *User_data_yaml) fetchos() []User_write_file {
+	return []User_write_file{
+		{
+			Path:        "/etc/profile.d/99-my-motd.sh",
+			Permissions: "0644",
+			Content:     fetchosScript,
+		},
+	}
 }
 
 func (u *User_data_yaml) configNetworkIP(ips []string) []User_write_file {
