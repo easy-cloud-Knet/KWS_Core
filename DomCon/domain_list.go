@@ -58,20 +58,21 @@ func (DC *DomListControl) GetDomain(uuid string, LibvirtInst *libvirt.Connect) (
 		if err != nil {
 			return nil, err
 		}
-		DC.AddNewDomain(dom, uuid)
+		if err := DC.AddNewDomain(dom, uuid); err != nil {
+			return nil, err
+		}
 		return dom, nil
 	}
 
 	return domain, nil
 }
 
-func (DC *DomListControl) DeleteDomain(Domain *libvirt.Domain, uuid string, vcpu int) error {
+func (DC *DomListControl) DeleteDomain(Domain *libvirt.Domain, uuid string, vcpu int) {
 	DC.domainListMutex.Lock()
 	delete(DC.DomainList, uuid)
 	Domain.Free()
 	DC.domainListMutex.Unlock()
 	DC.DomainListStatus.TakeAllocatedCPU(vcpu)
-	return nil
 }
 
 func (DC *DomListControl) FindAndDeleteDomain(LibvirtInst *libvirt.Connect, uuid string) error {

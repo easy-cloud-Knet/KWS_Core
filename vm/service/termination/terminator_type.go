@@ -12,19 +12,19 @@ const (
 	SoftDelete
 )
 
-type DomainDeletion interface{
-	DeleteDomain() (*libvirt.Domain,error)
+type DomainDeletion interface {
+	DeleteDomain() (*libvirt.Domain, error)
 }
 
-type DomainTermination interface{
-	TerminateDomain() (*libvirt.Domain,error)
+type DomainTermination interface {
+	TerminateDomain() (*libvirt.Domain, error)
 }
 
 type DomainTerminator struct {
 	domain *domCon.Domain
 }
 type DomainDeleter struct {
-	uuid string
-	domain        *domCon.Domain
-	DeletionType        DomainDeleteType
+	uuid         string
+	domain       *domCon.Domain
+	DeletionType DomainDeleteType
 }

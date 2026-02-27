@@ -7,7 +7,7 @@ import (
 
 // 인터페이스 구현체
 
-func (vs *VCPUStatus) EmitStatus(dls *DomainListStatus) error {
+func (vs *VCPUStatus) EmitStatus(dls *DomainListStatus) {
 	vs.Total = int(dls.VCPUTotal)
 	vs.Allocated = int(dls.VcpuAllocated)
 	vs.Sleeping = int(dls.VcpuSleeping)
@@ -16,8 +16,6 @@ func (vs *VCPUStatus) EmitStatus(dls *DomainListStatus) error {
 	if vs.Idle < 0 {
 		vs.Idle = 0
 	}
-
-	return nil
 }
 
 func (dls *DomainListStatus) Update() {
@@ -29,23 +27,18 @@ func (dls *DomainListStatus) UpdateCPUTotal() {
 	dls.VCPUTotal = int64(totalCPU)
 }
 
-func (dls *DomainListStatus) AddAllocatedCPU(vcpu int) error {
+func (dls *DomainListStatus) AddAllocatedCPU(vcpu int) {
 	atomic.AddInt64(&dls.VcpuAllocated, int64(vcpu))
-	return nil
 }
 
-func (dls *DomainListStatus) AddSleepingCPU(vcpu int) error {
+func (dls *DomainListStatus) AddSleepingCPU(vcpu int) {
 	atomic.AddInt64(&dls.VcpuSleeping, int64(vcpu))
-	return nil
 }
-func (dls *DomainListStatus) TakeAllocatedCPU(vcpu int) error {
 
+func (dls *DomainListStatus) TakeAllocatedCPU(vcpu int) {
 	atomic.AddInt64(&dls.VcpuAllocated, -int64(vcpu))
-	return nil
 }
 
-func (dls *DomainListStatus) TakeSleepingCPU(vcpu int) error {
-
+func (dls *DomainListStatus) TakeSleepingCPU(vcpu int) {
 	atomic.AddInt64(&dls.VcpuSleeping, -int64(vcpu))
-	return nil
 }

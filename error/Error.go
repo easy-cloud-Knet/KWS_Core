@@ -8,38 +8,38 @@ import (
 type VirError string
 
 const (
-	FaildDeEncoding     VirError = "Error Not Found"
+	FaildDeEncoding   VirError = "Error Not Found"
 	DomainSearchError VirError = "Error Serching Domain"
-	NoSuchDomain     VirError = "Domain Not Found"  
-	
-	DomainGenerationError VirError ="error Generating Domain"
-	LackCapacityRAM  VirError = "Not enough RAM"   // control
-	LackCapacityCPU  VirError = "Not Enough CPU" // 
-	LackCapacityHD   VirError = "Not Enough HardDisk" // 
-	
-	InvalidUUID      VirError = "Invalid UUID Provided"
-	
-	InvalidParameter VirError= "Invalid parameter entered"
-	WrongParameter VirError= "Not validated parameter In"
-	
-	DomainStatusError  VirError ="Error Retreving Domain Status"
-	HostStatusError  VirError ="Error Retreving Host Status"
+	NoSuchDomain      VirError = "Domain Not Found"
 
-	DeletionDomainError VirError= "Error Deleting Domain"
-	DomainShutdownError VirError= "failed in Deleting domain"
+	DomainGenerationError VirError = "error Generating Domain"
+	LackCapacityRAM       VirError = "Not enough RAM"      // control
+	LackCapacityCPU       VirError = "Not Enough CPU"      //
+	LackCapacityHD        VirError = "Not Enough HardDisk" //
+
+	InvalidUUID VirError = "Invalid UUID Provided"
+
+	InvalidParameter VirError = "Invalid parameter entered"
+	WrongParameter   VirError = "Not validated parameter In"
+
+	DomainStatusError VirError = "Error Retreving Domain Status"
+	HostStatusError   VirError = "Error Retreving Host Status"
+
+	DeletionDomainError VirError = "Error Deleting Domain"
+	DomainShutdownError VirError = "failed in Deleting domain"
 
 	SnapshotError VirError = "Error in Snapshot Operation"
 )
 
- 
 // VirError는 error 인터페이스를 구현
 func (ve VirError) Error() string {
 	return string(ve)
 }
+
 // err 구조체 정의
 type ErrorDescriptor struct {
-	ErrorType    VirError `json:"error type"`
-	Detail error    `json:"detail"`
+	ErrorType VirError `json:"error type"`
+	Detail    error    `json:"detail"`
 }
 
 // err 구조체의 Error() 메서드 구현
@@ -65,20 +65,18 @@ func (e ErrorDescriptor) As(target interface{}) bool {
 	return true
 }
 
-func ErrorGen(baseError VirError, detailError error) error{
+func ErrorGen(baseError VirError, detailError error) error {
 	return ErrorDescriptor{
-		ErrorType:baseError,
-		Detail: detailError,
+		ErrorType: baseError,
+		Detail:    detailError,
 	}
 }
 
-func ErrorJoin(baseError error ,appendingError error) error{
-	v,ok := baseError.(ErrorDescriptor)
-	if !ok{
+func ErrorJoin(baseError error, appendingError error) error {
+	v, ok := baseError.(ErrorDescriptor)
+	if !ok {
 		return ErrorGen(VirError(baseError.Error()), appendingError)
 	}
-	v.Detail=fmt.Errorf("%w %w", appendingError, v.Detail)
+	v.Detail = fmt.Errorf("%w %w", appendingError, v.Detail)
 	return v
 }
-
-

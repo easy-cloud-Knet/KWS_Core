@@ -1,7 +1,5 @@
 package userconfig
 
-
-
 type User_specific struct {
 	Name                string   `yaml:"name,omitempty"`
 	Passwd              string   `yaml:"passwd,omitempty"`
@@ -11,7 +9,6 @@ type User_specific struct {
 	SuGroup             string   `yaml:"sudo,omitempty"`
 	Shell               string   `yaml:"shell,omitempty"`
 }
-
 
 type User_write_file struct {
 	Path        string `yaml:"path"`
@@ -25,8 +22,6 @@ type User_data_yaml struct {
 	Write_files      []User_write_file `yaml:"write_files"`
 	Runcmd           []string          `yaml:"runcmd"`
 }
-
-
 
 type Meta_data_yaml struct {
 	Instance_ID   string `yaml:"instance-id"`

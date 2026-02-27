@@ -9,6 +9,7 @@ import (
 	"github.com/easy-cloud-Knet/KWS_Core/api"
 	syslogger "github.com/easy-cloud-Knet/KWS_Core/logger"
 	"github.com/easy-cloud-Knet/KWS_Core/server"
+	"go.uber.org/zap"
 )
 
 func main() {
@@ -24,7 +25,9 @@ func main() {
 
 	libvirtInst.LibvirtConnection()
 	libvirtInst.DomainControl.DomainListStatus.Update()
-	libvirtInst.DomainControl.RetrieveAllDomain(libvirtInst.LibvirtInst, logger)
+	if err := libvirtInst.DomainControl.RetrieveAllDomain(libvirtInst.LibvirtInst, logger); err != nil {
+		logger.Fatal("failed to retrieve domains on startup", zap.Error(err))
+	}
 
 	go server.InitServer(8080, &libvirtInst, logger)
 	defer func() {

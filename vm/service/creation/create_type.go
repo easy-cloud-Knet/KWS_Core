@@ -14,23 +14,20 @@ import (
 // 2. CreateVM 이후 생성이 성공적이였음을 확인할 경우, DomCon에 vm 을 추가할 것
 // 3. /var/lib/kws/{uuid} 내부에 가상 하드디스크, vm config에 대한 내용응 가지고 있어야 함.
 
-
 type VMCreator interface {
 	CreateVM() (*libvirt.Domain, error)
 }
 
-
-
-type LocalCreator struct{
+type LocalCreator struct {
 	DomainConfiger *localConfigurer
-	libvirtInst *libvirt.Connect
-	logger *zap.Logger
+	libvirtInst    *libvirt.Connect
+	logger         *zap.Logger
 }
+
 // LocalCreator가 json에서 읽어온 데이터를 통해 새로운 vm을 만들 때 사용됨.
-// CreateVM()의 구현체 
+// CreateVM()의 구현체
 
-type NewDomainFromSnapshot struct{
-
+type NewDomainFromSnapshot struct {
 }
 
 type localConfigurer struct {

@@ -19,11 +19,11 @@ func (DD *DomainTerminator) TerminateDomain() (*libvirt.Domain, error) {
 
 	isRunning, err := dom.Domain.IsActive()
 	if !isRunning {
-		return  nil,virerr.ErrorGen(virerr.DomainShutdownError, fmt.Errorf("error checking domain's aliveness, from libvirt. %w", err))
+		return nil, virerr.ErrorGen(virerr.DomainShutdownError, fmt.Errorf("error checking domain's aliveness, from libvirt. %w", err))
 	}
 
 	if err := dom.Domain.Destroy(); err != nil {
-		return nil,virerr.ErrorGen(virerr.DomainShutdownError, fmt.Errorf("error shutting down domain, from libvirt. %w, %v", err,DD))
+		return nil, virerr.ErrorGen(virerr.DomainShutdownError, fmt.Errorf("error shutting down domain, from libvirt. %w, %v", err, DD))
 	}
 
 	return dom.Domain, nil
