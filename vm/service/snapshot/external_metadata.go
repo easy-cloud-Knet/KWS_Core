@@ -6,7 +6,8 @@ import (
 	"strings"
 )
 
-const defaultSnapshotRoot = "/var/lib/kws"
+// TODO: 실제 사용 시 아래 두 nolint 태그 제거할 것
+const defaultSnapshotRoot = "/var/lib/kws" //nolint:unused
 
 type ExternalSnapshotOptions struct {
 	BaseDir     string
@@ -15,7 +16,7 @@ type ExternalSnapshotOptions struct {
 	Live        bool
 }
 
-func resolveSnapshotRoot(opts *ExternalSnapshotOptions) (string, error) {
+func resolveSnapshotRoot(opts *ExternalSnapshotOptions) (string, error) { //nolint:unused
 	if opts == nil || opts.BaseDir == "" {
 		return defaultSnapshotRoot, nil
 	}

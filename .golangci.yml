@@ -1,0 +1,24 @@
+linters:
+  enable:
+    - errcheck
+    - unused
+    - govet
+    - staticcheck
+
+issues:
+  exclude-rules:
+    # libvirt resource cleanup — error return is not actionable
+    - linters: [errcheck]
+      text: "Error return value of `.*\\.Free` is not checked"
+
+    # zap logger sync — standard deferred pattern
+    - linters: [errcheck]
+      text: "Error return value of `.*\\.Sync` is not checked"
+
+    # http.ResponseWriter.Write — error not recoverable after headers sent
+    - linters: [errcheck]
+      text: "Error return value of `.*w\\.Write` is not checked"
+
+    # json.Encoder.Encode in HTTP handlers — same rationale
+    - linters: [errcheck]
+      text: "Error return value of `.*\\.Encode` is not checked"
