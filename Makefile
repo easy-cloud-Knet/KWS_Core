@@ -6,6 +6,7 @@ conf:
 	./build/go.sh
 	./build/download.sh
 	./build/autoconfig.sh
+	./build/apparmor.sh
 	build
 
 build: main.go
