@@ -22,7 +22,7 @@ func (i *InstHandler) ForceShutDownVM(w http.ResponseWriter, r *http.Request) {
 		i.Logger.Error("failed to decode forceShutdown request", zap.Error(ERR))
 		return
 	}
-	dom, err := i.DomainControl.GetDomain(param.UUID, i.LibvirtInst)
+	dom, err := i.DomainControl.GetDomain(param.UUID)
 	if err != nil {
 		ERR := virerr.ErrorJoin(err, fmt.Errorf("error shutting down vm, retreving Get domin error "))
 		resp.ResponseWriteErr(w, ERR, http.StatusInternalServerError)
@@ -70,7 +70,7 @@ func (i *InstHandler) DeleteVM(w http.ResponseWriter, r *http.Request) {
 	}
 	// uuid 가 적합한지 확인
 
-	domain, err := i.DomainControl.GetDomain(param.UUID, i.LibvirtInst)
+	domain, err := i.DomainControl.GetDomain(param.UUID)
 	if err != nil {
 		ERR := virerr.ErrorJoin(err, fmt.Errorf("error deleting vm, retreving Get domin error "))
 		resp.ResponseWriteErr(w, ERR, http.StatusInternalServerError)

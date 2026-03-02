@@ -24,8 +24,9 @@ func main() {
 	}
 
 	libvirtInst.LibvirtConnection()
+	libvirtInst.DomainControl.SetLibvirt(libvirtInst.LibvirtInst)
 	libvirtInst.DomainControl.DomainListStatus.Update()
-	if err := libvirtInst.DomainControl.RetrieveAllDomain(libvirtInst.LibvirtInst, logger); err != nil {
+	if err := libvirtInst.DomainControl.RetrieveAllDomain(logger); err != nil {
 		logger.Fatal("failed to retrieve domains on startup", zap.Error(err))
 	}
 
