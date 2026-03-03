@@ -26,6 +26,10 @@ func DomListConGen() *DomListControl {
 	}
 } // 전역적으로 사용되는 도메인 리스트 컨트롤러 생성
 
+func (DC *DomListControl) SetLibvirt(inst *libvirt.Connect) {
+	DC.libvirtInst = inst
+}
+
 func (DC *DomListControl) AddNewDomain(domain *Domain, uuid string) error {
 	DC.domainListMutex.Lock()
 	defer DC.domainListMutex.Unlock()
@@ -48,12 +52,12 @@ func (DC *DomListControl) AddExistingDomain(domain *Domain, uuid string) {
 
 // Exstring Domain only called from initial booting, and adding specs is not its role
 
-func (DC *DomListControl) GetDomain(uuid string, LibvirtInst *libvirt.Connect) (*Domain, error) {
+func (DC *DomListControl) GetDomain(uuid string) (*Domain, error) {
 	DC.domainListMutex.Lock()
 	domain, Exist := DC.DomainList[uuid]
 	DC.domainListMutex.Unlock()
 	if !Exist {
-		DomainSeeker := DomSeekUUIDFactory(LibvirtInst, uuid)
+		DomainSeeker := DomSeekUUIDFactory(DC.libvirtInst, uuid)
 		dom, err := DomainSeeker.ReturnDomain()
 		if err != nil {
 			return nil, err
@@ -75,7 +79,7 @@ func (DC *DomListControl) DeleteDomain(Domain *libvirt.Domain, uuid string, vcpu
 	DC.DomainListStatus.TakeAllocatedCPU(vcpu)
 }
 
-func (DC *DomListControl) FindAndDeleteDomain(LibvirtInst *libvirt.Connect, uuid string) error {
+func (DC *DomListControl) FindAndDeleteDomain(uuid string) error {
 	//아직 활용처가 없어서, vcpu 삭제를 추가하지 않았음/
 	// DeleteDomain 함수의 TakeAllocatedCPU 호출을 참고..
 	DC.domainListMutex.Lock()
@@ -83,7 +87,7 @@ func (DC *DomListControl) FindAndDeleteDomain(LibvirtInst *libvirt.Connect, uuid
 	DC.domainListMutex.Unlock()
 
 	if !Exist {
-		DomainSeeker := DomSeekUUIDFactory(LibvirtInst, uuid)
+		DomainSeeker := DomSeekUUIDFactory(DC.libvirtInst, uuid)
 		dom, err := DomainSeeker.ReturnDomain()
 		if err != nil {
 			return virerr.ErrorGen(virerr.NoSuchDomain, fmt.Errorf("domain trying to delete already empty, uuid of %s, %w", uuid, err))
@@ -101,8 +105,8 @@ func (DC *DomListControl) FindAndDeleteDomain(LibvirtInst *libvirt.Connect, uuid
 	return nil
 }
 
-func (DC *DomListControl) retrieveDomainsByState(LibvirtInst *libvirt.Connect, state libvirt.ConnectListAllDomainsFlags, logger *zap.Logger) error {
-	domains, err := LibvirtInst.ListAllDomains(state)
+func (DC *DomListControl) retrieveDomainsByState(state libvirt.ConnectListAllDomainsFlags, logger *zap.Logger) error {
+	domains, err := DC.libvirtInst.ListAllDomains(state)
 	if err != nil {
 		logger.Fatal("Failed to retrieve domains", zap.Error(err))
 		return err
@@ -137,14 +141,14 @@ func (DC *DomListControl) retrieveDomainsByState(LibvirtInst *libvirt.Connect, s
 	return nil
 }
 
-func (DC *DomListControl) RetrieveAllDomain(LibvirtInst *libvirt.Connect, logger *zap.Logger) error {
+func (DC *DomListControl) RetrieveAllDomain(logger *zap.Logger) error {
 	logger.Info("Retrieving all domains from libvirt...")
 
-	if err := DC.retrieveDomainsByState(LibvirtInst, libvirt.CONNECT_LIST_DOMAINS_ACTIVE, logger); err != nil {
+	if err := DC.retrieveDomainsByState(libvirt.CONNECT_LIST_DOMAINS_ACTIVE, logger); err != nil {
 		return err
 	}
 
-	if err := DC.retrieveDomainsByState(LibvirtInst, libvirt.CONNECT_LIST_DOMAINS_INACTIVE, logger); err != nil {
+	if err := DC.retrieveDomainsByState(libvirt.CONNECT_LIST_DOMAINS_INACTIVE, logger); err != nil {
 		return err
 	}
 

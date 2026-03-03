@@ -17,6 +17,7 @@ type DomListControl struct {
 	DomainList       map[string]*Domain
 	domainListMutex  sync.Mutex
 	DomainListStatus *domStatus.DomainListStatus
+	libvirtInst      *libvirt.Connect
 }
 
 // 각 도메인을 관리하는 인메모리 구조체

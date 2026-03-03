@@ -55,7 +55,7 @@ func (i *InstHandler) CreateSnapshot(w http.ResponseWriter, r *http.Request) {
 
 	i.Logger.Info("snapshot create start", zap.String("uuid", param.UUID), zap.String("snapshot_name", name))
 
-	dom, err := i.DomainControl.GetDomain(param.UUID, i.LibvirtInst)
+	dom, err := i.DomainControl.GetDomain(param.UUID)
 	if err != nil {
 		resp.ResponseWriteErr(w, err, http.StatusInternalServerError)
 		i.Logger.Error("snapshot create failed - domain not found", zap.String("uuid", param.UUID), zap.Error(err))
@@ -95,7 +95,7 @@ func (i *InstHandler) CreateExternalSnapshot(w http.ResponseWriter, r *http.Requ
 
 	i.Logger.Info("external snapshot create start", zap.String("domain_uuid", param.UUID), zap.String("snapshot_name", name))
 
-	dom, err := i.DomainControl.GetDomain(param.UUID, i.LibvirtInst)
+	dom, err := i.DomainControl.GetDomain(param.UUID)
 	if err != nil {
 		resp.ResponseWriteErr(w, err, http.StatusInternalServerError)
 		i.Logger.Error("external snapshot create failed - domain not found", zap.String("domain_uuid", param.UUID), zap.Error(err))
@@ -136,7 +136,7 @@ func (i *InstHandler) ListExternalSnapshots(w http.ResponseWriter, r *http.Reque
 
 	i.Logger.Info("external snapshot list start", zap.String("domain_uuid", param.UUID))
 
-	dom, err := i.DomainControl.GetDomain(param.UUID, i.LibvirtInst)
+	dom, err := i.DomainControl.GetDomain(param.UUID)
 	if err != nil {
 		resp.ResponseWriteErr(w, err, http.StatusInternalServerError)
 		i.Logger.Error("external snapshot list failed - domain not found", zap.String("domain_uuid", param.UUID), zap.Error(err))
@@ -175,7 +175,7 @@ func (i *InstHandler) RevertExternalSnapshot(w http.ResponseWriter, r *http.Requ
 
 	i.Logger.Info("external snapshot revert start", zap.String("domain_uuid", param.UUID), zap.String("snapshot_name", param.Name))
 
-	dom, err := i.DomainControl.GetDomain(param.UUID, i.LibvirtInst)
+	dom, err := i.DomainControl.GetDomain(param.UUID)
 	if err != nil {
 		resp.ResponseWriteErr(w, err, http.StatusInternalServerError)
 		i.Logger.Error("external snapshot revert failed - domain not found", zap.String("domain_uuid", param.UUID), zap.Error(err))
@@ -208,7 +208,7 @@ func (i *InstHandler) ListSnapshots(w http.ResponseWriter, r *http.Request) {
 
 	i.Logger.Info("snapshot list start", zap.String("uuid", param.UUID))
 
-	dom, err := i.DomainControl.GetDomain(param.UUID, i.LibvirtInst)
+	dom, err := i.DomainControl.GetDomain(param.UUID)
 	if err != nil {
 		resp.ResponseWriteErr(w, err, http.StatusInternalServerError)
 		i.Logger.Error("snapshot list failed - domain not found", zap.String("uuid", param.UUID), zap.Error(err))
@@ -244,7 +244,7 @@ func (i *InstHandler) RevertSnapshot(w http.ResponseWriter, r *http.Request) {
 
 	i.Logger.Info("snapshot revert start", zap.String("uuid", param.UUID), zap.String("snapshot_name", param.Name))
 
-	dom, err := i.DomainControl.GetDomain(param.UUID, i.LibvirtInst)
+	dom, err := i.DomainControl.GetDomain(param.UUID)
 	if err != nil {
 		resp.ResponseWriteErr(w, err, http.StatusInternalServerError)
 		i.Logger.Error("snapshot revert failed - domain not found", zap.String("uuid", param.UUID), zap.Error(err))
@@ -279,7 +279,7 @@ func (i *InstHandler) DeleteSnapshot(w http.ResponseWriter, r *http.Request) {
 
 	i.Logger.Info("snapshot delete start", zap.String("uuid", param.UUID), zap.String("snapshot_name", param.Name))
 
-	dom, err := i.DomainControl.GetDomain(param.UUID, i.LibvirtInst)
+	dom, err := i.DomainControl.GetDomain(param.UUID)
 	if err != nil {
 		resp.ResponseWriteErr(w, err, http.StatusInternalServerError)
 		i.Logger.Error("snapshot delete failed - domain not found", zap.String("uuid", param.UUID), zap.Error(err))

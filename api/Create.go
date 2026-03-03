@@ -24,7 +24,7 @@ func (i *InstHandler) BootVM(w http.ResponseWriter, r *http.Request) {
 
 	domCon, _ := i.domainConGetter()
 
-	DomainExisting, _ := domCon.GetDomain(param.UUID, i.LibvirtInst)
+	DomainExisting, _ := domCon.GetDomain(param.UUID)
 	if DomainExisting == nil {
 		resp.ResponseWriteErr(w, nil, http.StatusBadRequest)
 		i.Logger.Error("error handling booting vm, domain not found", zap.String("uuid", param.UUID))
@@ -64,7 +64,7 @@ func (i *InstHandler) CreateVMFromBase(w http.ResponseWriter, r *http.Request) {
 	}
 	i.Logger.Info("Handling Create VM", zap.String("uuid", param.UUID))
 
-	domainExisting, _ := domCon.GetDomain(param.UUID, i.LibvirtInst)
+	domainExisting, _ := domCon.GetDomain(param.UUID)
 	if domainExisting != nil {
 		resp.ResponseWriteErr(w, nil, http.StatusBadRequest)
 		i.Logger.Error("error handling creating vm, domain already exists", zap.String("uuid", param.UUID))

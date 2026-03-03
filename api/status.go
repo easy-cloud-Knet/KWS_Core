@@ -26,7 +26,7 @@ func (i *InstHandler) ReturnStatusUUID(w http.ResponseWriter, r *http.Request) {
 		return
 		// wrong parameter error 반환
 	}
-	dom, err := i.DomainControl.GetDomain(param.UUID, i.LibvirtInst)
+	dom, err := i.DomainControl.GetDomain(param.UUID)
 	if err != nil {
 		resp.ResponseWriteErr(w, virerr.ErrorJoin(err, errors.New("error returning status from uuid")), http.StatusInternalServerError)
 	}
