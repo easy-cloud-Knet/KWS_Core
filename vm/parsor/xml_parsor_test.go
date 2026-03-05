@@ -114,7 +114,9 @@ func TestXMLParsor(t *testing.T) {
 
 func TestXMLParsor_DiskPaths(t *testing.T) {
 	var xp VM_CREATE_XML
-	xp.XML_Parsor(testSpec)
+	if err := xp.XML_Parsor(testSpec); err != nil {
+		t.Fatal(err)
+	}
 
 	uuid := testSpec.UUID
 	wantQcow := "/var/lib/kws/" + uuid + "/" + uuid + ".qcow2"
@@ -135,7 +137,9 @@ func TestXMLParsor_MarshalOVN(t *testing.T) {
 	NetworkMode = "ovn"
 
 	var xp VM_CREATE_XML
-	xp.XML_Parsor(testSpec)
+	if err := xp.XML_Parsor(testSpec); err != nil {
+		t.Fatal(err)
+	}
 
 	out, err := xml.MarshalIndent(xp, "", "  ")
 	if err != nil {
@@ -163,7 +167,9 @@ func TestXMLParsor_MarshalBridge(t *testing.T) {
 	defer func() { NetworkMode = "ovn" }()
 
 	var xp VM_CREATE_XML
-	xp.XML_Parsor(testSpec)
+	if err := xp.XML_Parsor(testSpec); err != nil {
+		t.Fatal(err)
+	}
 
 	out, err := xml.MarshalIndent(xp, "", "  ")
 	if err != nil {
