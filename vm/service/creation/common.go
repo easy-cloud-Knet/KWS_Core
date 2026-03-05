@@ -5,11 +5,12 @@ import (
 	"os/exec"
 	"path/filepath"
 
+	"github.com/easy-cloud-Knet/KWS_Core/config"
 	virerr "github.com/easy-cloud-Knet/KWS_Core/error"
 )
 
 func (DB localConfigurer) CreateDiskImage(dirPath string, diskSize int) error {
-	baseImage := fmt.Sprintf("/var/lib/kws/baseimg/%s", DB.VMDescription.OS)
+	baseImage := fmt.Sprintf("%s/baseimg/%s", config.StorageBase, DB.VMDescription.OS)
 	targetImage := filepath.Join(dirPath, fmt.Sprintf("%s.qcow2", DB.VMDescription.UUID))
 	qemuImgCmd := exec.Command("qemu-img", "create",
 		"-b", baseImage,

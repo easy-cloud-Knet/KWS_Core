@@ -2,6 +2,8 @@ package parsor
 
 import (
 	"fmt"
+
+	"github.com/easy-cloud-Knet/KWS_Core/config"
 )
 
 func (XP *VM_CREATE_XML) XML_Parsor(spec *VM_Init_Info) error {
@@ -30,7 +32,7 @@ func (XP *VM_CREATE_XML) XML_Parsor(spec *VM_Init_Info) error {
 			},
 		},
 		Devices: Devices{
-			Emulator: "/usr/bin/kvm",
+			Emulator: config.EmulatorPath,
 			Disks: []Disk{
 				{
 					Type:   "file",
@@ -40,7 +42,7 @@ func (XP *VM_CREATE_XML) XML_Parsor(spec *VM_Init_Info) error {
 						Type: "qcow2",
 					},
 					Source: Source{
-						File: fmt.Sprintf("/var/lib/kws/%s/%s.qcow2", spec.UUID, spec.UUID),
+						File: fmt.Sprintf("%s/%s/%s.qcow2", config.StorageBase, spec.UUID, spec.UUID),
 					},
 					Target: Target{
 						Dev: "vda",
@@ -55,7 +57,7 @@ func (XP *VM_CREATE_XML) XML_Parsor(spec *VM_Init_Info) error {
 						Type: "raw",
 					},
 					Source: Source{
-						File: fmt.Sprintf("/var/lib/kws/%s/cidata.iso", spec.UUID),
+						File: fmt.Sprintf("%s/%s/cidata.iso", config.StorageBase, spec.UUID),
 					},
 					Target: Target{
 						Dev: "sda",
@@ -84,15 +86,15 @@ func (XP *VM_CREATE_XML) XML_Parsor(spec *VM_Init_Info) error {
 						Address: spec.MacAddr, // MAC 주소 설정
 					},
 					Source: NetworkSource{
-						Bridge: "br-int", // br-int
+						Bridge: config.NetworkBridge,
 					},
 					Virtualport: VirPort{
-						Type: "openvswitch",
+						Type: config.NetworkVirtualPort,
 						Parameter: Parameter{
 							InterfaceID: spec.SDNUUID,
 						},
 					},
-					MTU: MTU{Size: 1450}, // MTU 설정 추가
+					MTU: MTU{Size: config.NetworkMTU},
 					Model: InterfaceModel{
 						Type: "virtio",
 					},

@@ -8,6 +8,7 @@ import (
 	"path/filepath"
 
 	domCon "github.com/easy-cloud-Knet/KWS_Core/DomCon"
+	"github.com/easy-cloud-Knet/KWS_Core/config"
 	virerr "github.com/easy-cloud-Knet/KWS_Core/error"
 	"github.com/easy-cloud-Knet/KWS_Core/vm/parsor"
 	userconfig "github.com/easy-cloud-Knet/KWS_Core/vm/parsor/cloud-init"
@@ -64,7 +65,7 @@ func (DCB *LocalCreator) CreateVM() (*domCon.Domain, error) {
 }
 
 func (DB localConfigurer) Generate(LibvirtInst *libvirt.Connect, logger *zap.Logger) error {
-	dirPath, err := parsor.GetSafeFilePath("/var/lib/kws", DB.VMDescription.UUID)
+	dirPath, err := parsor.GetSafeFilePath(config.StorageBase, DB.VMDescription.UUID)
 	if dirPath == "" {
 		errDesc := fmt.Errorf("failed to generate safe file path for UUID %s %v", DB.VMDescription.UUID, err)
 		logger.Error("failed to generate safe file path or some macilous attack happened. aborting", zap.Error(errDesc))

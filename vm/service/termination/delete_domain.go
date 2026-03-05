@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 
 	domCon "github.com/easy-cloud-Knet/KWS_Core/DomCon"
+	"github.com/easy-cloud-Knet/KWS_Core/config"
 	virerr "github.com/easy-cloud-Knet/KWS_Core/error"
 	"libvirt.org/go/libvirt"
 )
@@ -33,8 +34,7 @@ func (DD *DomainDeleter) DeleteDomain() (*libvirt.Domain, error) {
 			return nil, virerr.ErrorGen(virerr.DeletionDomainError, fmt.Errorf("failed deleting domain in libvirt instance: %w", err))
 		}
 	}
-	basicFilePath := "/var/lib/kws/"
-	FilePath := filepath.Join(basicFilePath, DD.uuid)
+	FilePath := filepath.Join(config.StorageBase, DD.uuid)
 	deleteCmd := exec.Command("rm", "-rf", FilePath)
 	deleteCmd.Stdout = os.Stdout
 	deleteCmd.Stderr = os.Stderr
