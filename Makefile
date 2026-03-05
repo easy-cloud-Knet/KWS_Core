@@ -1,4 +1,6 @@
 kws :=KWS_Core
+NETWORK:=ovn
+
 
 .PHONY: build run clean conf test test-v
 
@@ -10,7 +12,7 @@ conf:
 	build
 
 build: main.go
-	go build -o $(kws) .
+	go build -ldflags "-X 'github.com/easy-cloud-Knet/KWS_Core/vm/parsor.NetworkMode=$(NETWORK)'" -o $(kws) .
 
 run:	build
 	chmod +x ./$(kws) 
