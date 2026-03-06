@@ -3,6 +3,7 @@ NETWORK := ovn
 CTL_IP  := 10.5.15.39
 IP      :=
 DNS     :=
+IFACE   ?= ens3
 
 .PHONY: build run clean conf test test-v lint ovn-install ovn-cluster ovn-worker
 
@@ -26,15 +27,15 @@ run: build
 ovn-install:
 	./build/sdnConf.sh
 
-# 컨트롤 노드: make ovn-cluster IP=10.5.15.39 DNS=10.5.15.1
+# 컨트롤 노드: make ovn-cluster IP=10.5.15.39 DNS=10.5.15.1 [IFACE=eno1]
 ovn-cluster:
-	@test -n "$(IP)" || { echo "usage: make ovn-cluster IP=x.x.x.x DNS=x.x.x.x"; exit 1; }
-	./build/ovn-cluster.sh $(IP) $(DNS)
+	@test -n "$(IP)" || { echo "usage: make ovn-cluster IP=x.x.x.x DNS=x.x.x.x [IFACE=eno1]"; exit 1; }
+	./build/ovn-cluster.sh $(IP) $(DNS) $(IFACE)
 
-# 워커 노드: make ovn-worker IP=10.5.15.40 DNS=10.5.15.1 [CTL_IP=x.x.x.x]
+# 워커 노드: make ovn-worker IP=10.5.15.40 DNS=10.5.15.1 [CTL_IP=x.x.x.x] [IFACE=ens3]
 ovn-worker:
-	@test -n "$(IP)" || { echo "usage: make ovn-worker IP=x.x.x.x DNS=x.x.x.x [CTL_IP=x.x.x.x]"; exit 1; }
-	./build/ovn-worker.sh $(IP) $(DNS) $(CTL_IP)
+	@test -n "$(IP)" || { echo "usage: make ovn-worker IP=x.x.x.x DNS=x.x.x.x [CTL_IP=x.x.x.x] [IFACE=ens3]"; exit 1; }
+	./build/ovn-worker.sh $(IP) $(DNS) $(CTL_IP) $(IFACE)
 
 lint:
 	@which golangci-lint > /dev/null 2>&1 || { echo "installing golangci-lint..."; go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest; }
