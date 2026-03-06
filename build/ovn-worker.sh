@@ -19,6 +19,7 @@ sudo ovs-vsctl add-port br-ext ens3
 
 IP_ADDRESS=$1
 DNS=$2
+CTL_IP=$3
 FILE_PATH="/etc/systemd/network/20-br-ext.network"
 
 cat <<EOF | sudo tee "$FILE_PATH" > /dev/null
@@ -77,7 +78,7 @@ sudo systemctl enable --now openvswitch.service
 sudo systemctl enable --now ovn-controller.service
 
 
-sudo ovs-vsctl set open_vswitch . external-ids:ovn-remote="tcp:10.5.15.39:6642"
+sudo ovs-vsctl set open_vswitch . external-ids:ovn-remote="tcp:$CTL_IP:6642"
 sudo ovs-vsctl set open_vswitch . external-ids:ovn-encap-type=geneve
 sudo ovs-vsctl set open_vswitch . external-ids:ovn-encap-ip="$IP_ADDRESS"
 sudo ovs-vsctl set open_vswitch . external-ids:ovn-bridge-mappings=UPLINK:br-ext

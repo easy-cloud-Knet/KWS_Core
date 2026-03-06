@@ -157,9 +157,9 @@ sudo ovs-vsctl add-port br-ext ens3
 
 sudo systemctl restart systemd-networkd
 
-sudo ovs-vsctl set open_vswitch . external-ids:ovn-remote="tcp:10.5.15.39:6642"
+sudo ovs-vsctl set open_vswitch . external-ids:ovn-remote="tcp:$IP_ADDRESS:6642"
 sudo ovs-vsctl set open_vswitch . external-ids:ovn-encap-type=geneve
-sudo ovs-vsctl set open_vswitch . external-ids:ovn-nb="tcp:10.5.15.39:6641"
+sudo ovs-vsctl set open_vswitch . external-ids:ovn-nb="tcp:$IP_ADDRESS:6641"
 sudo ovs-vsctl set open_vswitch . external-ids:ovn-encap-ip="$IP_ADDRESS"
 sudo ovs-vsctl set open_vswitch . external-ids:ovn-bridge-mappings=UPLINK:br-ext
 sudo ovs-vsctl set open_vswitch . external-ids:system-id="$(hostname)"

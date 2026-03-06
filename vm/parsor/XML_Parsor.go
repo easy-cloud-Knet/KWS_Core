@@ -4,6 +4,29 @@ import (
 	"fmt"
 )
 
+// NetworkMode is injected at build time via -ldflags. Default: "ovn".
+// Supported values: "ovn", "bridge"
+var NetworkMode = "ovn"
+
+func buildInterface(spec *VM_Init_Info) Interface {
+	iface := Interface{
+		Type:       "bridge",
+		MacAddress: MacAddress{Address: spec.MacAddr},
+		Model:      InterfaceModel{Type: "virtio"},
+	}
+	if NetworkMode == "ovn" {
+		iface.Source = NetworkSource{Bridge: "br-int"}
+		iface.Virtualport = &VirPort{
+			Type:      "openvswitch",
+			Parameter: Parameter{InterfaceID: spec.SDNUUID},
+		}
+		iface.MTU = &MTU{Size: 1450}
+	} else {
+		iface.Source = NetworkSource{Bridge: "virbr0"}
+	}
+	return iface
+}
+
 func (XP *VM_CREATE_XML) XML_Parsor(spec *VM_Init_Info) error {
 	*XP = VM_CREATE_XML{
 		Type: "kvm",
@@ -77,27 +100,7 @@ func (XP *VM_CREATE_XML) XML_Parsor(spec *VM_Init_Info) error {
 					Port: 0,
 				},
 			},
-			Interfaces: []Interface{
-				{
-					Type: "bridge",
-					MacAddress: MacAddress{
-						Address: spec.MacAddr, // MAC 주소 설정
-					},
-					Source: NetworkSource{
-						Bridge: "br-int", // br-int
-					},
-					Virtualport: VirPort{
-						Type: "openvswitch",
-						Parameter: Parameter{
-							InterfaceID: spec.SDNUUID,
-						},
-					},
-					MTU: MTU{Size: 1450}, // MTU 설정 추가
-					Model: InterfaceModel{
-						Type: "virtio",
-					},
-				},
-			},
+			Interfaces: []Interface{buildInterface(spec)},
 			Graphics: Graphics{
 				Type:     "vnc",
 				Port:     -1,
