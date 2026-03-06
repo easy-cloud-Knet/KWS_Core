@@ -4,14 +4,14 @@ import (
 	"fmt"
 	"time"
 
+	appconf "github.com/easy-cloud-Knet/KWS_Core/config"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 )
 
 func getLogFilePath() string {
-	logDir := "/var/log/kws/"
 	currentDate := time.Now().Format("20060102") // YYYYMMDD 포맷
-	logFile := fmt.Sprintf("%s%s.log", logDir, currentDate)
+	logFile := fmt.Sprintf("%s%s.log", appconf.LogDir, currentDate)
 	return logFile
 }
 

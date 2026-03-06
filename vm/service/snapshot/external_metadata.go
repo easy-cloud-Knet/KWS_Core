@@ -4,10 +4,10 @@ import (
 	"fmt"
 	"path/filepath"
 	"strings"
+
+	"github.com/easy-cloud-Knet/KWS_Core/config"
 )
 
-// TODO: 실제 사용 시 아래 두 nolint 태그 제거할 것
-const defaultSnapshotRoot = "/var/lib/kws" //nolint:unused
 
 type ExternalSnapshotOptions struct {
 	BaseDir     string
@@ -18,7 +18,7 @@ type ExternalSnapshotOptions struct {
 
 func resolveSnapshotRoot(opts *ExternalSnapshotOptions) (string, error) { //nolint:unused
 	if opts == nil || opts.BaseDir == "" {
-		return defaultSnapshotRoot, nil
+		return config.StorageBase, nil
 	}
 
 	clean := filepath.Clean(opts.BaseDir)

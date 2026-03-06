@@ -2,6 +2,8 @@ package parsor
 
 import (
 	"fmt"
+
+	"github.com/easy-cloud-Knet/KWS_Core/config"
 )
 
 // NetworkMode is injected at build time via -ldflags. Default: "ovn".
@@ -53,7 +55,7 @@ func (XP *VM_CREATE_XML) XML_Parsor(spec *VM_Init_Info) error {
 			},
 		},
 		Devices: Devices{
-			Emulator: "/usr/bin/kvm",
+			Emulator: config.EmulatorPath,
 			Disks: []Disk{
 				{
 					Type:   "file",
@@ -63,7 +65,7 @@ func (XP *VM_CREATE_XML) XML_Parsor(spec *VM_Init_Info) error {
 						Type: "qcow2",
 					},
 					Source: Source{
-						File: fmt.Sprintf("/var/lib/kws/%s/%s.qcow2", spec.UUID, spec.UUID),
+						File: fmt.Sprintf("%s/%s/%s.qcow2", config.StorageBase, spec.UUID, spec.UUID),
 					},
 					Target: Target{
 						Dev: "vda",
@@ -78,7 +80,7 @@ func (XP *VM_CREATE_XML) XML_Parsor(spec *VM_Init_Info) error {
 						Type: "raw",
 					},
 					Source: Source{
-						File: fmt.Sprintf("/var/lib/kws/%s/cidata.iso", spec.UUID),
+						File: fmt.Sprintf("%s/%s/cidata.iso", config.StorageBase, spec.UUID),
 					},
 					Target: Target{
 						Dev: "sda",

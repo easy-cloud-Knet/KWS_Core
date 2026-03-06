@@ -9,6 +9,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/easy-cloud-Knet/KWS_Core/config"
 	"github.com/easy-cloud-Knet/KWS_Core/vm/parsor"
 	"gopkg.in/yaml.v3"
 )
@@ -99,7 +100,7 @@ func (u *User_data_yaml) configNetworkIP(ips []string) []User_write_file {
 		File_Appendor = append(File_Appendor, User_write_file{
 			Path:        fmt.Sprintf("/etc/systemd/network/10-enp%ds3.network", index),
 			Permissions: "0644",
-			Content:     fmt.Sprintf("[Match]\nName=enp%ds3\n[Network]\nAddress=%s/24\nGateway=%s\nDNS=%s\nDHCP=no", index, ipAddress, Gateway, "8.8.8.8"),
+			Content:     fmt.Sprintf("[Match]\nName=enp%ds3\n[Network]\nAddress=%s/24\nGateway=%s\nDNS=%s\nDHCP=no", index, ipAddress, Gateway, config.DefaultDNS),
 		}) //
 	}
 

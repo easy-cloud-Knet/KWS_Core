@@ -3,6 +3,7 @@ package api
 import (
 	"os"
 
+	"github.com/easy-cloud-Knet/KWS_Core/config"
 	"go.uber.org/zap"
 	"libvirt.org/go/libvirt"
 )
@@ -19,7 +20,7 @@ func (i *InstHandler) IsConnected() bool {
 }
 
 func (i *InstHandler) LibvirtConnection() {
-	libvirtInst, err := libvirt.NewConnect("qemu:///system")
+	libvirtInst, err := libvirt.NewConnect(config.LibvirtURI)
 	if err != nil {
 		i.Logger.Panic("innitial connection for libvirt daemon failed", zap.Int("pid", os.Getegid()))
 	}

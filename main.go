@@ -7,6 +7,7 @@ import (
 
 	domCon "github.com/easy-cloud-Knet/KWS_Core/DomCon"
 	"github.com/easy-cloud-Knet/KWS_Core/api"
+	"github.com/easy-cloud-Knet/KWS_Core/config"
 	syslogger "github.com/easy-cloud-Knet/KWS_Core/logger"
 	"github.com/easy-cloud-Knet/KWS_Core/server"
 	"go.uber.org/zap"
@@ -30,7 +31,7 @@ func main() {
 		logger.Fatal("failed to retrieve domains on startup", zap.Error(err))
 	}
 
-	go server.InitServer(8080, &libvirtInst, logger)
+	go server.InitServer(config.ServerPort, &libvirtInst, logger)
 	defer func() {
 		logger.Info("Shutting down gracefully...") // 종료 시 로깅
 		logger.Sync()
