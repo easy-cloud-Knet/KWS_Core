@@ -150,10 +150,10 @@ type ConsoleTarget struct {
 type Interface struct {
 	Type        string         `xml:"type,attr"`
 	Source      NetworkSource  `xml:"source"`
-	Virtualport VirPort        `xml:"virtualport"`
+	Virtualport *VirPort       `xml:"virtualport,omitempty"`
 	Model       InterfaceModel `xml:"model"`
 	MacAddress  MacAddress     `xml:"mac"`
-	MTU         MTU            `xml:"mtu"`
+	MTU         *MTU           `xml:"mtu,omitempty"`
 }
 type MTU struct {
 	Size int `xml:"size,attr"`
