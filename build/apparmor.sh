@@ -5,6 +5,22 @@
 
 set -e
 
+# AppArmor 활성화
+echo "Enabling AppArmor..."
+if ! dpkg -l apparmor &>/dev/null; then
+    sudo apt install -y apparmor apparmor-utils
+fi
+sudo systemctl enable apparmor
+sudo systemctl start apparmor
+
+# libvirt/kvm/qemu 그룹 생성 및 사용자 추가
+for grp in libvirt libvirt-qemu kvm; do
+    if ! getent group "$grp" &>/dev/null; then
+        sudo groupadd "$grp"
+    fi
+    sudo usermod -aG "$grp" "$USER"
+done
+
 echo "Configuring AppArmor for KWS..."
 
 # File 1: /etc/apparmor.d/local/usr.lib.libvirt.virt-aa-helper
