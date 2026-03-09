@@ -97,6 +97,13 @@ KWS_Core/
 
 
 
+## Documentation
+
+| Document | Description |
+|----------|-------------|
+| [`docs/network-bootstrap.md`](docs/network-bootstrap.md) | Host bridge vs OVN network setup, architecture, and trade-offs |
+| [`logger/Readme.md`](logger/Readme.md) | Logger conventions and usage |
+
 ## License
 
 MIT License. See [`LICENSE`](LICENSE) for details.
