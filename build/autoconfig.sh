@@ -99,6 +99,24 @@ EOF"
 
 sudo chmod +x "$target_file"
 
+sudo tee /etc/systemd/system/kws_core.service > /dev/null << EOF
+[Unit]
+Description=kws daemon service for host computer
+Wants=network-online.target
+After=network.target
+StartLimitIntervalSec=0
+
+[Service]
+Type=simple
+Restart=always
+RestartSec=1
+User=root
+ExecStart=${curr_dir}/KWS_Core
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
 sudo rm promtail-linux-amd64.zip
 sudo rm node_exporter-1.9.1.linux-amd64.tar.gz
 sudo systemctl daemon-reload
@@ -106,6 +124,7 @@ sudo systemctl enable promtail.service
 sudo systemctl start promtail.service
 sudo systemctl enable node_exporter.service
 sudo systemctl start node_exporter.service
+sudo systemctl enable kws_core.service
 
 echo '/usr/local/bin/ovs-vsctl ux' >> /etc/apparmor.d/usr.sbin.libvirtd
 

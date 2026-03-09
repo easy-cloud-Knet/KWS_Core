@@ -20,6 +20,7 @@ sudo ovsdb-tool create /usr/local/etc/ovn/ovnsb_db.db /usr/local/share/ovn/ovn-s
 
 IP_ADDRESS=$1
 DNS=$2
+IFACE=${3:-eno1}
 FILE_PATH="/etc/systemd/network/20-br-ext.network"
 
 cat <<EOF | sudo tee "$FILE_PATH" > /dev/null
@@ -152,7 +153,7 @@ sleep 10
 
 sudo ovs-vsctl --may-exist del-br br-ext
 sudo ovs-vsctl add-br br-ext
-sudo ovs-vsctl add-port br-ext ens3
+sudo ovs-vsctl add-port br-ext "$IFACE"
 
 
 sudo systemctl restart systemd-networkd

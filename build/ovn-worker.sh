@@ -13,14 +13,15 @@ sudo mkdir -p /usr/local/var/run/ovn
 sudo mkdir -p /usr/local/var/log/ovn
 sudo mkdir -p /usr/local/var/log/openvswitch/
 
-sudo ovs-vsctl --may-exist del-br br-ext
-sudo ovs-vsctl add-br br-ext
-sudo ovs-vsctl add-port br-ext ens3
-
 IP_ADDRESS=$1
 DNS=$2
 CTL_IP=$3
+IFACE=${4:-ens3}
 FILE_PATH="/etc/systemd/network/20-br-ext.network"
+
+sudo ovs-vsctl --may-exist del-br br-ext
+sudo ovs-vsctl add-br br-ext
+sudo ovs-vsctl add-port br-ext "$IFACE"
 
 cat <<EOF | sudo tee "$FILE_PATH" > /dev/null
 [Match]
