@@ -1,10 +1,5 @@
 package termination
 
-import (
-	domCon "github.com/easy-cloud-Knet/KWS_Core/DomCon"
-	"libvirt.org/go/libvirt"
-)
-
 type DomainDeleteType uint
 
 const (
@@ -13,18 +8,18 @@ const (
 )
 
 type DomainDeletion interface {
-	DeleteDomain() (*libvirt.Domain, error)
+	DeleteDomain() error
 }
 
 type DomainTermination interface {
-	TerminateDomain() (*libvirt.Domain, error)
+	TerminateDomain() error
 }
 
 type DomainTerminator struct {
-	domain *domCon.Domain
+	domain Domain
 }
 type DomainDeleter struct {
 	uuid         string
-	domain       *domCon.Domain
+	domain       Domain
 	DeletionType DomainDeleteType
 }

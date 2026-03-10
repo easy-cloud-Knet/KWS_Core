@@ -30,9 +30,9 @@ func (i *InstHandler) ForceShutDownVM(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	DomainTerminator, _ := termination.DomainTerminatorFactory(dom)
+	DomainTerminator := termination.DomainTerminatorFactory(dom.Domain)
 
-	_, err = DomainTerminator.TerminateDomain()
+	err = DomainTerminator.TerminateDomain()
 	if err != nil {
 		resp.ResponseWriteErr(w, virerr.ErrorJoin(err, fmt.Errorf("error shutting down vm, retreving Get domin error ")), http.StatusInternalServerError)
 		return
@@ -88,9 +88,8 @@ func (i *InstHandler) DeleteVM(w http.ResponseWriter, r *http.Request) {
 	}
 	i.Logger.Info("Domain status retrieved", zap.Any("status", stat))
 
-	DomainDeleter, _ := termination.DomainDeleterFactory(domain, param.DeletionType, param.UUID)
-	domDeleted, err := DomainDeleter.DeleteDomain()
-	if err != nil {
+	DomainDeleter := termination.DomainDeleterFactory(domain.Domain, param.DeletionType, param.UUID)
+	if err := DomainDeleter.DeleteDomain(); err != nil {
 		ERR := virerr.ErrorJoin(err, fmt.Errorf("error deleting vm, retreving Get domin error "))
 		resp.ResponseWriteErr(w, ERR, http.StatusInternalServerError)
 		i.Logger.Error("failed to delete domain", zap.String("uuid", param.UUID), zap.Error(ERR))
@@ -98,7 +97,7 @@ func (i *InstHandler) DeleteVM(w http.ResponseWriter, r *http.Request) {
 	}
 	// stat.( map[domainStatus.SourceType]int )[domainStatus.CPU]
 	// interface{}로 반환하다보니 좀 못생겨졌는데, 나중에 타입 결정하고 변경하면 될 거 같음, 일단은 이렇게 구현
-	i.DomainControl.DeleteDomain(domDeleted, param.UUID, int(stat.(map[domainStatus.SourceType]int)[domainStatus.CPU]))
+	i.DomainControl.DeleteDomain(domain.Domain, param.UUID, int(stat.(map[domainStatus.SourceType]int)[domainStatus.CPU]))
 
 	resp.ResponseWriteOK(w, nil)
 }
