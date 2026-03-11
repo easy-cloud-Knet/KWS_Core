@@ -95,8 +95,6 @@ func (i *InstHandler) DeleteVM(w http.ResponseWriter, r *http.Request) {
 		i.Logger.Error("failed to delete domain", zap.String("uuid", param.UUID), zap.Error(ERR))
 		return
 	}
-	// stat.( map[domainStatus.SourceType]int )[domainStatus.CPU]
-	// interface{}로 반환하다보니 좀 못생겨졌는데, 나중에 타입 결정하고 변경하면 될 거 같음, 일단은 이렇게 구현
 	i.DomainControl.DeleteDomain(domain.Domain, param.UUID, int(stat.(map[domainStatus.SourceType]int)[domainStatus.CPU]))
 
 	resp.ResponseWriteOK(w, nil)

@@ -4,10 +4,9 @@ import (
 	"fmt"
 
 	virerr "github.com/easy-cloud-Knet/KWS_Core/error"
-	"libvirt.org/go/libvirt"
 )
 
-func (AII *AllInstInfo) GetAllinstInfo(LibvirtInst *libvirt.Connect) error {
+func (AII *AllInstInfo) GetAllinstInfo(LibvirtInst Connect) error {
 
 	domains, err := LibvirtInst.ListAllDomains(0) //alldomain
 	if err != nil {
@@ -41,7 +40,7 @@ func InstDataTypeRouter(types InstDataType) (InstDataTypeHandler, error) {
 	return nil, virerr.ErrorGen(virerr.InvalidParameter, fmt.Errorf("unsupported type"))
 }
 
-func InstDetailFactory(handler InstDataTypeHandler, LibvirtInst *libvirt.Connect) (*InstDetail, error) {
+func InstDetailFactory(handler InstDataTypeHandler, LibvirtInst Connect) (*InstDetail, error) {
 	if err := handler.GetAllinstInfo(LibvirtInst); err != nil {
 		return nil, err
 	}

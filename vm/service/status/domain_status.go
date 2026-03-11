@@ -4,14 +4,13 @@ import (
 	"errors"
 	"fmt"
 
-	domCon "github.com/easy-cloud-Knet/KWS_Core/DomCon"
 	virerr "github.com/easy-cloud-Knet/KWS_Core/error"
 	"github.com/google/uuid"
 	"libvirt.org/go/libvirt"
 )
 
-func (DI *DomainInfo) GetInfo(domain *domCon.Domain) error {
-	info, err := domain.Domain.GetInfo()
+func (DI *DomainInfo) GetInfo(domain Domain) error {
+	info, err := domain.GetInfo()
 	if err != nil {
 		return virerr.ErrorGen(virerr.DomainStatusError, err)
 	}
@@ -24,14 +23,14 @@ func (DI *DomainInfo) GetInfo(domain *domCon.Domain) error {
 	return nil
 }
 
-func (DP *DomainState) GetInfo(domain *domCon.Domain) error {
-	info, _, err := domain.Domain.GetState()
+func (DP *DomainState) GetInfo(domain Domain) error {
+	info, _, err := domain.GetState()
 	//searching for coresponding second parameter, "Reason"
 	if err != nil {
 		return virerr.ErrorGen(virerr.DomainStatusError, err)
 	}
 
-	uuidBytes, err := domain.Domain.GetUUID()
+	uuidBytes, err := domain.GetUUID()
 	if err != nil {
 		return virerr.ErrorGen(virerr.InvalidUUID, err)
 	}
@@ -42,7 +41,7 @@ func (DP *DomainState) GetInfo(domain *domCon.Domain) error {
 
 	DP.DomainState = info
 	DP.UUID = string(uuidParsed.String())
-	userInfo, err := domain.Domain.GetGuestInfo(libvirt.DOMAIN_GUEST_INFO_USERS, 0)
+	userInfo, err := domain.GetGuestInfo(libvirt.DOMAIN_GUEST_INFO_USERS, 0)
 	if err != nil {
 		return virerr.ErrorGen(virerr.DomainStatusError, fmt.Errorf("error retreving guest info: %w", err))
 	}
@@ -50,7 +49,7 @@ func (DP *DomainState) GetInfo(domain *domCon.Domain) error {
 	return nil
 }
 
-func DomainDetailFactory(Handler DataTypeHandler, dom *domCon.Domain) *DomainDetail {
+func DomainDetailFactory(Handler DataTypeHandler, dom Domain) *DomainDetail {
 	return &DomainDetail{
 		DataHandle: Handler,
 		Domain:     dom,
