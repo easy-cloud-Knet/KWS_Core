@@ -31,9 +31,9 @@ func (i *InstHandler) ReturnStatusUUID(w http.ResponseWriter, r *http.Request) {
 		resp.ResponseWriteErr(w, virerr.ErrorJoin(err, errors.New("error returning status from uuid")), http.StatusInternalServerError)
 	}
 
-	DomainDetail := status.DomainDetailFactory(outputStruct, dom)
+	DomainDetail := status.DomainDetailFactory(outputStruct, dom.Domain)
 
-	if err := outputStruct.GetInfo(dom); err != nil {
+	if err := outputStruct.GetInfo(dom.Domain); err != nil {
 		resp.ResponseWriteErr(w, err, http.StatusInternalServerError)
 		return
 	}
