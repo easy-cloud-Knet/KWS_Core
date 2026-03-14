@@ -73,7 +73,7 @@ func (i *InstHandler) CreateVMFromBase(w http.ResponseWriter, r *http.Request) {
 	if err != nil && newDomain == nil {
 		newErr := virerr.ErrorGen(virerr.DomainGenerationError, fmt.Errorf(" %w error while creating new domain, from CreateVM", err))
 		i.Logger.Error("error from createvm", zap.Error(newErr))
-		resp.ResponseWriteErr(w, err, http.StatusInternalServerError)
+		resp.ResponseWriteErr(w, newErr, http.StatusInternalServerError)
 		return
 	}
 
