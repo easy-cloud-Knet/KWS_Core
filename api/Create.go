@@ -21,10 +21,16 @@ func (i *InstHandler) BootVM(w http.ResponseWriter, r *http.Request) {
 	}
 	i.Logger.Info("Handling Boot VM", zap.String("uuid", param.UUID))
 
-	DomainExisting, _ := i.DomainControl.GetDomain(param.UUID)
+	DomainExisting, domainErr := i.DomainControl.GetDomain(param.UUID)
+	if domainErr != nil {
+		i.Logger.Error("error handling booting vm, failed to get domain", zap.String("uuid", param.UUID), zap.Error(domainErr))
+		resp.ResponseWriteErr(w, domainErr, http.StatusInternalServerError)
+		return
+	}
 	if DomainExisting == nil {
-		resp.ResponseWriteErr(w, nil, http.StatusBadRequest)
-		i.Logger.Error("error handling booting vm, domain not found", zap.String("uuid", param.UUID))
+		notFoundErr := virerr.ErrorGen(virerr.DomainGenerationError, fmt.Errorf("domain %s not found while booting vm", param.UUID))
+		i.Logger.Error("error handling booting vm, domain not found", zap.String("uuid", param.UUID), zap.Error(notFoundErr))
+		resp.ResponseWriteErr(w, notFoundErr, http.StatusNotFound)
 		return
 	}
 
@@ -59,10 +65,16 @@ func (i *InstHandler) CreateVMFromBase(w http.ResponseWriter, r *http.Request) {
 	}
 	i.Logger.Info("Handling Create VM", zap.String("uuid", param.UUID))
 
-	domainExisting, _ := i.DomainControl.GetDomain(param.UUID)
+	domainExisting, domainErr := i.DomainControl.GetDomain(param.UUID)
+	if domainErr != nil {
+		i.Logger.Error("error handling creating vm, failed to get existing domain", zap.String("uuid", param.UUID), zap.Error(domainErr))
+		resp.ResponseWriteErr(w, domainErr, http.StatusInternalServerError)
+		return
+	}
 	if domainExisting != nil {
-		resp.ResponseWriteErr(w, nil, http.StatusBadRequest)
-		i.Logger.Error("error handling creating vm, domain already exists", zap.String("uuid", param.UUID))
+		existsErr := virerr.ErrorGen(virerr.DomainGenerationError, fmt.Errorf("domain %s already exists", param.UUID))
+		i.Logger.Error("error handling creating vm, domain already exists", zap.String("uuid", param.UUID), zap.Error(existsErr))
+		resp.ResponseWriteErr(w, existsErr, http.StatusBadRequest)
 		return
 	}
 
