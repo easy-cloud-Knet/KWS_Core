@@ -12,11 +12,12 @@ import (
 	virerr "github.com/easy-cloud-Knet/KWS_Core/error"
 	"github.com/easy-cloud-Knet/KWS_Core/vm/parsor"
 	userconfig "github.com/easy-cloud-Knet/KWS_Core/vm/parsor/cloud-init"
+	vmtypes "github.com/easy-cloud-Knet/KWS_Core/vm/types"
 	"go.uber.org/zap"
 	"libvirt.org/go/libvirt"
 )
 
-func LocalConfFactory(param *parsor.VM_Init_Info, logger *zap.Logger) *localConfigurer {
+func LocalConfFactory(param *vmtypes.VM_Init_Info, logger *zap.Logger) *localConfigurer {
 	return &localConfigurer{
 		VMDescription:  param,
 		YamlParsorUser: &userconfig.User_data_yaml{},
