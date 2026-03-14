@@ -3,6 +3,7 @@ package creation
 import (
 	"github.com/easy-cloud-Knet/KWS_Core/vm/parsor"
 	userconfig "github.com/easy-cloud-Knet/KWS_Core/vm/parsor/cloud-init"
+	vmtypes "github.com/easy-cloud-Knet/KWS_Core/vm/types"
 	"go.uber.org/zap"
 	"libvirt.org/go/libvirt"
 )
@@ -31,7 +32,7 @@ type NewDomainFromSnapshot struct {
 }
 
 type localConfigurer struct {
-	VMDescription  *parsor.VM_Init_Info
+	VMDescription  *vmtypes.VM_Init_Info
 	YamlParsorUser *userconfig.User_data_yaml
 	YamlParsorMeta *userconfig.Meta_data_yaml
 	DeviceDefiner  *parsor.VM_CREATE_XML

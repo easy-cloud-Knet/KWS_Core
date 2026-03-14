@@ -6,13 +6,14 @@ import (
 	"testing"
 
 	network "github.com/easy-cloud-Knet/KWS_Core/net"
+	vmtypes "github.com/easy-cloud-Knet/KWS_Core/vm/types"
 )
 
-var testSpec = &VM_Init_Info{
+var testSpec = &vmtypes.VM_Init_Info{
 	DomName: "test-vm",
 	UUID:    "123e4567-e89b-12d3-a456-426614174000",
 	OS:      "debian",
-	HardwardInfo: HardwareInfo{
+	HardwardInfo: vmtypes.HardwareInfo{
 		CPU:    2,
 		Memory: 4,
 		Disk:   20,

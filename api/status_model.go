@@ -5,10 +5,6 @@ import (
 	"libvirt.org/go/libvirt"
 )
 
-type DomainBootRequest struct {
-	UUID string `json:"UUID"`
-}
-
 type DomainStatusRequest struct {
 	DataType status.DomainDataType `json:"dataType"`
 	UUID     string                `json:"UUID"`

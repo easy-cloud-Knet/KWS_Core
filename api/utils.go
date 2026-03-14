@@ -6,7 +6,6 @@ import (
 	"io"
 	"net/http"
 
-	domCon "github.com/easy-cloud-Knet/KWS_Core/DomCon"
 	virerr "github.com/easy-cloud-Knet/KWS_Core/error"
 )
 
@@ -71,9 +70,3 @@ func (br *BaseResponse[T]) ResponseWriteOK(w http.ResponseWriter, info *T) {
 	w.Write(data)
 }
 
-func (i *InstHandler) domainConGetter() (*domCon.DomListControl, error) {
-	if i.DomainControl == nil {
-		return nil, virerr.ErrorGen(virerr.InvalidParameter, fmt.Errorf("domainController not initialled yet"))
-	}
-	return i.DomainControl, nil
-}

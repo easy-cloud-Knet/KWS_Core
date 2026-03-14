@@ -10,7 +10,7 @@ import (
 	"strings"
 
 	"github.com/easy-cloud-Knet/KWS_Core/config"
-	"github.com/easy-cloud-Knet/KWS_Core/vm/parsor"
+	vmtypes "github.com/easy-cloud-Knet/KWS_Core/vm/types"
 	"gopkg.in/yaml.v3"
 )
 
@@ -44,7 +44,7 @@ func (u *Meta_data_yaml) WriteFile(dirPath string) error {
 	return nil
 }
 
-func (u *User_data_yaml) ParseData(param *parsor.VM_Init_Info) error {
+func (u *User_data_yaml) ParseData(param *vmtypes.VM_Init_Info) error {
 
 	u.PackageUpdatable = true
 
@@ -131,7 +131,7 @@ func (u *User_data_yaml) configQEMU() {
 	u.Runcmd = append(u.Runcmd, "sudo systemctl enable qemu-guest-agent")
 }
 
-func (m *Meta_data_yaml) ParseData(param *parsor.VM_Init_Info) error {
+func (m *Meta_data_yaml) ParseData(param *vmtypes.VM_Init_Info) error {
 	m.Instance_ID = param.UUID
 	m.Local_Host_Id = param.DomName
 	return nil

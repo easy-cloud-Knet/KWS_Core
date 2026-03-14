@@ -5,7 +5,6 @@ import (
 	"net/http"
 
 	virerr "github.com/easy-cloud-Knet/KWS_Core/error"
-	"github.com/easy-cloud-Knet/KWS_Core/vm/parsor"
 	"github.com/easy-cloud-Knet/KWS_Core/vm/service/creation"
 	"go.uber.org/zap"
 	"libvirt.org/go/libvirt"
@@ -22,9 +21,7 @@ func (i *InstHandler) BootVM(w http.ResponseWriter, r *http.Request) {
 	}
 	i.Logger.Info("Handling Boot VM", zap.String("uuid", param.UUID))
 
-	domCon, _ := i.domainConGetter()
-
-	DomainExisting, _ := domCon.GetDomain(param.UUID)
+	DomainExisting, _ := i.DomainControl.GetDomain(param.UUID)
 	if DomainExisting == nil {
 		resp.ResponseWriteErr(w, nil, http.StatusBadRequest)
 		i.Logger.Error("error handling booting vm, domain not found", zap.String("uuid", param.UUID))
@@ -53,9 +50,7 @@ func (i *InstHandler) BootVM(w http.ResponseWriter, r *http.Request) {
 func (i *InstHandler) CreateVMFromBase(w http.ResponseWriter, r *http.Request) {
 
 	resp := ResponseGen[libvirt.DomainInfo]("CreateVm")
-	param := &parsor.VM_Init_Info{}
-
-	domCon, _ := i.domainConGetter()
+	param := &CreateVMRequest{}
 
 	if err := HttpDecoder(r, param); err != nil {
 		resp.ResponseWriteErr(w, err, http.StatusBadRequest)
@@ -64,14 +59,14 @@ func (i *InstHandler) CreateVMFromBase(w http.ResponseWriter, r *http.Request) {
 	}
 	i.Logger.Info("Handling Create VM", zap.String("uuid", param.UUID))
 
-	domainExisting, _ := domCon.GetDomain(param.UUID)
+	domainExisting, _ := i.DomainControl.GetDomain(param.UUID)
 	if domainExisting != nil {
 		resp.ResponseWriteErr(w, nil, http.StatusBadRequest)
 		i.Logger.Error("error handling creating vm, domain already exists", zap.String("uuid", param.UUID))
 		return
 	}
 
-	DomConf := creation.LocalConfFactory(param, i.Logger)
+	DomConf := creation.LocalConfFactory(param.toVMInitInfo(), i.Logger)
 	DomCreator := creation.LocalCreatorFactory(DomConf, i.LibvirtInst, i.Logger)
 
 	newDomain, err := DomCreator.CreateVM()
@@ -82,7 +77,7 @@ func (i *InstHandler) CreateVMFromBase(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = domCon.AddNewDomain(newDomain, param.UUID)
+	err = i.DomainControl.AddNewDomain(newDomain, param.UUID)
 	if err != nil {
 		i.Logger.Error("error from createvm", zap.Error(err))
 		resp.ResponseWriteErr(w, err, http.StatusInternalServerError)
