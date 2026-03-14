@@ -13,7 +13,6 @@ import (
 	"github.com/easy-cloud-Knet/KWS_Core/vm/parsor"
 	userconfig "github.com/easy-cloud-Knet/KWS_Core/vm/parsor/cloud-init"
 	"go.uber.org/zap"
-	"libvirt.org/go/libvirt"
 )
 
 func LocalConfFactory(param *parsor.VM_Init_Info, logger *zap.Logger) *localConfigurer {
@@ -25,7 +24,7 @@ func LocalConfFactory(param *parsor.VM_Init_Info, logger *zap.Logger) *localConf
 	}
 
 }
-func LocalCreatorFactory(confige *localConfigurer, libvirtInst *libvirt.Connect, logger *zap.Logger) *LocalCreator {
+func LocalCreatorFactory(confige Configurer, libvirtInst LibvirtConnect, logger *zap.Logger) *LocalCreator {
 	return &LocalCreator{
 		DomainConfiger: confige,
 		libvirtInst:    libvirtInst,
@@ -34,37 +33,40 @@ func LocalCreatorFactory(confige *localConfigurer, libvirtInst *libvirt.Connect,
 }
 
 func (DCB *LocalCreator) CreateVM() (*domCon.Domain, error) {
-	//DomainConfiger 를 인터페이스로 둔다면 타입 체크로 분기 가능
-	err := DCB.DomainConfiger.Generate(DCB.libvirtInst, DCB.logger)
+	output, err := DCB.DomainConfiger.GenerateXML(DCB.logger)
 	if err != nil {
-		DCB.logger.Warn("error whiling configuring base Configures, ", zap.Error(err))
+		DCB.logger.Error("error while generating VM config", zap.Error(err))
+		return nil, err
 	}
 
-	output, err := xml.MarshalIndent(*DCB.DomainConfiger.DeviceDefiner, "", "  ")
+	domain, err := DCB.libvirtInst.DomainDefineXML(string(output))
 	if err != nil {
-		errDesc := virerr.ErrorGen(virerr.DomainGenerationError, fmt.Errorf("in domain-Creator, XML marshaling error: %w", err))
+		errDesc := virerr.ErrorGen(virerr.DomainGenerationError, fmt.Errorf("in domain-Creator, error defining domain via libvirt: %w", err))
 		DCB.logger.Error(errDesc.Error())
 		return nil, errDesc
 	}
 
-	domain, err := CreateDomainWithXML(DCB.libvirtInst, output)
-	if err != nil {
-		errDesc := virerr.ErrorGen(virerr.DomainGenerationError, fmt.Errorf("in domain-Creator, error occured from creating with libvirt: %w", err))
+	if err := domain.Create(); err != nil {
+		errDesc := virerr.ErrorGen(virerr.DomainGenerationError, fmt.Errorf("in domain-Creator, error starting domain: %w", err))
 		DCB.logger.Error(errDesc.Error())
 		return nil, errDesc
+	}
 
-	}
-	err = domain.Create()
-	if err != nil {
-		errDesc := virerr.ErrorGen(virerr.DomainGenerationError, fmt.Errorf("in domain-Creator, XML marshaling error: %w", err))
-		DCB.logger.Error(errDesc.Error())
-		return nil, errDesc
-	}
-	domconDom := domCon.NewDomainInstance(domain)
-	return domconDom, nil
+	return domCon.NewDomainInstance(domain), nil
 }
 
-func (DB localConfigurer) Generate(LibvirtInst *libvirt.Connect, logger *zap.Logger) error {
+func (DB localConfigurer) GenerateXML(logger *zap.Logger) ([]byte, error) {
+	if err := DB.Generate(logger); err != nil {
+		return nil, err
+	}
+	output, err := xml.MarshalIndent(*DB.DeviceDefiner, "", "  ")
+	if err != nil {
+		return nil, virerr.ErrorGen(virerr.DomainGenerationError, fmt.Errorf("XML marshaling error: %w", err))
+	}
+	return output, nil
+}
+
+func (DB localConfigurer) Generate(logger *zap.Logger) error {
 	dirPath, err := parsor.GetSafeFilePath(config.StorageBase, DB.VMDescription.UUID)
 	if dirPath == "" {
 		errDesc := fmt.Errorf("failed to generate safe file path for UUID %s %v", DB.VMDescription.UUID, err)
@@ -146,18 +148,6 @@ func (DB localConfigurer) CreateISOFile(dirPath string) error {
 		return virerr.ErrorGen(virerr.DomainGenerationError, errorDescription)
 	}
 	return nil
-}
-
-func CreateDomainWithXML(LibvirtInst *libvirt.Connect, config []byte) (*libvirt.Domain, error) {
-
-	// DomainCreateXMLWithFiles를 호출하여 도메인을 생성합니다.
-	domain, err := LibvirtInst.DomainDefineXML(string(config))
-	if err != nil {
-		return nil, virerr.ErrorGen(virerr.DomainGenerationError, fmt.Errorf("domain creating with libvirt daemon from xml err %w", err))
-		// cpu나 ip 중복 등을 검사하는 코드를 삽입하고, 그에 맞는 에러 반환 필요
-	}
-	//이전까지 생성 된 파일 삭제 해야됨.
-	return domain, nil
 }
 
 // local 파일에서 vm을 생성할 경우 사용
