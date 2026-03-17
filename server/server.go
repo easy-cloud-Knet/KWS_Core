@@ -30,6 +30,7 @@ func InitServer(portNum int, libvirtInst *api.InstHandler, logger *zap.Logger) {
 	mux.HandleFunc("GET /ListExternalSnapshots", libvirtInst.ListExternalSnapshots)
 	mux.HandleFunc("POST /RevertSnapshot", libvirtInst.RevertSnapshot)
 	mux.HandleFunc("POST /RevertExternalSnapshot", libvirtInst.RevertExternalSnapshot)
+	mux.HandleFunc("POST /MergeExternalSnapshot", libvirtInst.MergeExternalSnapshot)
 	mux.HandleFunc("POST /DeleteSnapshot", libvirtInst.DeleteSnapshot)
 
 	libvirtHandler := middleware.LibvirtMiddleware(libvirtInst.IsConnected, logger)(mux)

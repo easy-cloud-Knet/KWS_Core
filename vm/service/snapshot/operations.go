@@ -8,7 +8,23 @@ import (
 	"libvirt.org/go/libvirt"
 )
 
-// CreateSnapshot creates a libvirt snapshot and records basic metadata.
+// ============================================================================
+// Internal Snapshot Management
+// ============================================================================
+// Internal snapshots store snapshot data within the original disk image file.
+// They are simpler to manage but require qcow2 or similar formats that support
+// internal snapshots. All snapshot data is contained in a single file.
+
+// CreateSnapshot creates an internal snapshot for the specified domain.
+// Internal snapshots are stored within the original disk image file and are
+// suitable for qcow2 and other formats that support internal snapshot storage.
+//
+// Parameters:
+//   - domain: The domain for which to create the snapshot
+//   - name: The name of the snapshot
+//   - opts: Optional settings including description and quiesce flag
+//
+// Returns the created snapshot name or an error.
 func CreateSnapshot(domain *domCon.Domain, name string, opts *SnapshotOptions) (string, error) {
 	if domain == nil || domain.Domain == nil {
 		return "", virerr.ErrorGen(virerr.InvalidParameter, fmt.Errorf("nil domain"))
@@ -40,7 +56,13 @@ func CreateSnapshot(domain *domCon.Domain, name string, opts *SnapshotOptions) (
 	return snapName, nil
 }
 
-// ListSnapshots lists snapshot names for the domain.
+// ListSnapshots returns all snapshot names for the specified domain.
+// This includes both internal and external snapshots.
+//
+// Parameters:
+//   - domain: The domain to list snapshots for
+//
+// Returns a slice of snapshot names or an error.
 func ListSnapshots(domain *domCon.Domain) ([]string, error) {
 	if domain == nil || domain.Domain == nil {
 		return nil, virerr.ErrorGen(virerr.InvalidParameter, fmt.Errorf("nil domain"))
@@ -64,7 +86,15 @@ func ListSnapshots(domain *domCon.Domain) ([]string, error) {
 	return names, nil
 }
 
-// RevertToSnapshot reverts the domain to the given snapshot name.
+// RevertToSnapshot reverts the domain to a previously created snapshot.
+// The domain will be restored to the exact state it was in when the snapshot
+// was created, including memory state if the snapshot was taken while running.
+//
+// Parameters:
+//   - domain: The domain to revert
+//   - snapName: The name of the snapshot to revert to
+//
+// Returns an error if the snapshot doesn't exist or revert fails.
 func RevertToSnapshot(domain *domCon.Domain, snapName string) error {
 	if domain == nil || domain.Domain == nil {
 		return virerr.ErrorGen(virerr.InvalidParameter, fmt.Errorf("nil domain"))
@@ -104,7 +134,15 @@ func RevertToSnapshot(domain *domCon.Domain, snapName string) error {
 	return nil
 }
 
-// DeleteSnapshot deletes a snapshot by name.
+// DeleteSnapshot permanently deletes a snapshot by name.
+// This removes the snapshot metadata and, depending on the snapshot type,
+// may merge snapshot data back into the base disk.
+//
+// Parameters:
+//   - domain: The domain containing the snapshot
+//   - snapName: The name of the snapshot to delete
+//
+// Returns an error if the snapshot doesn't exist or deletion fails.
 func DeleteSnapshot(domain *domCon.Domain, snapName string) error {
 	if domain == nil || domain.Domain == nil {
 		return virerr.ErrorGen(virerr.InvalidParameter, fmt.Errorf("nil domain"))
