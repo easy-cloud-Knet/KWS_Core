@@ -37,6 +37,16 @@ type ExternalSnapshotListResponse struct {
 	SnapNames []string `json:"SnapNames"`
 }
 
+type ExternalSnapshotMergeRequest struct {
+	UUID string `json:"UUID"`
+	Disk string `json:"Disk,omitempty"`
+}
+
+type ExternalSnapshotMergeResponse struct {
+	UUID        string   `json:"UUID"`
+	MergedDisks []string `json:"MergedDisks"`
+}
+
 // CreateSnapshot creates a snapshot for the specified domain UUID
 func (i *InstHandler) CreateSnapshot(w http.ResponseWriter, r *http.Request) {
 	param := &SnapshotRequest{}
@@ -193,6 +203,40 @@ func (i *InstHandler) RevertExternalSnapshot(w http.ResponseWriter, r *http.Requ
 	resp.ResponseWriteOK(w, &ExternalSnapshotResponse{
 		UUID:     param.UUID,
 		SnapName: param.Name,
+	})
+}
+
+// MergeExternalSnapshot merges active external snapshot layers into backing files.
+func (i *InstHandler) MergeExternalSnapshot(w http.ResponseWriter, r *http.Request) {
+	param := &ExternalSnapshotMergeRequest{}
+	resp := ResponseGen[ExternalSnapshotMergeResponse]("Merge External Snapshot")
+
+	if err := HttpDecoder(r, param); err != nil {
+		resp.ResponseWriteErr(w, err, http.StatusInternalServerError)
+		i.Logger.Error("external snapshot merge decode failed", zap.Error(err))
+		return
+	}
+
+	i.Logger.Info("external snapshot merge start", zap.String("domain_uuid", param.UUID), zap.String("disk", param.Disk))
+
+	dom, err := i.DomainControl.GetDomain(param.UUID)
+	if err != nil {
+		resp.ResponseWriteErr(w, err, http.StatusInternalServerError)
+		i.Logger.Error("external snapshot merge failed - domain not found", zap.String("domain_uuid", param.UUID), zap.Error(err))
+		return
+	}
+
+	mergedDisks, err := snapshotpkg.MergeExternalSnapshot(dom, param.Disk)
+	if err != nil {
+		resp.ResponseWriteErr(w, err, http.StatusInternalServerError)
+		i.Logger.Error("external snapshot merge failed", zap.String("domain_uuid", param.UUID), zap.String("disk", param.Disk), zap.Error(err))
+		return
+	}
+
+	i.Logger.Info("external snapshot merge success", zap.String("domain_uuid", param.UUID), zap.String("disk", param.Disk), zap.Int("merged_disk_count", len(mergedDisks)))
+	resp.ResponseWriteOK(w, &ExternalSnapshotMergeResponse{
+		UUID:        param.UUID,
+		MergedDisks: mergedDisks,
 	})
 }
 
