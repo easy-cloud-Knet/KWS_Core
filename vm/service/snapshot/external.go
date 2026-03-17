@@ -274,6 +274,14 @@ func RevertExternalSnapshot(domain *domCon.Domain, snapName string) error {
 		return fmt.Errorf("snapshot %s not found", snapName)
 	}
 
+	targetSources, err := extractExternalSnapshotSources(target)
+	if err != nil {
+		return err
+	}
+	if len(targetSources) == 0 {
+		return fmt.Errorf("snapshot %s has no external disk sources", snapName)
+	}
+
 	disks, err := listFileDisks(domain)
 	if err != nil {
 		return err
@@ -281,10 +289,11 @@ func RevertExternalSnapshot(domain *domCon.Domain, snapName string) error {
 
 	updated := false
 	for _, d := range disks {
-		if d.BackingSource == "" {
+		targetSource, ok := targetSources[d.TargetDev]
+		if !ok || targetSource == "" {
 			continue
 		}
-		diskXML := buildDiskDeviceXML(d, d.BackingSource)
+		diskXML := buildDiskDeviceXML(d, targetSource)
 		if err := domain.Domain.UpdateDeviceFlags(diskXML, libvirt.DOMAIN_DEVICE_MODIFY_CONFIG); err != nil {
 			return fmt.Errorf("failed to update disk %s: %w", d.TargetDev, err)
 		}
@@ -296,6 +305,35 @@ func RevertExternalSnapshot(domain *domCon.Domain, snapName string) error {
 	}
 
 	return nil
+}
+
+func extractExternalSnapshotSources(snapshot *libvirt.DomainSnapshot) (map[string]string, error) {
+	if snapshot == nil {
+		return nil, fmt.Errorf("nil snapshot")
+	}
+
+	xmlDesc, err := snapshot.GetXMLDesc(0)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get snapshot xml: %w", err)
+	}
+
+	var doc snapshotXML
+	if err := xml.Unmarshal([]byte(xmlDesc), &doc); err != nil {
+		return nil, fmt.Errorf("failed to parse snapshot xml: %w", err)
+	}
+
+	out := make(map[string]string)
+	for _, d := range doc.Disks.Disks {
+		if !strings.EqualFold(d.Snapshot, "external") {
+			continue
+		}
+		if d.Name == "" || d.Source == nil || d.Source.File == "" {
+			continue
+		}
+		out[d.Name] = d.Source.File
+	}
+
+	return out, nil
 }
 
 // MergeExternalSnapshot merges the current external overlay into its immediate
