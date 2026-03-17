@@ -1,7 +1,6 @@
 package status
 
 import (
-	domCon "github.com/easy-cloud-Knet/KWS_Core/DomCon"
 	domStatus "github.com/easy-cloud-Knet/KWS_Core/DomCon/domainList_status"
 	"libvirt.org/go/libvirt"
 )
@@ -87,7 +86,7 @@ type InstDetail struct {
 }
 
 type InstDataTypeHandler interface {
-	GetAllinstInfo(LibvirtInst *libvirt.Connect) error
+	GetAllinstInfo(LibvirtInst Connect) error
 }
 
 const (
@@ -128,10 +127,10 @@ type DomainInfo struct {
 }
 
 type DataTypeHandler interface {
-	GetInfo(*domCon.Domain) error
+	GetInfo(Domain) error
 }
 
 type DomainDetail struct {
 	DataHandle DataTypeHandler
-	Domain     *domCon.Domain
+	Domain     Domain
 }
