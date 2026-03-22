@@ -5,7 +5,6 @@ import (
 	"net/http"
 
 	virerr "github.com/easy-cloud-Knet/KWS_Core/error"
-	"github.com/easy-cloud-Knet/KWS_Core/vm/parsor"
 	"github.com/easy-cloud-Knet/KWS_Core/vm/service/creation"
 	"go.uber.org/zap"
 	"libvirt.org/go/libvirt"
@@ -22,12 +21,16 @@ func (i *InstHandler) BootVM(w http.ResponseWriter, r *http.Request) {
 	}
 	i.Logger.Info("Handling Boot VM", zap.String("uuid", param.UUID))
 
-	domCon, _ := i.domainConGetter()
-
-	DomainExisting, _ := domCon.GetDomain(param.UUID)
+	DomainExisting, domainErr := i.DomainControl.GetDomain(param.UUID)
+	if domainErr != nil {
+		i.Logger.Error("error handling booting vm, failed to get domain", zap.String("uuid", param.UUID), zap.Error(domainErr))
+		resp.ResponseWriteErr(w, domainErr, http.StatusInternalServerError)
+		return
+	}
 	if DomainExisting == nil {
-		resp.ResponseWriteErr(w, nil, http.StatusBadRequest)
-		i.Logger.Error("error handling booting vm, domain not found", zap.String("uuid", param.UUID))
+		notFoundErr := virerr.ErrorGen(virerr.DomainGenerationError, fmt.Errorf("domain %s not found while booting vm", param.UUID))
+		i.Logger.Error("error handling booting vm, domain not found", zap.String("uuid", param.UUID), zap.Error(notFoundErr))
+		resp.ResponseWriteErr(w, notFoundErr, http.StatusNotFound)
 		return
 	}
 
@@ -53,9 +56,7 @@ func (i *InstHandler) BootVM(w http.ResponseWriter, r *http.Request) {
 func (i *InstHandler) CreateVMFromBase(w http.ResponseWriter, r *http.Request) {
 
 	resp := ResponseGen[libvirt.DomainInfo]("CreateVm")
-	param := &parsor.VM_Init_Info{}
-
-	domCon, _ := i.domainConGetter()
+	param := &CreateVMRequest{}
 
 	if err := HttpDecoder(r, param); err != nil {
 		resp.ResponseWriteErr(w, err, http.StatusBadRequest)
@@ -64,25 +65,31 @@ func (i *InstHandler) CreateVMFromBase(w http.ResponseWriter, r *http.Request) {
 	}
 	i.Logger.Info("Handling Create VM", zap.String("uuid", param.UUID))
 
-	domainExisting, _ := domCon.GetDomain(param.UUID)
+	domainExisting, domainErr := i.DomainControl.GetDomain(param.UUID)
+	if domainErr != nil {
+		i.Logger.Error("error handling creating vm, failed to get existing domain", zap.String("uuid", param.UUID), zap.Error(domainErr))
+		resp.ResponseWriteErr(w, domainErr, http.StatusInternalServerError)
+		return
+	}
 	if domainExisting != nil {
-		resp.ResponseWriteErr(w, nil, http.StatusBadRequest)
-		i.Logger.Error("error handling creating vm, domain already exists", zap.String("uuid", param.UUID))
+		existsErr := virerr.ErrorGen(virerr.DomainGenerationError, fmt.Errorf("domain %s already exists", param.UUID))
+		i.Logger.Error("error handling creating vm, domain already exists", zap.String("uuid", param.UUID), zap.Error(existsErr))
+		resp.ResponseWriteErr(w, existsErr, http.StatusBadRequest)
 		return
 	}
 
-	DomConf := creation.LocalConfFactory(param, i.Logger)
+	DomConf := creation.LocalConfFactory(param.toVMInitInfo(), i.Logger)
 	DomCreator := creation.LocalCreatorFactory(DomConf, i.LibvirtInst, i.Logger)
 
 	newDomain, err := DomCreator.CreateVM()
 	if err != nil && newDomain == nil {
 		newErr := virerr.ErrorGen(virerr.DomainGenerationError, fmt.Errorf(" %w error while creating new domain, from CreateVM", err))
 		i.Logger.Error("error from createvm", zap.Error(newErr))
-		resp.ResponseWriteErr(w, err, http.StatusInternalServerError)
+		resp.ResponseWriteErr(w, newErr, http.StatusInternalServerError)
 		return
 	}
 
-	err = domCon.AddNewDomain(newDomain, param.UUID)
+	err = i.DomainControl.AddNewDomain(newDomain, param.UUID)
 	if err != nil {
 		i.Logger.Error("error from createvm", zap.Error(err))
 		resp.ResponseWriteErr(w, err, http.StatusInternalServerError)

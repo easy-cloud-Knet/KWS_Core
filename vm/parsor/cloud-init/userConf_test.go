@@ -6,7 +6,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/easy-cloud-Knet/KWS_Core/vm/parsor"
+	vmtypes "github.com/easy-cloud-Knet/KWS_Core/vm/types"
 )
 
 func TestConfigNetworkIP(t *testing.T) {
@@ -113,7 +113,7 @@ func TestMetaDataWriteFile(t *testing.T) {
 
 func TestMetaDataParseData(t *testing.T) {
 	m := &Meta_data_yaml{}
-	param := &parsor.VM_Init_Info{
+	param := &vmtypes.VM_Init_Info{
 		UUID:    "abc-123",
 		DomName: "test-vm",
 	}

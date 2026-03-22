@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/easy-cloud-Knet/KWS_Core/config"
+	vmtypes "github.com/easy-cloud-Knet/KWS_Core/vm/types"
 )
 
 // TODO: add MarshalXML() ([]byte, error) method to VM_CREATE_XML
@@ -13,7 +14,7 @@ import (
 // Supported values: "ovn", "bridge"
 var NetworkMode = "ovn"
 
-func buildInterface(spec *VM_Init_Info) Interface {
+func buildInterface(spec *vmtypes.VM_Init_Info) Interface {
 	iface := Interface{
 		Type:       "bridge",
 		MacAddress: MacAddress{Address: spec.MacAddr},
@@ -32,7 +33,7 @@ func buildInterface(spec *VM_Init_Info) Interface {
 	return iface
 }
 
-func (XP *VM_CREATE_XML) XML_Parsor(spec *VM_Init_Info) error {
+func (XP *VM_CREATE_XML) XML_Parsor(spec *vmtypes.VM_Init_Info) error {
 	*XP = VM_CREATE_XML{
 		Type: "kvm",
 		Name: spec.DomName,
