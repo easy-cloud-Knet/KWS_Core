@@ -6,6 +6,9 @@ import (
 	"github.com/easy-cloud-Knet/KWS_Core/config"
 )
 
+// TODO: add MarshalXML() ([]byte, error) method to VM_CREATE_XML
+// to enable XMLDefiner interface to cover marshaling, allowing full mock in creation tests.
+
 // NetworkMode is injected at build time via -ldflags. Default: "ovn".
 // Supported values: "ovn", "bridge"
 var NetworkMode = "ovn"
