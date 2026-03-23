@@ -1,7 +1,7 @@
 package api
 
 import (
-	"github.com/easy-cloud-Knet/KWS_Core/pkg/service/status"
+	"github.com/easy-cloud-Knet/KWS_Core/services/status"
 	"libvirt.org/go/libvirt"
 )
 

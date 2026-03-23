@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	domCon "github.com/easy-cloud-Knet/KWS_Core/DomCon"
-	virerr "github.com/easy-cloud-Knet/KWS_Core/error"
+	virerr "github.com/easy-cloud-Knet/KWS_Core/internal/error"
 	"libvirt.org/go/libvirt"
 )
 

@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"net/http"
 
-	virerr "github.com/easy-cloud-Knet/KWS_Core/error"
+	virerr "github.com/easy-cloud-Knet/KWS_Core/internal/error"
 	httputil "github.com/easy-cloud-Knet/KWS_Core/pkg/httputil"
-	"github.com/easy-cloud-Knet/KWS_Core/pkg/service/creation"
+	"github.com/easy-cloud-Knet/KWS_Core/services/creation"
 	"go.uber.org/zap"
 	"libvirt.org/go/libvirt"
 )

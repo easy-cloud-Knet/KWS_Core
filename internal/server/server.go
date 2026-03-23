@@ -5,7 +5,7 @@ import (
 	"strconv"
 
 	"github.com/easy-cloud-Knet/KWS_Core/api"
-	"github.com/easy-cloud-Knet/KWS_Core/server/middleware"
+	"github.com/easy-cloud-Knet/KWS_Core/internal/server/middleware"
 	"go.uber.org/zap"
 )
 

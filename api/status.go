@@ -5,9 +5,9 @@ import (
 	"errors"
 	"net/http"
 
-	virerr "github.com/easy-cloud-Knet/KWS_Core/error"
+	virerr "github.com/easy-cloud-Knet/KWS_Core/internal/error"
 	httputil "github.com/easy-cloud-Knet/KWS_Core/pkg/httputil"
-	"github.com/easy-cloud-Knet/KWS_Core/pkg/service/status"
+	"github.com/easy-cloud-Knet/KWS_Core/services/status"
 	"go.uber.org/zap"
 )
 

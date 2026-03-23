@@ -3,7 +3,7 @@ package status
 import (
 	"fmt"
 
-	virerr "github.com/easy-cloud-Knet/KWS_Core/error"
+	virerr "github.com/easy-cloud-Knet/KWS_Core/internal/error"
 )
 
 func (AII *AllInstInfo) GetAllinstInfo(LibvirtInst Connect) error {

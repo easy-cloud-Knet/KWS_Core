@@ -5,7 +5,7 @@ import (
 	"strings"
 	"testing"
 
-	network "github.com/easy-cloud-Knet/KWS_Core/net"
+	network "github.com/easy-cloud-Knet/KWS_Core/internal/net"
 	vmtypes "github.com/easy-cloud-Knet/KWS_Core/pkg/types"
 )
 

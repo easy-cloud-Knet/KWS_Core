@@ -6,8 +6,8 @@ import (
 	"os/exec"
 	"path/filepath"
 
-	"github.com/easy-cloud-Knet/KWS_Core/config"
-	virerr "github.com/easy-cloud-Knet/KWS_Core/error"
+	"github.com/easy-cloud-Knet/KWS_Core/internal/config"
+	virerr "github.com/easy-cloud-Knet/KWS_Core/internal/error"
 )
 
 func DomainDeleterFactory(d Domain, delType DomainDeleteType, uuid string) DomainDeletion {

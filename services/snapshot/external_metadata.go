@@ -5,7 +5,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/easy-cloud-Knet/KWS_Core/config"
+	"github.com/easy-cloud-Knet/KWS_Core/internal/config"
 )
 
 type ExternalSnapshotOptions struct {

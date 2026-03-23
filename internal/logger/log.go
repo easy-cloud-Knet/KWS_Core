@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	appconf "github.com/easy-cloud-Knet/KWS_Core/config"
+	appconf "github.com/easy-cloud-Knet/KWS_Core/internal/config"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 )

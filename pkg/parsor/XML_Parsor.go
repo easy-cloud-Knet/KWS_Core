@@ -3,7 +3,7 @@ package parsor
 import (
 	"fmt"
 
-	"github.com/easy-cloud-Knet/KWS_Core/config"
+	"github.com/easy-cloud-Knet/KWS_Core/internal/config"
 	vmtypes "github.com/easy-cloud-Knet/KWS_Core/pkg/types"
 )
 
