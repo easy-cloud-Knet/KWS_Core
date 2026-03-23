@@ -11,10 +11,10 @@ import (
 	"github.com/easy-cloud-Knet/KWS_Core/config"
 	virerr "github.com/easy-cloud-Knet/KWS_Core/error"
 	uuid "github.com/easy-cloud-Knet/KWS_Core/pkg/UUID"
-	safepath "github.com/easy-cloud-Knet/KWS_Core/pkg/safePath"
 	"github.com/easy-cloud-Knet/KWS_Core/pkg/parsor"
-	userconfig "github.com/easy-cloud-Knet/KWS_Core/pkg/yaml/cloud-init"
+	safepath "github.com/easy-cloud-Knet/KWS_Core/pkg/safePath"
 	vmtypes "github.com/easy-cloud-Knet/KWS_Core/pkg/types"
+	userconfig "github.com/easy-cloud-Knet/KWS_Core/pkg/yaml/cloud-init"
 	"go.uber.org/zap"
 )
 

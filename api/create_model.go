@@ -6,14 +6,14 @@ import (
 )
 
 type CreateVMRequest struct {
-	DomName      string                `json:"domName"`
-	UUID         string                `json:"uuid"`
-	OS           string                `json:"os"`
-	HardwardInfo vmtypes.HardwareInfo  `json:"HWInfo"`
-	NetConf      network.NetDefine     `json:"network"`
+	DomName      string                 `json:"domName"`
+	UUID         string                 `json:"uuid"`
+	OS           string                 `json:"os"`
+	HardwardInfo vmtypes.HardwareInfo   `json:"HWInfo"`
+	NetConf      network.NetDefine      `json:"network"`
 	Users        []vmtypes.User_info_VM `json:"users"`
-	SDNUUID      string                `json:"sdnUUID"`
-	MacAddr      string                `json:"macAddr"`
+	SDNUUID      string                 `json:"sdnUUID"`
+	MacAddr      string                 `json:"macAddr"`
 }
 
 func (r *CreateVMRequest) toVMInitInfo() *vmtypes.VM_Init_Info {

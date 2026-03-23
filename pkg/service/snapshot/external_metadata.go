@@ -8,7 +8,6 @@ import (
 	"github.com/easy-cloud-Knet/KWS_Core/config"
 )
 
-
 type ExternalSnapshotOptions struct {
 	BaseDir     string
 	Description string

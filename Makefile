@@ -5,7 +5,7 @@ IP      :=
 DNS     :=
 IFACE   ?= ens3
 
-.PHONY: build run clean conf test test-v lint ovn-install ovn-cluster ovn-worker
+.PHONY: build run clean conf test test-v lint fmt ovn-install ovn-cluster ovn-worker
 
 conf:
 	./build/go.sh
@@ -36,6 +36,9 @@ ovn-cluster:
 ovn-worker:
 	@test -n "$(IP)" || { echo "usage: make ovn-worker IP=x.x.x.x DNS=x.x.x.x [CTL_IP=x.x.x.x] [IFACE=ens3]"; exit 1; }
 	./build/ovn-worker.sh $(IP) $(DNS) $(CTL_IP) $(IFACE)
+
+fmt:
+	go fmt ./...
 
 lint:
 	@which golangci-lint > /dev/null 2>&1 || { echo "installing golangci-lint..."; go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest; }

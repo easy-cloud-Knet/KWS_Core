@@ -11,14 +11,14 @@ import (
 
 // mockDomain implements Domain interface
 type mockDomain struct {
-	infoResult     *libvirt.DomainInfo
-	infoErr        error
-	stateResult    libvirt.DomainState
-	stateErr       error
-	uuidResult     []byte
-	uuidErr        error
+	infoResult      *libvirt.DomainInfo
+	infoErr         error
+	stateResult     libvirt.DomainState
+	stateErr        error
+	uuidResult      []byte
+	uuidErr         error
 	guestInfoResult *libvirt.DomainGuestInfo
-	guestInfoErr   error
+	guestInfoErr    error
 }
 
 func (m *mockDomain) GetInfo() (*libvirt.DomainInfo, error) {
