@@ -10,7 +10,7 @@ import (
 	"strings"
 
 	"github.com/easy-cloud-Knet/KWS_Core/config"
-	vmtypes "github.com/easy-cloud-Knet/KWS_Core/vm/types"
+	vmtypes "github.com/easy-cloud-Knet/KWS_Core/pkg/types"
 	"gopkg.in/yaml.v3"
 )
 

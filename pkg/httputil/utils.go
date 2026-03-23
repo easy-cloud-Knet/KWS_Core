@@ -1,4 +1,4 @@
-package api
+package httputil
 
 import (
 	"encoding/json"
@@ -22,7 +22,6 @@ func ResponseGen[T any](message string) *BaseResponse[T] {
 	}
 }
 
-// HTTP 요청을 디코딩하는 함수
 func HttpDecoder[T any](r *http.Request, param *T) error {
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
@@ -64,9 +63,7 @@ func (br *BaseResponse[T]) ResponseWriteOK(w http.ResponseWriter, info *T) {
 		http.Error(w, "failed to marshal success response", http.StatusInternalServerError)
 		return
 	}
-
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	w.Write(data)
 }
-

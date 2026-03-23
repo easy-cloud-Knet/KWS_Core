@@ -2,9 +2,9 @@ package creation
 
 import (
 	domCon "github.com/easy-cloud-Knet/KWS_Core/DomCon"
-	"github.com/easy-cloud-Knet/KWS_Core/vm/parsor"
-	userconfig "github.com/easy-cloud-Knet/KWS_Core/vm/parsor/cloud-init"
-	vmtypes "github.com/easy-cloud-Knet/KWS_Core/vm/types"
+	"github.com/easy-cloud-Knet/KWS_Core/pkg/parsor"
+	vmtypes "github.com/easy-cloud-Knet/KWS_Core/pkg/types"
+	userconfig "github.com/easy-cloud-Knet/KWS_Core/pkg/yaml/cloud-init"
 	"go.uber.org/zap"
 )
 

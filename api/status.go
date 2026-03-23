@@ -6,15 +6,16 @@ import (
 	"net/http"
 
 	virerr "github.com/easy-cloud-Knet/KWS_Core/error"
-	"github.com/easy-cloud-Knet/KWS_Core/vm/service/status"
+	httputil "github.com/easy-cloud-Knet/KWS_Core/pkg/httputil"
+	"github.com/easy-cloud-Knet/KWS_Core/pkg/service/status"
 	"go.uber.org/zap"
 )
 
 func (i *InstHandler) ReturnStatusUUID(w http.ResponseWriter, r *http.Request) {
 	param := &DomainStatusRequest{}
-	resp := ResponseGen[status.DataTypeHandler]("domain Status UUID")
+	resp := httputil.ResponseGen[status.DataTypeHandler]("domain Status UUID")
 
-	if err := HttpDecoder(r, param); err != nil {
+	if err := httputil.HttpDecoder(r, param); err != nil {
 		resp.ResponseWriteErr(w, err, http.StatusBadRequest)
 		return
 	}
@@ -44,9 +45,9 @@ func (i *InstHandler) ReturnStatusUUID(w http.ResponseWriter, r *http.Request) {
 
 func (i *InstHandler) ReturnStatusHost(w http.ResponseWriter, r *http.Request) {
 	param := &HostStatusRequest{}
-	resp := ResponseGen[status.HostDataTypeHandler]("Host Status Return")
+	resp := httputil.ResponseGen[status.HostDataTypeHandler]("Host Status Return")
 
-	if err := HttpDecoder(r, param); err != nil {
+	if err := httputil.HttpDecoder(r, param); err != nil {
 		resp.ResponseWriteErr(w, err, http.StatusInternalServerError)
 		http.Error(w, "error decoding parameters", http.StatusBadRequest)
 		return
@@ -68,9 +69,9 @@ func (i *InstHandler) ReturnStatusHost(w http.ResponseWriter, r *http.Request) {
 
 func (i *InstHandler) ReturnInstAllInfo(w http.ResponseWriter, r *http.Request) {
 	param := &InstInfoRequest{}
-	resp := ResponseGen[status.InstDataTypeHandler]("Inst Hardware Return")
+	resp := httputil.ResponseGen[status.InstDataTypeHandler]("Inst Hardware Return")
 
-	if err := HttpDecoder(r, param); err != nil {
+	if err := httputil.HttpDecoder(r, param); err != nil {
 		resp.ResponseWriteErr(w, err, http.StatusInternalServerError)
 		http.Error(w, "error decoding parameters", http.StatusBadRequest)
 		return
@@ -97,7 +98,7 @@ func (i *InstHandler) ReturnInstAllInfo(w http.ResponseWriter, r *http.Request) 
 func (i *InstHandler) ReturnAllUUIDs(w http.ResponseWriter, r *http.Request) {
 	i.Logger.Info("ReturnAllUUIDs handler entered")
 
-	resp := ResponseGen[UUIDListResponse]("Get All UUIDs")
+	resp := httputil.ResponseGen[UUIDListResponse]("Get All UUIDs")
 
 	uuids := i.DomainControl.GetAllUUIDs()
 	respData := UUIDListResponse{UUIDs: uuids}

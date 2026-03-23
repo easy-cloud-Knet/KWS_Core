@@ -5,7 +5,8 @@ import (
 	"net/http"
 
 	virerr "github.com/easy-cloud-Knet/KWS_Core/error"
-	snapshotpkg "github.com/easy-cloud-Knet/KWS_Core/vm/service/snapshot"
+	httputil "github.com/easy-cloud-Knet/KWS_Core/pkg/httputil"
+	snapshotpkg "github.com/easy-cloud-Knet/KWS_Core/pkg/service/snapshot"
 	"go.uber.org/zap"
 )
 
@@ -39,9 +40,9 @@ type ExternalSnapshotListResponse struct {
 // CreateSnapshot creates a snapshot for the specified domain UUID
 func (i *InstHandler) CreateSnapshot(w http.ResponseWriter, r *http.Request) {
 	param := &SnapshotRequest{}
-	resp := ResponseGen[string]("Create Snapshot")
+	resp := httputil.ResponseGen[string]("Create Snapshot")
 
-	if err := HttpDecoder(r, param); err != nil {
+	if err := httputil.HttpDecoder(r, param); err != nil {
 		resp.ResponseWriteErr(w, err, http.StatusInternalServerError)
 		i.Logger.Error("snapshot create decode failed", zap.Error(err))
 		return
@@ -79,9 +80,9 @@ func (i *InstHandler) CreateSnapshot(w http.ResponseWriter, r *http.Request) {
 // CreateExternalSnapshot creates an external snapshot for the specified domain UUID
 func (i *InstHandler) CreateExternalSnapshot(w http.ResponseWriter, r *http.Request) {
 	param := &ExternalSnapshotRequest{}
-	resp := ResponseGen[ExternalSnapshotResponse]("Create External Snapshot")
+	resp := httputil.ResponseGen[ExternalSnapshotResponse]("Create External Snapshot")
 
-	if err := HttpDecoder(r, param); err != nil {
+	if err := httputil.HttpDecoder(r, param); err != nil {
 		resp.ResponseWriteErr(w, err, http.StatusInternalServerError)
 		i.Logger.Error("external snapshot create decode failed", zap.Error(err))
 		return
@@ -126,9 +127,9 @@ func (i *InstHandler) CreateExternalSnapshot(w http.ResponseWriter, r *http.Requ
 // ListExternalSnapshots returns external snapshot names for the specified domain UUID
 func (i *InstHandler) ListExternalSnapshots(w http.ResponseWriter, r *http.Request) {
 	param := &ExternalSnapshotRequest{}
-	resp := ResponseGen[ExternalSnapshotListResponse]("List External Snapshots")
+	resp := httputil.ResponseGen[ExternalSnapshotListResponse]("List External Snapshots")
 
-	if err := HttpDecoder(r, param); err != nil {
+	if err := httputil.HttpDecoder(r, param); err != nil {
 		resp.ResponseWriteErr(w, err, http.StatusInternalServerError)
 		i.Logger.Error("external snapshot list decode failed", zap.Error(err))
 		return
@@ -160,9 +161,9 @@ func (i *InstHandler) ListExternalSnapshots(w http.ResponseWriter, r *http.Reque
 // RevertExternalSnapshot reverts the domain to a named external snapshot
 func (i *InstHandler) RevertExternalSnapshot(w http.ResponseWriter, r *http.Request) {
 	param := &ExternalSnapshotRequest{}
-	resp := ResponseGen[ExternalSnapshotResponse]("Revert External Snapshot")
+	resp := httputil.ResponseGen[ExternalSnapshotResponse]("Revert External Snapshot")
 
-	if err := HttpDecoder(r, param); err != nil {
+	if err := httputil.HttpDecoder(r, param); err != nil {
 		resp.ResponseWriteErr(w, err, http.StatusInternalServerError)
 		i.Logger.Error("external snapshot revert decode failed", zap.Error(err))
 		return
@@ -198,9 +199,9 @@ func (i *InstHandler) RevertExternalSnapshot(w http.ResponseWriter, r *http.Requ
 // ListSnapshots returns all snapshot names for the specified domain UUID
 func (i *InstHandler) ListSnapshots(w http.ResponseWriter, r *http.Request) {
 	param := &SnapshotRequest{}
-	resp := ResponseGen[[]string]("List Snapshots")
+	resp := httputil.ResponseGen[[]string]("List Snapshots")
 
-	if err := HttpDecoder(r, param); err != nil {
+	if err := httputil.HttpDecoder(r, param); err != nil {
 		resp.ResponseWriteErr(w, err, http.StatusInternalServerError)
 		i.Logger.Error("snapshot list decode failed", zap.Error(err))
 		return
@@ -229,9 +230,9 @@ func (i *InstHandler) ListSnapshots(w http.ResponseWriter, r *http.Request) {
 // RevertSnapshot reverts the domain to a named snapshot
 func (i *InstHandler) RevertSnapshot(w http.ResponseWriter, r *http.Request) {
 	param := &SnapshotRequest{}
-	resp := ResponseGen[any]("Revert Snapshot")
+	resp := httputil.ResponseGen[any]("Revert Snapshot")
 
-	if err := HttpDecoder(r, param); err != nil {
+	if err := httputil.HttpDecoder(r, param); err != nil {
 		resp.ResponseWriteErr(w, err, http.StatusInternalServerError)
 		i.Logger.Error("snapshot revert decode failed", zap.Error(err))
 		return
@@ -264,9 +265,9 @@ func (i *InstHandler) RevertSnapshot(w http.ResponseWriter, r *http.Request) {
 // DeleteSnapshot deletes a snapshot by name
 func (i *InstHandler) DeleteSnapshot(w http.ResponseWriter, r *http.Request) {
 	param := &SnapshotRequest{}
-	resp := ResponseGen[any]("Delete Snapshot")
+	resp := httputil.ResponseGen[any]("Delete Snapshot")
 
-	if err := HttpDecoder(r, param); err != nil {
+	if err := httputil.HttpDecoder(r, param); err != nil {
 		resp.ResponseWriteErr(w, err, http.StatusInternalServerError)
 		i.Logger.Error("snapshot delete decode failed", zap.Error(err))
 		return

@@ -7,16 +7,17 @@ import (
 	domCon "github.com/easy-cloud-Knet/KWS_Core/DomCon"
 	domainStatus "github.com/easy-cloud-Knet/KWS_Core/DomCon/domain_status"
 	virerr "github.com/easy-cloud-Knet/KWS_Core/error"
-	"github.com/easy-cloud-Knet/KWS_Core/vm/service/termination"
+	httputil "github.com/easy-cloud-Knet/KWS_Core/pkg/httputil"
+	"github.com/easy-cloud-Knet/KWS_Core/pkg/service/termination"
 	"go.uber.org/zap"
 	"libvirt.org/go/libvirt"
 )
 
 func (i *InstHandler) ForceShutDownVM(w http.ResponseWriter, r *http.Request) {
 	param := &DomainControlRequest{}
-	resp := ResponseGen[any]("domain number of" + param.UUID + ", Force Shutdown VM")
+	resp := httputil.ResponseGen[any]("domain number of" + param.UUID + ", Force Shutdown VM")
 
-	if err := HttpDecoder(r, param); err != nil {
+	if err := httputil.HttpDecoder(r, param); err != nil {
 		ERR := virerr.ErrorJoin(err, fmt.Errorf("error shutting down vm, from forceShutdown vm "))
 		resp.ResponseWriteErr(w, ERR, http.StatusInternalServerError)
 		i.Logger.Error("failed to decode forceShutdown request", zap.Error(ERR))
@@ -54,9 +55,9 @@ func (i *InstHandler) ForceShutDownVM(w http.ResponseWriter, r *http.Request) {
 
 func (i *InstHandler) DeleteVM(w http.ResponseWriter, r *http.Request) {
 	param := &DomainControlRequest{}
-	resp := ResponseGen[libvirt.DomainInfo]("Deleting Vm")
+	resp := httputil.ResponseGen[libvirt.DomainInfo]("Deleting Vm")
 
-	if err := HttpDecoder(r, param); err != nil {
+	if err := httputil.HttpDecoder(r, param); err != nil {
 		ERR := virerr.ErrorJoin(err, fmt.Errorf("error deleting vm, unparsing HTTP request "))
 		resp.ResponseWriteErr(w, ERR, http.StatusInternalServerError)
 		i.Logger.Error("failed to decode deleteVM request", zap.Error(ERR))
@@ -68,7 +69,6 @@ func (i *InstHandler) DeleteVM(w http.ResponseWriter, r *http.Request) {
 		i.Logger.Error("invalid UUID for deleteVM", zap.String("uuid", param.UUID), zap.Error(ERR))
 		return
 	}
-	// uuid 가 적합한지 확인
 
 	domain, err := i.DomainControl.GetDomain(param.UUID)
 	if err != nil {
@@ -76,7 +76,6 @@ func (i *InstHandler) DeleteVM(w http.ResponseWriter, r *http.Request) {
 		resp.ResponseWriteErr(w, ERR, http.StatusInternalServerError)
 		i.Logger.Error("failed to get domain for deleteVM", zap.String("uuid", param.UUID), zap.Error(ERR))
 		return
-		//error handling
 	}
 
 	stat, err := i.DomainControl.DomainListStatus.GetDomStatus(domain.Domain, []domainStatus.SourceType{domainStatus.CPU}, i.Logger)
