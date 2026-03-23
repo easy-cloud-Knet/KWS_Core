@@ -1,7 +1,7 @@
 package api
 
 import (
-	"github.com/easy-cloud-Knet/KWS_Core/pkg/service/termination"
+	"github.com/easy-cloud-Knet/KWS_Core/services/termination"
 	"go.uber.org/zap"
 )
 

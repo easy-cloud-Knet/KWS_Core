@@ -3,7 +3,7 @@ package api
 import (
 	"os"
 
-	"github.com/easy-cloud-Knet/KWS_Core/config"
+	"github.com/easy-cloud-Knet/KWS_Core/internal/config"
 	"go.uber.org/zap"
 	"libvirt.org/go/libvirt"
 )

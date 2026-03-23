@@ -6,7 +6,7 @@ import (
 	"io"
 	"net/http"
 
-	virerr "github.com/easy-cloud-Knet/KWS_Core/error"
+	virerr "github.com/easy-cloud-Knet/KWS_Core/internal/error"
 )
 
 type BaseResponse[T any] struct {

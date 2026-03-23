@@ -1,6 +1,6 @@
 package vmtypes
 
-import network "github.com/easy-cloud-Knet/KWS_Core/net"
+import network "github.com/easy-cloud-Knet/KWS_Core/internal/net"
 
 type VM_Init_Info struct {
 	DomName      string            `json:"domName"`

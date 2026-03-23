@@ -8,8 +8,8 @@ import (
 	"path/filepath"
 
 	domCon "github.com/easy-cloud-Knet/KWS_Core/DomCon"
-	"github.com/easy-cloud-Knet/KWS_Core/config"
-	virerr "github.com/easy-cloud-Knet/KWS_Core/error"
+	"github.com/easy-cloud-Knet/KWS_Core/internal/config"
+	virerr "github.com/easy-cloud-Knet/KWS_Core/internal/error"
 	uuid "github.com/easy-cloud-Knet/KWS_Core/pkg/UUID"
 	"github.com/easy-cloud-Knet/KWS_Core/pkg/parsor"
 	safepath "github.com/easy-cloud-Knet/KWS_Core/pkg/safePath"

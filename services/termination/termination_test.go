@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"testing"
 
-	virerr "github.com/easy-cloud-Knet/KWS_Core/error"
+	virerr "github.com/easy-cloud-Knet/KWS_Core/internal/error"
 )
 
 type mockDomain struct {

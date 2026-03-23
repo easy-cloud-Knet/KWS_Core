@@ -6,7 +6,7 @@ import (
 	"time"
 
 	domStatus "github.com/easy-cloud-Knet/KWS_Core/DomCon/domainList_status"
-	virerr "github.com/easy-cloud-Knet/KWS_Core/error"
+	virerr "github.com/easy-cloud-Knet/KWS_Core/internal/error"
 	"github.com/shirou/gopsutil/cpu"
 	"github.com/shirou/gopsutil/disk"
 	"github.com/shirou/gopsutil/host"
