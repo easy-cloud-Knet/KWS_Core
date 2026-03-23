@@ -2,7 +2,7 @@ package api
 
 import (
 	network "github.com/easy-cloud-Knet/KWS_Core/net"
-	vmtypes "github.com/easy-cloud-Knet/KWS_Core/vm/types"
+	vmtypes "github.com/easy-cloud-Knet/KWS_Core/pkg/types"
 )
 
 type CreateVMRequest struct {

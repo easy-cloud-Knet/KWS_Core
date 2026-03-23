@@ -6,7 +6,7 @@ import (
 	"strings"
 	"testing"
 
-	vmtypes "github.com/easy-cloud-Knet/KWS_Core/vm/types"
+	vmtypes "github.com/easy-cloud-Knet/KWS_Core/pkg/types"
 )
 
 func TestConfigNetworkIP(t *testing.T) {

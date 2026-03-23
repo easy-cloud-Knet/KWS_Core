@@ -23,4 +23,5 @@ require (
 	github.com/yusufpapurcu/wmi v1.2.4 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
 	golang.org/x/sys v0.38.0 // indirect
+	libvirt.org/go/libvirtxml v1.12001.0 // indirect
 )

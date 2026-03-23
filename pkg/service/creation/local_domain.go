@@ -10,9 +10,11 @@ import (
 	domCon "github.com/easy-cloud-Knet/KWS_Core/DomCon"
 	"github.com/easy-cloud-Knet/KWS_Core/config"
 	virerr "github.com/easy-cloud-Knet/KWS_Core/error"
-	"github.com/easy-cloud-Knet/KWS_Core/vm/parsor"
-	userconfig "github.com/easy-cloud-Knet/KWS_Core/vm/parsor/cloud-init"
-	vmtypes "github.com/easy-cloud-Knet/KWS_Core/vm/types"
+	uuid "github.com/easy-cloud-Knet/KWS_Core/pkg/UUID"
+	safepath "github.com/easy-cloud-Knet/KWS_Core/pkg/safePath"
+	"github.com/easy-cloud-Knet/KWS_Core/pkg/parsor"
+	userconfig "github.com/easy-cloud-Knet/KWS_Core/pkg/yaml/cloud-init"
+	vmtypes "github.com/easy-cloud-Knet/KWS_Core/pkg/types"
 	"go.uber.org/zap"
 )
 
@@ -68,7 +70,14 @@ func (DB localConfigurer) GenerateXML(logger *zap.Logger) ([]byte, error) {
 }
 
 func (DB localConfigurer) Generate(logger *zap.Logger) error {
-	dirPath, err := parsor.GetSafeFilePath(config.StorageBase, DB.VMDescription.UUID)
+	isUUIDSafe := uuid.UUIDValidator(DB.VMDescription.UUID)
+	if !isUUIDSafe {
+		errDesc := fmt.Errorf("provided UUID %s is not valid", DB.VMDescription.UUID)
+		logger.Error("invalid UUID provided", zap.String("uuid", DB.VMDescription.UUID), zap.Error(errDesc))
+		return virerr.ErrorGen(virerr.InvalidUUID, errDesc)
+	}
+
+	dirPath, err := safepath.GetSafeFilePath(config.StorageBase, DB.VMDescription.UUID)
 	if dirPath == "" {
 		errDesc := fmt.Errorf("failed to generate safe file path for UUID %s %v", DB.VMDescription.UUID, err)
 		logger.Error("failed to generate safe file path or some macilous attack happened. aborting", zap.Error(errDesc))

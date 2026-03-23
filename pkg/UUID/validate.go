@@ -1,9 +1,6 @@
-package parsor
+package uuid
 
-import (
-	"path/filepath"
-	"strings"
-)
+import "strings"
 
 func UUIDValidator(uuid string) bool {
 	if len(uuid) != 36 {
@@ -26,21 +23,4 @@ func UUIDValidator(uuid string) bool {
 		}
 	}
 	return true
-}
-
-func GetSafeFilePath(baseDir, uuid string) (string, bool) {
-	if !filepath.IsAbs(baseDir) {
-		return "", false
-	}
-	if !UUIDValidator(uuid) {
-		return "", false
-	}
-
-	fullPath := filepath.Join(baseDir, uuid)
-	cleanedPath := filepath.Clean(fullPath)
-	if !strings.HasPrefix(cleanedPath, baseDir) {
-		return "", false
-	}
-
-	return cleanedPath, true
 }

@@ -5,16 +5,17 @@ import (
 	"net/http"
 
 	virerr "github.com/easy-cloud-Knet/KWS_Core/error"
-	"github.com/easy-cloud-Knet/KWS_Core/vm/service/creation"
+	httputil "github.com/easy-cloud-Knet/KWS_Core/pkg/httputil"
+	"github.com/easy-cloud-Knet/KWS_Core/pkg/service/creation"
 	"go.uber.org/zap"
 	"libvirt.org/go/libvirt"
 )
 
 func (i *InstHandler) BootVM(w http.ResponseWriter, r *http.Request) {
-	resp := ResponseGen[libvirt.DomainInfo]("BootVM")
+	resp := httputil.ResponseGen[libvirt.DomainInfo]("BootVM")
 	param := &DomainBootRequest{}
 
-	if err := HttpDecoder(r, param); err != nil {
+	if err := httputil.HttpDecoder(r, param); err != nil {
 		resp.ResponseWriteErr(w, err, http.StatusBadRequest)
 		i.Logger.Error("error occured while decoding user's parameter of requested creation")
 		return
@@ -55,10 +56,10 @@ func (i *InstHandler) BootVM(w http.ResponseWriter, r *http.Request) {
 
 func (i *InstHandler) CreateVMFromBase(w http.ResponseWriter, r *http.Request) {
 
-	resp := ResponseGen[libvirt.DomainInfo]("CreateVm")
+	resp := httputil.ResponseGen[libvirt.DomainInfo]("CreateVm")
 	param := &CreateVMRequest{}
 
-	if err := HttpDecoder(r, param); err != nil {
+	if err := httputil.HttpDecoder(r, param); err != nil {
 		resp.ResponseWriteErr(w, err, http.StatusBadRequest)
 		i.Logger.Error("error occured while decoding user's parameter of requested creation")
 		return

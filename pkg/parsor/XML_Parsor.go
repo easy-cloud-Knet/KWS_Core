@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/easy-cloud-Knet/KWS_Core/config"
-	vmtypes "github.com/easy-cloud-Knet/KWS_Core/vm/types"
+	vmtypes "github.com/easy-cloud-Knet/KWS_Core/pkg/types"
 )
 
 // TODO: add MarshalXML() ([]byte, error) method to VM_CREATE_XML
