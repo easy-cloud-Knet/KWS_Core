@@ -70,11 +70,9 @@ func (DB localConfigurer) GenerateXML(logger *zap.Logger) ([]byte, error) {
 }
 
 func (DB localConfigurer) Generate(logger *zap.Logger) error {
-	isUUIDSafe := uuid.UUIDValidator(DB.VMDescription.UUID)
-	if !isUUIDSafe {
-		errDesc := fmt.Errorf("provided UUID %s is not valid", DB.VMDescription.UUID)
-		logger.Error("invalid UUID provided", zap.String("uuid", DB.VMDescription.UUID), zap.Error(errDesc))
-		return virerr.ErrorGen(virerr.InvalidUUID, errDesc)
+	if _, err := uuid.ValidateAndReturnUUID(DB.VMDescription.UUID); err != nil {
+		logger.Error("invalid UUID provided", zap.String("uuid", DB.VMDescription.UUID), zap.Error(err))
+		return virerr.ErrorGen(virerr.InvalidUUID, err)
 	}
 
 	dirPath, err := safepath.GetSafeFilePath(config.StorageBase, DB.VMDescription.UUID)

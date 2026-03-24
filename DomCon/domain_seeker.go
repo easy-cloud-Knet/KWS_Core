@@ -4,7 +4,7 @@ import (
 	"sync"
 
 	virerr "github.com/easy-cloud-Knet/KWS_Core/internal/error"
-	"github.com/google/uuid"
+	pkguuid "github.com/easy-cloud-Knet/KWS_Core/pkg/UUID"
 	"libvirt.org/go/libvirt"
 )
 
@@ -15,20 +15,12 @@ func DomSeekUUIDFactory(LibInstance *libvirt.Connect, UUID string) *DomainSeekin
 	}
 }
 
-func ReturnUUID(UUID string) (*uuid.UUID, error) {
-	uuidParsed, err := uuid.Parse(UUID)
-	if err != nil {
-		return nil, err
-	}
-	return &uuidParsed, nil
-}
-
 func (DSU *DomainSeekingByUUID) ReturnDomain() (*Domain, error) {
-	parsedUUID, err := uuid.Parse(DSU.UUID)
+	parsedUUID, err := pkguuid.ValidateAndReturnUUID(DSU.UUID)
 	if err != nil {
 		return nil, virerr.ErrorGen(virerr.InvalidUUID, err)
 	}
-	domain, err := DSU.LibvirtInst.LookupDomainByUUID(parsedUUID[:])
+	domain, err := DSU.LibvirtInst.LookupDomainByUUID((*parsedUUID)[:])
 	if err != nil {
 		return nil, virerr.ErrorGen(virerr.DomainSearchError, err)
 	} else if domain == nil {

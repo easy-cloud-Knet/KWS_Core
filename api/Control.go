@@ -4,14 +4,16 @@ import (
 	"fmt"
 	"net/http"
 
-	domCon "github.com/easy-cloud-Knet/KWS_Core/DomCon"
-	domainStatus "github.com/easy-cloud-Knet/KWS_Core/DomCon/domain_status"
+domainStatus "github.com/easy-cloud-Knet/KWS_Core/DomCon/domain_status"
 	virerr "github.com/easy-cloud-Knet/KWS_Core/internal/error"
 	httputil "github.com/easy-cloud-Knet/KWS_Core/pkg/httputil"
 	"github.com/easy-cloud-Knet/KWS_Core/services/termination"
 	"go.uber.org/zap"
 	"libvirt.org/go/libvirt"
 )
+
+// DI pattern
+// 실행 시점에 삽입 (test, libvirt.Connect, afadsfadf)
 
 func (i *InstHandler) ForceShutDownVM(w http.ResponseWriter, r *http.Request) {
 	param := &DomainControlRequest{}
@@ -63,13 +65,6 @@ func (i *InstHandler) DeleteVM(w http.ResponseWriter, r *http.Request) {
 		i.Logger.Error("failed to decode deleteVM request", zap.Error(ERR))
 		return
 	}
-	if _, err := domCon.ReturnUUID(param.UUID); err != nil {
-		ERR := virerr.ErrorJoin(err, fmt.Errorf("error deleting vm,	invalid UUID "))
-		resp.ResponseWriteErr(w, ERR, http.StatusInternalServerError)
-		i.Logger.Error("invalid UUID for deleteVM", zap.String("uuid", param.UUID), zap.Error(ERR))
-		return
-	}
-
 	domain, err := i.DomainControl.GetDomain(param.UUID)
 	if err != nil {
 		ERR := virerr.ErrorJoin(err, fmt.Errorf("error deleting vm, retreving Get domin error "))
