@@ -25,7 +25,7 @@ type DomListControl struct {
 // 메모리 누수방지 + libvirt 접근 최소화 위해 libvirt.Domain 포인터를 보유
 
 type Domain struct {
-	Domain      *libvirt.Domain
+	*libvirt.Domain
 	domainMutex sync.Mutex
 }
 

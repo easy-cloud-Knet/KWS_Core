@@ -1,7 +1,6 @@
 package api
 
 import (
-	"encoding/json"
 	"errors"
 	"net/http"
 
@@ -49,7 +48,6 @@ func (i *InstHandler) ReturnStatusHost(w http.ResponseWriter, r *http.Request) {
 
 	if err := httputil.HttpDecoder(r, param); err != nil {
 		resp.ResponseWriteErr(w, err, http.StatusInternalServerError)
-		http.Error(w, "error decoding parameters", http.StatusBadRequest)
 		return
 	}
 
@@ -140,16 +138,13 @@ func (i *InstHandler) GetAllDomainStates() ([]DomainStateResponse, error) {
 func (i *InstHandler) ReturnAllDomainStates(w http.ResponseWriter, r *http.Request) {
 	i.Logger.Info("ReturnAllDomainStates handler entered")
 
+	resp := httputil.ResponseGen[[]DomainStateResponse]("Get All Domain States")
+
 	states, err := i.GetAllDomainStates()
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		resp.ResponseWriteErr(w, err, http.StatusInternalServerError)
 		return
 	}
 
-	resp := struct {
-		Domains []DomainStateResponse `json:"domains"`
-	}{Domains: states}
-
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(resp)
+	resp.ResponseWriteOK(w, &states)
 }

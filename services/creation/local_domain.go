@@ -78,10 +78,9 @@ func (DB localConfigurer) Generate(logger *zap.Logger) error {
 	}
 
 	dirPath, err := safepath.GetSafeFilePath(config.StorageBase, DB.VMDescription.UUID)
-	if dirPath == "" {
-		errDesc := fmt.Errorf("failed to generate safe file path for UUID %s %v", DB.VMDescription.UUID, err)
-		logger.Error("failed to generate safe file path or some macilous attack happened. aborting", zap.Error(errDesc))
-		return virerr.ErrorGen(virerr.DomainGenerationError, errDesc)
+	if err != nil {
+		logger.Error("failed to generate safe file path", zap.String("uuid", DB.VMDescription.UUID), zap.Error(err))
+		return virerr.ErrorGen(virerr.DomainGenerationError, err)
 	}
 
 	if err := os.MkdirAll(dirPath, 0755); err != nil {
