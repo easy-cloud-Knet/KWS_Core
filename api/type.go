@@ -11,7 +11,3 @@ type InstHandler struct {
 	DomainControl *domCon.DomListControl
 	Logger        *zap.Logger
 }
-
-type InstHandle interface {
-	LibvirtConnection()
-}
