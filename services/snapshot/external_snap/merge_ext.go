@@ -26,25 +26,13 @@ func MergeExternalSnapshot(domain *domCon.Domain, targetDisk string) ([]string, 
 		return nil, err
 	}
 
-	store, _, err := loadExternalSnapshotMetadata(domain)
-	if err != nil {
-		return nil, err
-	}
-
 	merged := make([]string, 0, len(disks))
-	mergedMetaKeys := make(map[string]struct{})
 	for _, d := range disks {
 		if targetDisk != "" && d.TargetDev != targetDisk {
 			continue
 		}
 
 		backingSource := d.BackingSource
-		if backingSource == "" {
-			resolvedBacking, ok := findDiskBackingFromMetadata(store, d.TargetDev, d.Source)
-			if ok {
-				backingSource = resolvedBacking
-			}
-		}
 
 		if backingSource == "" {
 			continue
@@ -68,7 +56,6 @@ func MergeExternalSnapshot(domain *domCon.Domain, targetDisk string) ([]string, 
 			return nil, fmt.Errorf("failed to update disk %s after merge: %w", d.TargetDev, err)
 		}
 
-		mergedMetaKeys[d.TargetDev+"|"+d.Source] = struct{}{}
 		merged = append(merged, d.TargetDev)
 	}
 
@@ -77,10 +64,6 @@ func MergeExternalSnapshot(domain *domCon.Domain, targetDisk string) ([]string, 
 	}
 	if len(merged) == 0 {
 		return nil, fmt.Errorf("no mergeable external snapshot disks found")
-	}
-
-	if err := pruneMergedDisksFromMetadata(domain, mergedMetaKeys); err != nil {
-		return nil, fmt.Errorf("merge completed but failed to update metadata: %w", err)
 	}
 
 	return merged, nil

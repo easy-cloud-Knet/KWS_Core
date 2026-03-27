@@ -44,7 +44,6 @@ func CreateExternalSnapshot(domain *domCon.Domain, name string, opts *ExternalSn
 	}
 
 	snapDisks := make([]snapshotDisk, 0, len(disks))
-	diskMetas := make([]externalSnapshotDiskMeta, 0, len(disks))
 	for _, d := range disks {
 		var driver *snapshotDriver
 		if d.Driver != "" {
@@ -57,11 +56,6 @@ func CreateExternalSnapshot(domain *domCon.Domain, name string, opts *ExternalSn
 			Snapshot: "external",
 			Driver:   driver,
 			Source:   &snapshotSource{File: snapshotFile},
-		})
-		diskMetas = append(diskMetas, externalSnapshotDiskMeta{
-			TargetDev:    d.TargetDev,
-			SnapshotFile: snapshotFile,
-			BackingFile:  d.Source,
 		})
 	}
 
@@ -102,9 +96,6 @@ func CreateExternalSnapshot(domain *domCon.Domain, name string, opts *ExternalSn
 	snapName, err := snap.GetName()
 	if err != nil {
 		return "", fmt.Errorf("snapshot created but failed to read name: %w", err)
-	}
-	if err := appendExternalSnapshotMetadata(domain, snapName, diskMetas); err != nil {
-		return "", fmt.Errorf("snapshot created but failed to write metadata: %w", err)
 	}
 
 	return snapName, nil

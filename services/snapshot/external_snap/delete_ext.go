@@ -49,9 +49,6 @@ func DeleteExternalSnapshot(domain *domCon.Domain, snapName string) error {
 	if err := target.Delete(0); err != nil {
 		return fmt.Errorf("failed to delete external snapshot %s: %w", snapName, err)
 	}
-	if err := deleteSnapshotMetadataByName(domain, snapName); err != nil {
-		return fmt.Errorf("snapshot deleted but failed to update metadata: %w", err)
-	}
 
 	return nil
 }
