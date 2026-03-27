@@ -2,6 +2,9 @@ package virtxml
 
 import libvirtxml "libvirt.org/libvirt-go-xml"
 
+// DomainXMLFlags mirrors libvirt.DomainXMLFlags to avoid a runtime libvirt dependency.
+type DomainXMLFlags uint
+
 type DomainXML struct {
 	libvirtxml.Domain
 }
