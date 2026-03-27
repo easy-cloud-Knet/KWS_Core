@@ -6,7 +6,8 @@ import (
 
 	virerr "github.com/easy-cloud-Knet/KWS_Core/internal/error"
 	httputil "github.com/easy-cloud-Knet/KWS_Core/pkg/httputil"
-	snapshotpkg "github.com/easy-cloud-Knet/KWS_Core/services/snapshot"
+	externalsnapshot "github.com/easy-cloud-Knet/KWS_Core/services/snapshot/external_snap"
+	internalsnapshot "github.com/easy-cloud-Knet/KWS_Core/services/snapshot/internal_snap"
 	"go.uber.org/zap"
 )
 
@@ -37,6 +38,16 @@ type ExternalSnapshotListResponse struct {
 	SnapNames []string `json:"SnapNames"`
 }
 
+type ExternalSnapshotMergeRequest struct {
+	UUID string `json:"UUID"`
+	Disk string `json:"Disk,omitempty"`
+}
+
+type ExternalSnapshotMergeResponse struct {
+	UUID        string   `json:"UUID"`
+	MergedDisks []string `json:"MergedDisks"`
+}
+
 // CreateSnapshot creates a snapshot for the specified domain UUID
 func (i *InstHandler) CreateSnapshot(w http.ResponseWriter, r *http.Request) {
 	param := &SnapshotRequest{}
@@ -63,7 +74,7 @@ func (i *InstHandler) CreateSnapshot(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	snapName, err := snapshotpkg.CreateSnapshot(dom, name, &snapshotpkg.SnapshotOptions{
+	snapName, err := internalsnapshot.CreateSnapshot(dom, name, &internalsnapshot.SnapshotOptions{
 		Description: param.Description,
 		Quiesce:     param.Quiesce,
 	})
@@ -104,7 +115,7 @@ func (i *InstHandler) CreateExternalSnapshot(w http.ResponseWriter, r *http.Requ
 	}
 
 	snapName := name
-	createdName, err := snapshotpkg.CreateExternalSnapshot(dom, name, &snapshotpkg.ExternalSnapshotOptions{
+	createdName, err := externalsnapshot.CreateExternalSnapshot(dom, name, &externalsnapshot.ExternalSnapshotOptions{
 		BaseDir:     param.BaseDir,
 		Description: param.Description,
 		Quiesce:     param.Quiesce,
@@ -144,7 +155,7 @@ func (i *InstHandler) ListExternalSnapshots(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	names, err := snapshotpkg.ListExternalSnapshots(dom)
+	names, err := externalsnapshot.ListExternalSnapshots(dom)
 	if err != nil {
 		resp.ResponseWriteErr(w, err, http.StatusInternalServerError)
 		i.Logger.Error("external snapshot list failed", zap.String("domain_uuid", param.UUID), zap.Error(err))
@@ -183,7 +194,7 @@ func (i *InstHandler) RevertExternalSnapshot(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	if err := snapshotpkg.RevertExternalSnapshot(dom, param.Name); err != nil {
+	if err := externalsnapshot.RevertExternalSnapshot(dom, param.Name); err != nil {
 		resp.ResponseWriteErr(w, err, http.StatusInternalServerError)
 		i.Logger.Error("external snapshot revert failed", zap.String("domain_uuid", param.UUID), zap.String("snapshot_name", param.Name), zap.Error(err))
 		return
@@ -193,6 +204,40 @@ func (i *InstHandler) RevertExternalSnapshot(w http.ResponseWriter, r *http.Requ
 	resp.ResponseWriteOK(w, &ExternalSnapshotResponse{
 		UUID:     param.UUID,
 		SnapName: param.Name,
+	})
+}
+
+// MergeExternalSnapshot merges active external snapshot layers into backing files.
+func (i *InstHandler) MergeExternalSnapshot(w http.ResponseWriter, r *http.Request) {
+	param := &ExternalSnapshotMergeRequest{}
+	resp := httputil.ResponseGen[ExternalSnapshotMergeResponse]("Merge External Snapshot")
+
+	if err := httputil.HttpDecoder(r, param); err != nil {
+		resp.ResponseWriteErr(w, err, http.StatusInternalServerError)
+		i.Logger.Error("external snapshot merge decode failed", zap.Error(err))
+		return
+	}
+
+	i.Logger.Info("external snapshot merge start", zap.String("domain_uuid", param.UUID), zap.String("disk", param.Disk))
+
+	dom, err := i.DomainControl.GetDomain(param.UUID)
+	if err != nil {
+		resp.ResponseWriteErr(w, err, http.StatusInternalServerError)
+		i.Logger.Error("external snapshot merge failed - domain not found", zap.String("domain_uuid", param.UUID), zap.Error(err))
+		return
+	}
+
+	mergedDisks, err := externalsnapshot.MergeExternalSnapshot(dom, param.Disk)
+	if err != nil {
+		resp.ResponseWriteErr(w, err, http.StatusInternalServerError)
+		i.Logger.Error("external snapshot merge failed", zap.String("domain_uuid", param.UUID), zap.String("disk", param.Disk), zap.Error(err))
+		return
+	}
+
+	i.Logger.Info("external snapshot merge success", zap.String("domain_uuid", param.UUID), zap.String("disk", param.Disk), zap.Int("merged_disk_count", len(mergedDisks)))
+	resp.ResponseWriteOK(w, &ExternalSnapshotMergeResponse{
+		UUID:        param.UUID,
+		MergedDisks: mergedDisks,
 	})
 }
 
@@ -216,7 +261,7 @@ func (i *InstHandler) ListSnapshots(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	names, err := snapshotpkg.ListSnapshots(dom)
+	names, err := internalsnapshot.ListSnapshots(dom)
 	if err != nil {
 		resp.ResponseWriteErr(w, err, http.StatusInternalServerError)
 		i.Logger.Error("snapshot list failed", zap.String("uuid", param.UUID), zap.Error(err))
@@ -252,7 +297,7 @@ func (i *InstHandler) RevertSnapshot(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := snapshotpkg.RevertToSnapshot(dom, param.Name); err != nil {
+	if err := internalsnapshot.RevertToSnapshot(dom, param.Name); err != nil {
 		resp.ResponseWriteErr(w, err, http.StatusInternalServerError)
 		i.Logger.Error("snapshot revert failed", zap.String("uuid", param.UUID), zap.String("snapshot_name", param.Name), zap.Error(err))
 		return
@@ -287,7 +332,7 @@ func (i *InstHandler) DeleteSnapshot(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := snapshotpkg.DeleteSnapshot(dom, param.Name); err != nil {
+	if err := internalsnapshot.DeleteSnapshot(dom, param.Name); err != nil {
 		resp.ResponseWriteErr(w, err, http.StatusInternalServerError)
 		i.Logger.Error("snapshot delete failed", zap.String("uuid", param.UUID), zap.String("snapshot_name", param.Name), zap.Error(err))
 		return
