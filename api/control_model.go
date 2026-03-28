@@ -11,7 +11,6 @@ type ControlHandler struct {
 	Logger *zap.Logger
 }
 
-
 type DomainControlRequest struct {
 	UUID         string                       `json:"UUID"`
 	DeletionType termination.DomainDeleteType `json:"DeleteType"`
