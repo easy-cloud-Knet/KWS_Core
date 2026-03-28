@@ -129,13 +129,13 @@ func (DC *DomListControl) retrieveDomainsByState(state libvirt.ConnectListAllDom
 		DC.AddExistingDomain(NewDom, uuid)
 
 		wg.Add(1)
-		go func(targetDom libvirt.Domain) {
+		go func(targetDom libvirt.Domain, targetUUID string) {
 			defer wg.Done()
 			sources := map[vmtypes.SourceType]int{vmtypes.CPU: 0}
 			if err := DC.DomainListStatus.UpdateFromDomain(dataDog, &targetDom, isActive, sources, logger); err != nil {
-				logger.Sugar().Errorf("Failed to retrieve status for domain UUID=%s: %v", uuid, err)
+				logger.Sugar().Errorf("Failed to retrieve status for domain UUID=%s: %v", targetUUID, err)
 			}
-		}(dom)
+		}(dom, uuid)
 		logger.Sugar().Infof("Added domain: UUID=%s", uuid)
 	}
 	wg.Wait()

@@ -24,17 +24,18 @@ func (xf *XMLFetcher) Fetch(domain Domain, sources map[vmtypes.SourceType]int) (
 	if err != nil {
 		return nil, err
 	}
+	result := make(map[vmtypes.SourceType]int, len(sources))
 	for k := range sources {
 		switch k {
 		case vmtypes.CPU:
-			sources[vmtypes.CPU] = int(domainXML.VCPU.Value)
+			result[vmtypes.CPU] = int(domainXML.VCPU.Value)
 		case vmtypes.Memory:
-			sources[vmtypes.Memory] = int(domainXML.Memory.Value)
+			result[vmtypes.Memory] = int(domainXML.Memory.Value)
 		default:
 			return nil, fmt.Errorf("unknown source type: %s", string(k))
 		}
 	}
-	return sources, nil
+	return result, nil
 }
 
 func (xf *XMLFetcher) parse(domain Domain) (*libvirtxml.Domain, error) {

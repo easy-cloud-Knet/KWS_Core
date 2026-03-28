@@ -1,14 +1,15 @@
 package status
 
 import (
+	"fmt"
+
 	vmtypes "github.com/easy-cloud-Knet/KWS_Core/pkg/types"
 	"go.uber.org/zap"
-	"libvirt.org/go/libvirt"
 )
 
 type LibvirtStatus struct{}
 
-func (ls *LibvirtStatus) RetrieveStatus(dom *libvirt.Domain, sources map[vmtypes.SourceType]int, logger *zap.Logger) (map[vmtypes.SourceType]int, error) {
+func (ls *LibvirtStatus) RetrieveStatus(dom Domain, sources map[vmtypes.SourceType]int, _ *zap.Logger) (map[vmtypes.SourceType]int, error) {
 	for k := range sources {
 		switch k {
 		case vmtypes.CPU:
@@ -18,7 +19,7 @@ func (ls *LibvirtStatus) RetrieveStatus(dom *libvirt.Domain, sources map[vmtypes
 			}
 			sources[vmtypes.CPU] = int(cpu)
 		default:
-			logger.Warn("unknown source type", zap.String("source", string(k)))
+			return nil, fmt.Errorf("unknown source type: %s", string(k))
 		}
 	}
 	return sources, nil
