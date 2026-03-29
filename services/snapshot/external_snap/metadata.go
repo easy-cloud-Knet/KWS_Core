@@ -24,16 +24,3 @@ func resolveSnapshotRoot(opts *ExternalSnapshotOptions) (string, error) {
 
 	return clean, nil
 }
-
-func resolveDomainUUID(domain externalSnapshotDomain) (string, error) {
-	if domain == nil {
-		return "", virerr.ErrorGen(virerr.InvalidParameter, fmt.Errorf("nil domain"))
-	}
-
-	uuid, err := domain.UUIDString()
-	if err != nil {
-		return "", virerr.ErrorGen(virerr.SnapshotError, fmt.Errorf("failed to get domain uuid: %w", err))
-	}
-
-	return uuid, nil
-}
