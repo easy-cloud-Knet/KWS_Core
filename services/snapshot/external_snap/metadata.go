@@ -7,6 +7,7 @@ import (
 
 	domCon "github.com/easy-cloud-Knet/KWS_Core/DomCon"
 	"github.com/easy-cloud-Knet/KWS_Core/internal/config"
+	virerr "github.com/easy-cloud-Knet/KWS_Core/internal/error"
 )
 
 func resolveSnapshotRoot(opts *ExternalSnapshotOptions) (string, error) {
@@ -16,10 +17,10 @@ func resolveSnapshotRoot(opts *ExternalSnapshotOptions) (string, error) {
 
 	clean := filepath.Clean(opts.BaseDir)
 	if !filepath.IsAbs(clean) {
-		return "", fmt.Errorf("base dir must be absolute")
+		return "", virerr.ErrorGen(virerr.InvalidParameter, fmt.Errorf("base dir must be absolute"))
 	}
 	if strings.Contains(clean, "..") {
-		return "", fmt.Errorf("invalid base dir")
+		return "", virerr.ErrorGen(virerr.InvalidParameter, fmt.Errorf("invalid base dir"))
 	}
 
 	return clean, nil
@@ -27,12 +28,12 @@ func resolveSnapshotRoot(opts *ExternalSnapshotOptions) (string, error) {
 
 func resolveDomainUUID(domain *domCon.Domain) (string, error) {
 	if domain == nil || domain.Domain == nil {
-		return "", fmt.Errorf("nil domain")
+		return "", virerr.ErrorGen(virerr.InvalidParameter, fmt.Errorf("nil domain"))
 	}
 
 	uuid, err := domain.Domain.GetUUIDString()
 	if err != nil {
-		return "", fmt.Errorf("failed to get domain uuid: %w", err)
+		return "", virerr.ErrorGen(virerr.SnapshotError, fmt.Errorf("failed to get domain uuid: %w", err))
 	}
 
 	return uuid, nil

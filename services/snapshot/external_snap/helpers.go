@@ -8,6 +8,7 @@ import (
 	"time"
 
 	domCon "github.com/easy-cloud-Knet/KWS_Core/DomCon"
+	virerr "github.com/easy-cloud-Knet/KWS_Core/internal/error"
 	"libvirt.org/go/libvirt"
 )
 
@@ -17,7 +18,7 @@ func waitBlockJobReady(domain *libvirt.Domain, disk string, timeout time.Duratio
 		job, err := domain.GetBlockJobInfo(disk, 0)
 		if err != nil {
 			if time.Now().After(deadline) {
-				return fmt.Errorf("timeout waiting for block job on disk %s: %w", disk, err)
+				return virerr.ErrorGen(virerr.SnapshotError, fmt.Errorf("timeout waiting for block job on disk %s: %w", disk, err))
 			}
 			time.Sleep(500 * time.Millisecond)
 			continue
@@ -28,21 +29,25 @@ func waitBlockJobReady(domain *libvirt.Domain, disk string, timeout time.Duratio
 		}
 
 		if time.Now().After(deadline) {
-			return fmt.Errorf("timeout waiting for block commit to complete on disk %s", disk)
+			return virerr.ErrorGen(virerr.SnapshotError, fmt.Errorf("timeout waiting for block commit to complete on disk %s", disk))
 		}
 		time.Sleep(500 * time.Millisecond)
 	}
 }
 
 func listFileDisks(domain *domCon.Domain) ([]diskInfo, error) {
+	if domain == nil || domain.Domain == nil {
+		return nil, virerr.ErrorGen(virerr.InvalidParameter, fmt.Errorf("nil domain"))
+	}
+
 	xmlDesc, err := domain.Domain.GetXMLDesc(0)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get domain xml: %w", err)
+		return nil, virerr.ErrorGen(virerr.SnapshotError, fmt.Errorf("failed to get domain xml: %w", err))
 	}
 
 	var doc domainXML
 	if err := xml.Unmarshal([]byte(xmlDesc), &doc); err != nil {
-		return nil, fmt.Errorf("failed to parse domain xml: %w", err)
+		return nil, virerr.ErrorGen(virerr.SnapshotError, fmt.Errorf("failed to parse domain xml: %w", err))
 	}
 
 	out := make([]diskInfo, 0, len(doc.Devices.Disks))
@@ -100,17 +105,17 @@ func buildDiskDeviceXML(info diskInfo, source string) string {
 
 func isExternalSnapshot(snapshot *libvirt.DomainSnapshot) (bool, error) {
 	if snapshot == nil {
-		return false, fmt.Errorf("nil snapshot")
+		return false, virerr.ErrorGen(virerr.InvalidParameter, fmt.Errorf("nil snapshot"))
 	}
 
 	xmlDesc, err := snapshot.GetXMLDesc(0)
 	if err != nil {
-		return false, fmt.Errorf("failed to get snapshot xml: %w", err)
+		return false, virerr.ErrorGen(virerr.SnapshotError, fmt.Errorf("failed to get snapshot xml: %w", err))
 	}
 
 	var doc snapshotXML
 	if err := xml.Unmarshal([]byte(xmlDesc), &doc); err != nil {
-		return false, fmt.Errorf("failed to parse snapshot xml: %w", err)
+		return false, virerr.ErrorGen(virerr.SnapshotError, fmt.Errorf("failed to parse snapshot xml: %w", err))
 	}
 
 	for _, d := range doc.Disks.Disks {
@@ -141,17 +146,17 @@ func isSafeSnapshotName(name string) bool {
 
 func extractExternalSnapshotSources(snapshot *libvirt.DomainSnapshot) (map[string]string, error) {
 	if snapshot == nil {
-		return nil, fmt.Errorf("nil snapshot")
+		return nil, virerr.ErrorGen(virerr.InvalidParameter, fmt.Errorf("nil snapshot"))
 	}
 
 	xmlDesc, err := snapshot.GetXMLDesc(0)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get snapshot xml: %w", err)
+		return nil, virerr.ErrorGen(virerr.SnapshotError, fmt.Errorf("failed to get snapshot xml: %w", err))
 	}
 
 	var doc snapshotXML
 	if err := xml.Unmarshal([]byte(xmlDesc), &doc); err != nil {
-		return nil, fmt.Errorf("failed to parse snapshot xml: %w", err)
+		return nil, virerr.ErrorGen(virerr.SnapshotError, fmt.Errorf("failed to parse snapshot xml: %w", err))
 	}
 
 	out := make(map[string]string)
