@@ -4,20 +4,21 @@ import (
 	"fmt"
 
 	domCon "github.com/easy-cloud-Knet/KWS_Core/DomCon"
+	virerr "github.com/easy-cloud-Knet/KWS_Core/internal/error"
 	"libvirt.org/go/libvirt"
 )
 
 func DeleteExternalSnapshot(domain *domCon.Domain, snapName string) error {
 	if domain == nil || domain.Domain == nil {
-		return fmt.Errorf("nil domain")
+		return virerr.ErrorGen(virerr.InvalidParameter, fmt.Errorf("nil domain"))
 	}
 	if snapName == "" {
-		return fmt.Errorf("snapshot name required")
+		return virerr.ErrorGen(virerr.InvalidParameter, fmt.Errorf("snapshot name required"))
 	}
 
 	snaps, err := domain.Domain.ListAllSnapshots(0)
 	if err != nil {
-		return fmt.Errorf("failed to list snapshots: %w", err)
+		return virerr.ErrorGen(virerr.SnapshotError, fmt.Errorf("failed to list snapshots: %w", err))
 	}
 	defer func() {
 		for _, s := range snaps {
@@ -33,21 +34,21 @@ func DeleteExternalSnapshot(domain *domCon.Domain, snapName string) error {
 		}
 		isExternal, err := isExternalSnapshot(&snaps[i])
 		if err != nil {
-			return err
+			return virerr.ErrorGen(virerr.SnapshotError, fmt.Errorf("failed to inspect snapshot %s: %w", snapName, err))
 		}
 		if !isExternal {
-			return fmt.Errorf("snapshot %s is not external", snapName)
+			return virerr.ErrorGen(virerr.InvalidParameter, fmt.Errorf("snapshot %s is not external", snapName))
 		}
 		target = &snaps[i]
 		break
 	}
 
 	if target == nil {
-		return fmt.Errorf("snapshot %s not found", snapName)
+		return virerr.ErrorGen(virerr.SnapshotError, fmt.Errorf("snapshot %s not found", snapName))
 	}
 
 	if err := target.Delete(0); err != nil {
-		return fmt.Errorf("failed to delete external snapshot %s: %w", snapName, err)
+		return virerr.ErrorGen(virerr.SnapshotError, fmt.Errorf("failed to delete external snapshot %s: %w", snapName, err))
 	}
 
 	return nil
