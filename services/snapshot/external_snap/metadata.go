@@ -5,7 +5,6 @@ import (
 	"path/filepath"
 	"strings"
 
-	domCon "github.com/easy-cloud-Knet/KWS_Core/DomCon"
 	"github.com/easy-cloud-Knet/KWS_Core/internal/config"
 	virerr "github.com/easy-cloud-Knet/KWS_Core/internal/error"
 )
@@ -24,17 +23,4 @@ func resolveSnapshotRoot(opts *ExternalSnapshotOptions) (string, error) {
 	}
 
 	return clean, nil
-}
-
-func resolveDomainUUID(domain *domCon.Domain) (string, error) {
-	if domain == nil || domain.Domain == nil {
-		return "", virerr.ErrorGen(virerr.InvalidParameter, fmt.Errorf("nil domain"))
-	}
-
-	uuid, err := domain.Domain.GetUUIDString()
-	if err != nil {
-		return "", virerr.ErrorGen(virerr.SnapshotError, fmt.Errorf("failed to get domain uuid: %w", err))
-	}
-
-	return uuid, nil
 }

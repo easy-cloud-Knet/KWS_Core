@@ -5,7 +5,6 @@ import (
 
 	domCon "github.com/easy-cloud-Knet/KWS_Core/DomCon"
 	virerr "github.com/easy-cloud-Knet/KWS_Core/internal/error"
-	"libvirt.org/go/libvirt"
 )
 
 func DeleteSnapshot(domain *domCon.Domain, snapName string) error {
@@ -13,8 +12,15 @@ func DeleteSnapshot(domain *domCon.Domain, snapName string) error {
 		return virerr.ErrorGen(virerr.InvalidParameter, fmt.Errorf("nil domain"))
 	}
 
-	var listFlags libvirt.DomainSnapshotListFlags
-	snaps, err := domain.Domain.ListAllSnapshots(listFlags)
+	return deleteSnapshot(newInternalSnapshotDomain(domain.Domain), snapName)
+}
+
+func deleteSnapshot(domain internalSnapshotDomain, snapName string) error {
+	if domain == nil {
+		return virerr.ErrorGen(virerr.InvalidParameter, fmt.Errorf("nil domain"))
+	}
+
+	snaps, err := domain.ListAllSnapshots()
 	if err != nil {
 		return virerr.ErrorGen(virerr.SnapshotError, fmt.Errorf("failed to list snapshots: %w", err))
 	}
@@ -25,12 +31,12 @@ func DeleteSnapshot(domain *domCon.Domain, snapName string) error {
 	}()
 
 	for _, s := range snaps {
-		n, err := s.GetName()
+		n, err := s.Name()
 		if err != nil {
 			continue
 		}
 		if n == snapName {
-			if err := s.Delete(0); err != nil {
+			if err := s.Delete(); err != nil {
 				return virerr.ErrorGen(virerr.SnapshotError, fmt.Errorf("failed to delete snapshot %s: %w", snapName, err))
 			}
 			return nil
