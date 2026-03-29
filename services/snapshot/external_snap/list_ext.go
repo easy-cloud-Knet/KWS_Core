@@ -12,16 +12,24 @@ func ListExternalSnapshots(domain *domCon.Domain) ([]string, error) {
 		return nil, virerr.ErrorGen(virerr.InvalidParameter, fmt.Errorf("nil domain"))
 	}
 
-	snaps, err := domain.Domain.ListAllSnapshots(0)
+	return listExternalSnapshots(newExternalSnapshotDomain(domain.Domain))
+}
+
+func listExternalSnapshots(domain externalSnapshotDomain) ([]string, error) {
+	if domain == nil {
+		return nil, virerr.ErrorGen(virerr.InvalidParameter, fmt.Errorf("nil domain"))
+	}
+
+	snaps, err := domain.ListAllSnapshots()
 	if err != nil {
 		return nil, virerr.ErrorGen(virerr.SnapshotError, fmt.Errorf("failed to list snapshots: %w", err))
 	}
 
 	names := make([]string, 0, len(snaps))
 	for _, s := range snaps {
-		isExternal, err := isExternalSnapshot(&s)
+		isExternal, err := isExternalSnapshot(s)
 		if err == nil && isExternal {
-			name, err := s.GetName()
+			name, err := s.Name()
 			if err == nil {
 				names = append(names, name)
 			}

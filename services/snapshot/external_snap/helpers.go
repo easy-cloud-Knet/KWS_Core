@@ -7,15 +7,17 @@ import (
 	"strings"
 	"time"
 
-	domCon "github.com/easy-cloud-Knet/KWS_Core/DomCon"
 	virerr "github.com/easy-cloud-Knet/KWS_Core/internal/error"
-	"libvirt.org/go/libvirt"
 )
 
-func waitBlockJobReady(domain *libvirt.Domain, disk string, timeout time.Duration) error {
+func waitBlockJobReady(domain externalSnapshotDomain, disk string, timeout time.Duration) error {
+	if domain == nil {
+		return virerr.ErrorGen(virerr.InvalidParameter, fmt.Errorf("nil domain"))
+	}
+
 	deadline := time.Now().Add(timeout)
 	for {
-		job, err := domain.GetBlockJobInfo(disk, 0)
+		job, err := domain.BlockJobInfo(disk)
 		if err != nil {
 			if time.Now().After(deadline) {
 				return virerr.ErrorGen(virerr.SnapshotError, fmt.Errorf("timeout waiting for block job on disk %s: %w", disk, err))
@@ -35,15 +37,20 @@ func waitBlockJobReady(domain *libvirt.Domain, disk string, timeout time.Duratio
 	}
 }
 
-func listFileDisks(domain *domCon.Domain) ([]diskInfo, error) {
-	if domain == nil || domain.Domain == nil {
+func listFileDisks(domain externalSnapshotDomain) ([]diskInfo, error) {
+	if domain == nil {
 		return nil, virerr.ErrorGen(virerr.InvalidParameter, fmt.Errorf("nil domain"))
 	}
 
-	xmlDesc, err := domain.Domain.GetXMLDesc(0)
+	xmlDesc, err := domain.XMLDesc()
 	if err != nil {
 		return nil, virerr.ErrorGen(virerr.SnapshotError, fmt.Errorf("failed to get domain xml: %w", err))
 	}
+
+	return listFileDisksFromXMLDesc(xmlDesc)
+}
+
+func listFileDisksFromXMLDesc(xmlDesc string) ([]diskInfo, error) {
 
 	var doc domainXML
 	if err := xml.Unmarshal([]byte(xmlDesc), &doc); err != nil {
@@ -103,12 +110,12 @@ func buildDiskDeviceXML(info diskInfo, source string) string {
 	return fmt.Sprintf("<disk type='file' device='disk'>%s<source file='%s'/>%s</disk>", driverXML, source, targetXML)
 }
 
-func isExternalSnapshot(snapshot *libvirt.DomainSnapshot) (bool, error) {
+func isExternalSnapshot(snapshot externalSnapshotHandle) (bool, error) {
 	if snapshot == nil {
 		return false, virerr.ErrorGen(virerr.InvalidParameter, fmt.Errorf("nil snapshot"))
 	}
 
-	xmlDesc, err := snapshot.GetXMLDesc(0)
+	xmlDesc, err := snapshot.XMLDesc()
 	if err != nil {
 		return false, virerr.ErrorGen(virerr.SnapshotError, fmt.Errorf("failed to get snapshot xml: %w", err))
 	}
@@ -144,12 +151,12 @@ func isSafeSnapshotName(name string) bool {
 	return true
 }
 
-func extractExternalSnapshotSources(snapshot *libvirt.DomainSnapshot) (map[string]string, error) {
+func extractExternalSnapshotSources(snapshot externalSnapshotHandle) (map[string]string, error) {
 	if snapshot == nil {
 		return nil, virerr.ErrorGen(virerr.InvalidParameter, fmt.Errorf("nil snapshot"))
 	}
 
-	xmlDesc, err := snapshot.GetXMLDesc(0)
+	xmlDesc, err := snapshot.XMLDesc()
 	if err != nil {
 		return nil, virerr.ErrorGen(virerr.SnapshotError, fmt.Errorf("failed to get snapshot xml: %w", err))
 	}

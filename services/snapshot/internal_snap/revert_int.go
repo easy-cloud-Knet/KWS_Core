@@ -5,7 +5,6 @@ import (
 
 	domCon "github.com/easy-cloud-Knet/KWS_Core/DomCon"
 	virerr "github.com/easy-cloud-Knet/KWS_Core/internal/error"
-	"libvirt.org/go/libvirt"
 )
 
 func RevertToSnapshot(domain *domCon.Domain, snapName string) error {
@@ -13,8 +12,15 @@ func RevertToSnapshot(domain *domCon.Domain, snapName string) error {
 		return virerr.ErrorGen(virerr.InvalidParameter, fmt.Errorf("nil domain"))
 	}
 
-	var listFlags libvirt.DomainSnapshotListFlags
-	snaps, err := domain.Domain.ListAllSnapshots(listFlags)
+	return revertToSnapshot(newInternalSnapshotDomain(domain.Domain), snapName)
+}
+
+func revertToSnapshot(domain internalSnapshotDomain, snapName string) error {
+	if domain == nil {
+		return virerr.ErrorGen(virerr.InvalidParameter, fmt.Errorf("nil domain"))
+	}
+
+	snaps, err := domain.ListAllSnapshots()
 	if err != nil {
 		return virerr.ErrorGen(virerr.SnapshotError, fmt.Errorf("failed to list snapshots: %w", err))
 	}
@@ -24,14 +30,14 @@ func RevertToSnapshot(domain *domCon.Domain, snapName string) error {
 		}
 	}()
 
-	var target *libvirt.DomainSnapshot
+	var target internalSnapshotHandle
 	for i := range snaps {
-		n, err := snaps[i].GetName()
+		n, err := snaps[i].Name()
 		if err != nil {
 			continue
 		}
 		if n == snapName {
-			target = &snaps[i]
+			target = snaps[i]
 			break
 		}
 	}
@@ -40,7 +46,7 @@ func RevertToSnapshot(domain *domCon.Domain, snapName string) error {
 		return virerr.ErrorGen(virerr.SnapshotError, fmt.Errorf("snapshot %s not found", snapName))
 	}
 
-	if err := target.RevertToSnapshot(0); err != nil {
+	if err := target.Revert(); err != nil {
 		return virerr.ErrorGen(virerr.SnapshotError, fmt.Errorf("failed to revert to snapshot %s: %w", snapName, err))
 	}
 

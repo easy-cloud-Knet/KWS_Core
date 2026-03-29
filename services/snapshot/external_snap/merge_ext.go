@@ -6,7 +6,6 @@ import (
 
 	domCon "github.com/easy-cloud-Knet/KWS_Core/DomCon"
 	virerr "github.com/easy-cloud-Knet/KWS_Core/internal/error"
-	"libvirt.org/go/libvirt"
 )
 
 func MergeExternalSnapshot(domain *domCon.Domain, targetDisk string) ([]string, error) {
@@ -14,7 +13,15 @@ func MergeExternalSnapshot(domain *domCon.Domain, targetDisk string) ([]string, 
 		return nil, virerr.ErrorGen(virerr.InvalidParameter, fmt.Errorf("nil domain"))
 	}
 
-	active, err := domain.Domain.IsActive()
+	return mergeExternalSnapshot(newExternalSnapshotDomain(domain.Domain), targetDisk)
+}
+
+func mergeExternalSnapshot(domain externalSnapshotDomain, targetDisk string) ([]string, error) {
+	if domain == nil {
+		return nil, virerr.ErrorGen(virerr.InvalidParameter, fmt.Errorf("nil domain"))
+	}
+
+	active, err := domain.IsActive()
 	if err != nil {
 		return nil, virerr.ErrorGen(virerr.SnapshotError, fmt.Errorf("failed to check domain state: %w", err))
 	}
@@ -39,21 +46,20 @@ func MergeExternalSnapshot(domain *domCon.Domain, targetDisk string) ([]string, 
 			continue
 		}
 
-		flags := libvirt.DOMAIN_BLOCK_COMMIT_ACTIVE | libvirt.DOMAIN_BLOCK_COMMIT_DELETE
-		if err := domain.Domain.BlockCommit(d.TargetDev, backingSource, d.Source, 0, flags); err != nil {
+		if err := domain.StartBlockCommit(d.TargetDev, backingSource, d.Source); err != nil {
 			return nil, virerr.ErrorGen(virerr.SnapshotError, fmt.Errorf("failed to start block commit on disk %s: %w", d.TargetDev, err))
 		}
 
-		if err := waitBlockJobReady(domain.Domain, d.TargetDev, 2*time.Minute); err != nil {
+		if err := waitBlockJobReady(domain, d.TargetDev, 2*time.Minute); err != nil {
 			return nil, virerr.ErrorGen(virerr.SnapshotError, fmt.Errorf("block commit did not complete for disk %s: %w", d.TargetDev, err))
 		}
 
-		if err := domain.Domain.BlockJobAbort(d.TargetDev, libvirt.DOMAIN_BLOCK_JOB_ABORT_PIVOT); err != nil {
+		if err := domain.AbortBlockJobPivot(d.TargetDev); err != nil {
 			return nil, virerr.ErrorGen(virerr.SnapshotError, fmt.Errorf("failed to pivot disk %s after commit: %w", d.TargetDev, err))
 		}
 
 		diskXML := buildDiskDeviceXML(d, backingSource)
-		if err := domain.Domain.UpdateDeviceFlags(diskXML, libvirt.DOMAIN_DEVICE_MODIFY_CONFIG); err != nil {
+		if err := domain.UpdateDeviceConfig(diskXML); err != nil {
 			return nil, virerr.ErrorGen(virerr.SnapshotError, fmt.Errorf("failed to update disk %s after merge: %w", d.TargetDev, err))
 		}
 

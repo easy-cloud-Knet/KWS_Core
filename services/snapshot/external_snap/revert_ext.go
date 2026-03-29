@@ -5,23 +5,30 @@ import (
 
 	domCon "github.com/easy-cloud-Knet/KWS_Core/DomCon"
 	virerr "github.com/easy-cloud-Knet/KWS_Core/internal/error"
-	"libvirt.org/go/libvirt"
 )
 
 func RevertExternalSnapshot(domain *domCon.Domain, snapName string) error {
 	if domain == nil || domain.Domain == nil {
 		return virerr.ErrorGen(virerr.InvalidParameter, fmt.Errorf("nil domain"))
 	}
+
+	return revertExternalSnapshot(newExternalSnapshotDomain(domain.Domain), snapName)
+}
+
+func revertExternalSnapshot(domain externalSnapshotDomain, snapName string) error {
+	if domain == nil {
+		return virerr.ErrorGen(virerr.InvalidParameter, fmt.Errorf("nil domain"))
+	}
 	if snapName == "" {
 		return virerr.ErrorGen(virerr.InvalidParameter, fmt.Errorf("snapshot name required"))
 	}
 
-	active, err := domain.Domain.IsActive()
+	active, err := domain.IsActive()
 	if err == nil && active {
 		return virerr.ErrorGen(virerr.InvalidParameter, fmt.Errorf("external snapshot revert requires the domain to be shut down"))
 	}
 
-	snaps, err := domain.Domain.ListAllSnapshots(0)
+	snaps, err := domain.ListAllSnapshots()
 	if err != nil {
 		return virerr.ErrorGen(virerr.SnapshotError, fmt.Errorf("failed to list snapshots: %w", err))
 	}
@@ -31,20 +38,20 @@ func RevertExternalSnapshot(domain *domCon.Domain, snapName string) error {
 		}
 	}()
 
-	var target *libvirt.DomainSnapshot
+	var target externalSnapshotHandle
 	for i := range snaps {
-		name, err := snaps[i].GetName()
+		name, err := snaps[i].Name()
 		if err != nil || name != snapName {
 			continue
 		}
-		isExternal, err := isExternalSnapshot(&snaps[i])
+		isExternal, err := isExternalSnapshot(snaps[i])
 		if err != nil {
 			return virerr.ErrorGen(virerr.SnapshotError, fmt.Errorf("failed to inspect snapshot %s: %w", snapName, err))
 		}
 		if !isExternal {
 			return virerr.ErrorGen(virerr.InvalidParameter, fmt.Errorf("snapshot %s is not external", snapName))
 		}
-		target = &snaps[i]
+		target = snaps[i]
 		break
 	}
 
@@ -72,7 +79,7 @@ func RevertExternalSnapshot(domain *domCon.Domain, snapName string) error {
 			continue
 		}
 		diskXML := buildDiskDeviceXML(d, targetSource)
-		if err := domain.Domain.UpdateDeviceFlags(diskXML, libvirt.DOMAIN_DEVICE_MODIFY_CONFIG); err != nil {
+		if err := domain.UpdateDeviceConfig(diskXML); err != nil {
 			return virerr.ErrorGen(virerr.SnapshotError, fmt.Errorf("failed to update disk %s: %w", d.TargetDev, err))
 		}
 		updated = true
