@@ -1,6 +1,7 @@
 package api
 
 import (
+	"errors"
 	"fmt"
 	"net/http"
 
@@ -66,16 +67,23 @@ func (i *InstHandler) CreateVMFromBase(w http.ResponseWriter, r *http.Request) {
 	}
 	i.Logger.Info("Handling Create VM", zap.String("uuid", param.UUID))
 
-	domainExisting, domainErr := i.DomainControl.GetDomain(param.UUID)
-	if domainErr != nil {
-		i.Logger.Error("error handling creating vm, failed to get existing domain", zap.String("uuid", param.UUID), zap.Error(domainErr))
-		resp.ResponseWriteErr(w, domainErr, http.StatusInternalServerError)
-		return
+	dom, err := i.DomainControl.GetDomain(param.UUID)
+	if err != nil {
+		if errors.Is(err, virerr.DomainSearchError) {
+			i.Logger.Error("error handling creating vm, failed to get existing domain", zap.String("uuid", param.UUID), zap.Error(err))
+			resp.ResponseWriteErr(w, err, http.StatusInternalServerError)
+			return
+		} else if errors.Is(err, virerr.NoSuchDomain) {
+			i.Logger.Info("no existing domain found with the same uuid, proceeding to create new domain", zap.String("uuid", param.UUID))
+		} else {
+			i.Logger.Error("unexpected error while checking existing domain", zap.String("uuid", param.UUID), zap.Error(err))
+			resp.ResponseWriteErr(w, err, http.StatusInternalServerError)
+			return
+		}
 	}
-	if domainExisting != nil {
-		existsErr := virerr.ErrorGen(virerr.DomainGenerationError, fmt.Errorf("domain %s already exists", param.UUID))
-		i.Logger.Error("error handling creating vm, domain already exists", zap.String("uuid", param.UUID), zap.Error(existsErr))
-		resp.ResponseWriteErr(w, existsErr, http.StatusBadRequest)
+	if dom != nil {
+		i.Logger.Error("existing domain found with the same uuid, You cannot create a new domain with the same uuid", zap.String("uuid", param.UUID))
+		resp.ResponseWriteErr(w, virerr.ErrorGen(virerr.InvalidParameter, fmt.Errorf("domain with uuid %s already exists", param.UUID)), http.StatusConflict)
 		return
 	}
 
