@@ -1,6 +1,7 @@
 package domCon
 
 import (
+	"errors"
 	"sync"
 
 	virerr "github.com/easy-cloud-Knet/KWS_Core/internal/error"
@@ -22,6 +23,10 @@ func (DSU *DomainSeekingByUUID) ReturnDomain() (*Domain, error) {
 	}
 	domain, err := DSU.LibvirtInst.LookupDomainByUUID((*parsedUUID)[:])
 	if err != nil {
+		var libErr libvirt.Error
+		if errors.As(err, &libErr) && libErr.Code == libvirt.ERR_NO_DOMAIN {
+			return nil, virerr.ErrorGen(virerr.NoSuchDomain, err)
+		}
 		return nil, virerr.ErrorGen(virerr.DomainSearchError, err)
 	} else if domain == nil {
 		return nil, virerr.ErrorGen(virerr.NoSuchDomain, err)

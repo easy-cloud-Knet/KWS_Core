@@ -19,7 +19,7 @@ func (DB localConfigurer) CreateDiskImage(dirPath string, diskSize int) error {
 		targetImage, fmt.Sprintf("%dG", diskSize), // 10G
 	)
 	if err := qemuImgCmd.Run(); err != nil {
-		errorDescription := fmt.Errorf("generating Disk image error, may have duplicdated uuid or lack of HD capacity %s, %v", dirPath, err)
+		errorDescription := fmt.Errorf("generating Disk image error, check duplicdated uuid or lack of HD capacity, or validity for base img %s, %v", dirPath, err)
 		return virerr.ErrorGen(virerr.DomainGenerationError, errorDescription)
 	}
 
