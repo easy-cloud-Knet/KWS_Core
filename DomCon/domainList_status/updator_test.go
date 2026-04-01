@@ -4,16 +4,16 @@ import (
 	"fmt"
 	"testing"
 
-	vmtypes "github.com/easy-cloud-Knet/KWS_Core/pkg/types"
+	instatus "github.com/easy-cloud-Knet/KWS_Core/internal/status"
 	"go.uber.org/zap"
 )
 
 type mockStatusRetriever struct {
-	result map[vmtypes.SourceType]int
+	result map[instatus.SourceType]int
 	err    error
 }
 
-func (m *mockStatusRetriever) RetrieveStatus(_ map[vmtypes.SourceType]int, _ *zap.Logger) (map[vmtypes.SourceType]int, error) {
+func (m *mockStatusRetriever) RetrieveStatus(_ map[instatus.SourceType]int, _ *zap.Logger) (map[instatus.SourceType]int, error) {
 	return m.result, m.err
 }
 
@@ -21,9 +21,9 @@ var nopLogger = zap.NewNop()
 
 func TestUpdateFromDomain_ActiveIncreasesAllocated(t *testing.T) {
 	dls := &DomainListStatus{}
-	mock := &mockStatusRetriever{result: map[vmtypes.SourceType]int{vmtypes.CPU: 4}}
+	mock := &mockStatusRetriever{result: map[instatus.SourceType]int{instatus.CPU: 4}}
 
-	if err := dls.UpdateFromDomain(mock, true, map[vmtypes.SourceType]int{vmtypes.CPU: 0}, nopLogger); err != nil {
+	if err := dls.UpdateFromDomain(mock, true, map[instatus.SourceType]int{instatus.CPU: 0}, nopLogger); err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
 	if dls.VcpuAllocated != 4 {
@@ -36,9 +36,9 @@ func TestUpdateFromDomain_ActiveIncreasesAllocated(t *testing.T) {
 
 func TestUpdateFromDomain_InactiveIncreasesBoth(t *testing.T) {
 	dls := &DomainListStatus{}
-	mock := &mockStatusRetriever{result: map[vmtypes.SourceType]int{vmtypes.CPU: 4}}
+	mock := &mockStatusRetriever{result: map[instatus.SourceType]int{instatus.CPU: 4}}
 
-	if err := dls.UpdateFromDomain(mock, false, map[vmtypes.SourceType]int{vmtypes.CPU: 0}, nopLogger); err != nil {
+	if err := dls.UpdateFromDomain(mock, false, map[instatus.SourceType]int{instatus.CPU: 0}, nopLogger); err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
 	if dls.VcpuAllocated != 4 {
@@ -53,7 +53,7 @@ func TestUpdateFromDomain_StatusRetrieverError(t *testing.T) {
 	dls := &DomainListStatus{}
 	mock := &mockStatusRetriever{err: fmt.Errorf("retrieval error")}
 
-	err := dls.UpdateFromDomain(mock, true, map[vmtypes.SourceType]int{vmtypes.CPU: 0}, nopLogger)
+	err := dls.UpdateFromDomain(mock, true, map[instatus.SourceType]int{instatus.CPU: 0}, nopLogger)
 	if err == nil {
 		t.Error("expected error from StatusRetriever, got nil")
 	}

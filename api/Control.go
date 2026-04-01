@@ -5,7 +5,7 @@ import (
 	"net/http"
 
 	virerr "github.com/easy-cloud-Knet/KWS_Core/internal/error"
-	vmtypes "github.com/easy-cloud-Knet/KWS_Core/pkg/types"
+	instatus "github.com/easy-cloud-Knet/KWS_Core/internal/status"
 	httputil "github.com/easy-cloud-Knet/KWS_Core/pkg/httputil"
 	"github.com/easy-cloud-Knet/KWS_Core/services/termination"
 	"go.uber.org/zap"
@@ -41,7 +41,7 @@ func (i *InstHandler) ForceShutDownVM(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	sources := map[vmtypes.SourceType]int{vmtypes.CPU: 0}
+	sources := map[instatus.SourceType]int{instatus.CPU: 0}
 	stat, err := i.DomainControl.DomainListStatus.GetDomStatus(dom.Domain, sources, i.Logger)
 	if err != nil {
 		ERR := virerr.ErrorJoin(err, fmt.Errorf("error getting domain status for forceShutdown"))
@@ -51,7 +51,7 @@ func (i *InstHandler) ForceShutDownVM(w http.ResponseWriter, r *http.Request) {
 	}
 	i.Logger.Info("Domain status retrieved", zap.Any("status", stat))
 
-	i.DomainControl.DomainListStatus.AddSleepingCPU(stat[vmtypes.CPU])
+	i.DomainControl.DomainListStatus.AddSleepingCPU(stat[instatus.CPU])
 
 	resp.ResponseWriteOK(w, nil)
 }
@@ -74,7 +74,7 @@ func (i *InstHandler) DeleteVM(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	sources := map[vmtypes.SourceType]int{vmtypes.CPU: 0}
+	sources := map[instatus.SourceType]int{instatus.CPU: 0}
 	stat, err := i.DomainControl.DomainListStatus.GetDomStatus(domain.Domain, sources, i.Logger)
 	if err != nil {
 		ERR := virerr.ErrorJoin(err, fmt.Errorf("error getting domain status for deleteVM"))
@@ -91,7 +91,7 @@ func (i *InstHandler) DeleteVM(w http.ResponseWriter, r *http.Request) {
 		i.Logger.Error("failed to delete domain", zap.String("uuid", param.UUID), zap.Error(ERR))
 		return
 	}
-	i.DomainControl.DeleteDomain(domain.Domain, param.UUID, stat[vmtypes.CPU])
+	i.DomainControl.DeleteDomain(domain.Domain, param.UUID, stat[instatus.CPU])
 
 	resp.ResponseWriteOK(w, nil)
 }

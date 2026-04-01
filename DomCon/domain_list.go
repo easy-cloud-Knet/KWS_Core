@@ -7,7 +7,6 @@ import (
 	domStatus "github.com/easy-cloud-Knet/KWS_Core/DomCon/domainList_status"
 	virerr "github.com/easy-cloud-Knet/KWS_Core/internal/error"
 	instatus "github.com/easy-cloud-Knet/KWS_Core/internal/status"
-	vmtypes "github.com/easy-cloud-Knet/KWS_Core/pkg/types"
 	"go.uber.org/zap"
 	"libvirt.org/go/libvirt"
 )
@@ -131,7 +130,7 @@ func (DC *DomListControl) retrieveDomainsByState(state libvirt.ConnectListAllDom
 		go func(targetDom libvirt.Domain, targetUUID string) {
 			defer wg.Done()
 			dataDog := instatus.New(&targetDom, isActive)
-			sources := map[vmtypes.SourceType]int{vmtypes.CPU: 0}
+			sources := map[instatus.SourceType]int{instatus.CPU: 0}
 			if err := DC.DomainListStatus.UpdateFromDomain(dataDog, isActive, sources, logger); err != nil {
 				logger.Sugar().Errorf("Failed to retrieve status for domain UUID=%s: %v", targetUUID, err)
 			}
