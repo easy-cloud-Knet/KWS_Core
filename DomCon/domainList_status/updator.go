@@ -9,8 +9,8 @@ import (
 	"libvirt.org/go/libvirt"
 )
 
-func (dls *DomainListStatus) UpdateFromDomain(dataDog instatus.DataDog, dom *libvirt.Domain, isActive bool, sources map[vmtypes.SourceType]int, logger *zap.Logger) error {
-	statusMap, err := dataDog.RetrieveStatus(dom, sources, logger)
+func (dls *DomainListStatus) UpdateFromDomain(dataDog instatus.StatusRetriever, isActive bool, sources map[vmtypes.SourceType]int, logger *zap.Logger) error {
+	statusMap, err := dataDog.RetrieveStatus(sources, logger)
 	if err != nil {
 		return err
 	}
@@ -28,5 +28,5 @@ func (dls *DomainListStatus) GetDomStatus(dom *libvirt.Domain, sources map[vmtyp
 	if err != nil {
 		return nil, fmt.Errorf("failed to get domain state: %w", err)
 	}
-	return instatus.New(isActive).RetrieveStatus(dom, sources, logger)
+	return instatus.New(dom, isActive).RetrieveStatus(sources, logger)
 }

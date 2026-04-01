@@ -7,13 +7,19 @@ import (
 	"go.uber.org/zap"
 )
 
-type LibvirtStatus struct{}
+type libvirtDom interface {
+	GetMaxVcpus() (uint, error)
+}
 
-func (ls *LibvirtStatus) RetrieveStatus(dom Domain, sources map[vmtypes.SourceType]int, _ *zap.Logger) (map[vmtypes.SourceType]int, error) {
+type LibvirtStatus struct {
+	dom libvirtDom
+}
+
+func (ls *LibvirtStatus) RetrieveStatus(sources map[vmtypes.SourceType]int, _ *zap.Logger) (map[vmtypes.SourceType]int, error) {
 	for k := range sources {
 		switch k {
 		case vmtypes.CPU:
-			cpu, err := dom.GetMaxVcpus()
+			cpu, err := ls.dom.GetMaxVcpus()
 			if err != nil {
 				return nil, err
 			}

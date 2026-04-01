@@ -114,7 +114,6 @@ func (DC *DomListControl) retrieveDomainsByState(state libvirt.ConnectListAllDom
 	}
 
 	isActive := state == libvirt.CONNECT_LIST_DOMAINS_ACTIVE
-	dataDog := instatus.New(isActive)
 	wg := &sync.WaitGroup{}
 	for _, dom := range domains {
 		uuid, err := dom.GetUUIDString()
@@ -131,8 +130,9 @@ func (DC *DomListControl) retrieveDomainsByState(state libvirt.ConnectListAllDom
 		wg.Add(1)
 		go func(targetDom libvirt.Domain, targetUUID string) {
 			defer wg.Done()
+			dataDog := instatus.New(&targetDom, isActive)
 			sources := map[vmtypes.SourceType]int{vmtypes.CPU: 0}
-			if err := DC.DomainListStatus.UpdateFromDomain(dataDog, &targetDom, isActive, sources, logger); err != nil {
+			if err := DC.DomainListStatus.UpdateFromDomain(dataDog, isActive, sources, logger); err != nil {
 				logger.Sugar().Errorf("Failed to retrieve status for domain UUID=%s: %v", targetUUID, err)
 			}
 		}(dom, uuid)
