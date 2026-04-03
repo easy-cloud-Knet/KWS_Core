@@ -5,8 +5,8 @@ import (
 	"sync"
 
 	domStatus "github.com/easy-cloud-Knet/KWS_Core/DomCon/domainList_status"
-	domainStatus "github.com/easy-cloud-Knet/KWS_Core/DomCon/domain_status"
 	virerr "github.com/easy-cloud-Knet/KWS_Core/internal/error"
+	instatus "github.com/easy-cloud-Knet/KWS_Core/internal/status"
 	"go.uber.org/zap"
 	"libvirt.org/go/libvirt"
 )
@@ -112,7 +112,7 @@ func (DC *DomListControl) retrieveDomainsByState(state libvirt.ConnectListAllDom
 		return err
 	}
 
-	dataDog := DC.DomainListStatus.NewDataDogs(state)
+	isActive := state == libvirt.CONNECT_LIST_DOMAINS_ACTIVE
 	wg := &sync.WaitGroup{}
 	for _, dom := range domains {
 		uuid, err := dom.GetUUIDString()
@@ -127,12 +127,14 @@ func (DC *DomListControl) retrieveDomainsByState(state libvirt.ConnectListAllDom
 		DC.AddExistingDomain(NewDom, uuid)
 
 		wg.Add(1)
-		go func(targetDom libvirt.Domain) {
+		go func(targetDom libvirt.Domain, targetUUID string) {
 			defer wg.Done()
-			if err := DC.DomainListStatus.UpdateFromDomain(dataDog, &targetDom, state, []domainStatus.SourceType{domainStatus.CPU}, logger); err != nil {
-				logger.Sugar().Errorf("Failed to retrieve status for domain UUID=%s: %v", uuid, err)
+			dataDog := instatus.New(&targetDom, isActive)
+			sources := map[instatus.SourceType]int{instatus.CPU: 0}
+			if err := DC.DomainListStatus.UpdateFromDomain(dataDog, isActive, sources, logger); err != nil {
+				logger.Sugar().Errorf("Failed to retrieve status for domain UUID=%s: %v", targetUUID, err)
 			}
-		}(dom)
+		}(dom, uuid)
 		logger.Sugar().Infof("Added domain: UUID=%s", uuid)
 	}
 	wg.Wait()

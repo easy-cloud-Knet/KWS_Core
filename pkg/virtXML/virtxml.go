@@ -15,9 +15,10 @@ func New() *libvirtxml.Domain {
 	return &libvirtxml.Domain{}
 }
 
-// ConvertExistingDomain takes libvirt.XMLDesc() into libvirtxml.Domain struct.
-func ConvertExistingDomain(Dflag DomainXMLFlags, getXMLDesc func(flags DomainXMLFlags) (string, error)) (*libvirtxml.Domain, error) {
-	xmlStr, err := getXMLDesc(DomainXMLFlags(Dflag))
+// ConvertExistingDomain takes functions as domain.GetXMLDesc or any string based function.
+// It should be wrapped with function which returns string and error qualified with libvirt-xml.Domain format.
+func ConvertExistingDomain(getXMLDesc func() (string, error)) (*libvirtxml.Domain, error) {
+	xmlStr, err := getXMLDesc()
 	if err != nil {
 		return nil, err
 	}

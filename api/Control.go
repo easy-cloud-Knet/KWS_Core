@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"net/http"
 
-domainStatus "github.com/easy-cloud-Knet/KWS_Core/DomCon/domain_status"
 	virerr "github.com/easy-cloud-Knet/KWS_Core/internal/error"
+	instatus "github.com/easy-cloud-Knet/KWS_Core/internal/status"
 	httputil "github.com/easy-cloud-Knet/KWS_Core/pkg/httputil"
 	"github.com/easy-cloud-Knet/KWS_Core/services/termination"
 	"go.uber.org/zap"
@@ -41,7 +41,8 @@ func (i *InstHandler) ForceShutDownVM(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	stat, err := i.DomainControl.DomainListStatus.GetDomStatus(dom.Domain, []domainStatus.SourceType{domainStatus.CPU}, i.Logger)
+	sources := map[instatus.SourceType]int{instatus.CPU: 0}
+	stat, err := i.DomainControl.DomainListStatus.GetDomStatus(dom.Domain, sources, i.Logger)
 	if err != nil {
 		ERR := virerr.ErrorJoin(err, fmt.Errorf("error getting domain status for forceShutdown"))
 		resp.ResponseWriteErr(w, ERR, http.StatusInternalServerError)
@@ -50,7 +51,7 @@ func (i *InstHandler) ForceShutDownVM(w http.ResponseWriter, r *http.Request) {
 	}
 	i.Logger.Info("Domain status retrieved", zap.Any("status", stat))
 
-	i.DomainControl.DomainListStatus.AddSleepingCPU(int(stat.(map[domainStatus.SourceType]int)[domainStatus.CPU]))
+	i.DomainControl.DomainListStatus.AddSleepingCPU(stat[instatus.CPU])
 
 	resp.ResponseWriteOK(w, nil)
 }
@@ -73,7 +74,8 @@ func (i *InstHandler) DeleteVM(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	stat, err := i.DomainControl.DomainListStatus.GetDomStatus(domain.Domain, []domainStatus.SourceType{domainStatus.CPU}, i.Logger)
+	sources := map[instatus.SourceType]int{instatus.CPU: 0}
+	stat, err := i.DomainControl.DomainListStatus.GetDomStatus(domain.Domain, sources, i.Logger)
 	if err != nil {
 		ERR := virerr.ErrorJoin(err, fmt.Errorf("error getting domain status for deleteVM"))
 		resp.ResponseWriteErr(w, ERR, http.StatusInternalServerError)
@@ -89,7 +91,7 @@ func (i *InstHandler) DeleteVM(w http.ResponseWriter, r *http.Request) {
 		i.Logger.Error("failed to delete domain", zap.String("uuid", param.UUID), zap.Error(ERR))
 		return
 	}
-	i.DomainControl.DeleteDomain(domain.Domain, param.UUID, int(stat.(map[domainStatus.SourceType]int)[domainStatus.CPU]))
+	i.DomainControl.DeleteDomain(domain.Domain, param.UUID, stat[instatus.CPU])
 
 	resp.ResponseWriteOK(w, nil)
 }
