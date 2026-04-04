@@ -7,6 +7,7 @@ import (
 
 	domCon "github.com/easy-cloud-Knet/KWS_Core/DomCon"
 	"github.com/easy-cloud-Knet/KWS_Core/api"
+	control "github.com/easy-cloud-Knet/KWS_Core/api/Control"
 	"github.com/easy-cloud-Knet/KWS_Core/internal/config"
 	syslogger "github.com/easy-cloud-Knet/KWS_Core/internal/logger"
 	"github.com/easy-cloud-Knet/KWS_Core/internal/server"
@@ -31,7 +32,9 @@ func main() {
 		logger.Fatal("failed to retrieve domains on startup", zap.Error(err))
 	}
 
-	go server.InitServer(config.ServerPort, &libvirtInst, logger)
+	controlHandler := control.NewHandler(domListCon, logger)
+
+	go server.InitServer(config.ServerPort, &libvirtInst, controlHandler, logger)
 	defer func() {
 		logger.Info("Shutting down gracefully...") // 종료 시 로깅
 		logger.Sync()
