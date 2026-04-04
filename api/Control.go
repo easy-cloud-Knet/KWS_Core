@@ -5,11 +5,9 @@ import (
 	"net/http"
 
 	virerr "github.com/easy-cloud-Knet/KWS_Core/internal/error"
-	instatus "github.com/easy-cloud-Knet/KWS_Core/internal/status"
 	httputil "github.com/easy-cloud-Knet/KWS_Core/pkg/httputil"
 	"github.com/easy-cloud-Knet/KWS_Core/services/termination"
 	"go.uber.org/zap"
-	"libvirt.org/go/libvirt"
 )
 
 // DI pattern
@@ -33,7 +31,7 @@ func (i *InstHandler) ForceShutDownVM(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	DomainTerminator := termination.DomainTerminatorFactory(dom.Domain)
+	DomainTerminator := termination.DomainTerminatorFactory(dom)
 
 	err = DomainTerminator.TerminateDomain()
 	if err != nil {
@@ -41,24 +39,19 @@ func (i *InstHandler) ForceShutDownVM(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	sources := map[instatus.SourceType]int{instatus.CPU: 0}
-	stat, err := i.DomainControl.DomainListStatus.GetDomStatus(dom.Domain, sources, i.Logger)
-	if err != nil {
+	if err := i.DomainControl.SleepDomain(dom, i.Logger); err != nil {
 		ERR := virerr.ErrorJoin(err, fmt.Errorf("error getting domain status for forceShutdown"))
 		resp.ResponseWriteErr(w, ERR, http.StatusInternalServerError)
-		i.Logger.Error("failed to get domain status for forceShutdown", zap.String("uuid", param.UUID), zap.Error(ERR))
+		i.Logger.Error("failed to sleep domain for forceShutdown", zap.String("uuid", param.UUID), zap.Error(ERR))
 		return
 	}
-	i.Logger.Info("Domain status retrieved", zap.Any("status", stat))
-
-	i.DomainControl.DomainListStatus.AddSleepingCPU(stat[instatus.CPU])
 
 	resp.ResponseWriteOK(w, nil)
 }
 
 func (i *InstHandler) DeleteVM(w http.ResponseWriter, r *http.Request) {
 	param := &DomainControlRequest{}
-	resp := httputil.ResponseGen[libvirt.DomainInfo]("Deleting Vm")
+	resp := httputil.ResponseGen[any]("Deleting Vm")
 
 	if err := httputil.HttpDecoder(r, param); err != nil {
 		ERR := virerr.ErrorJoin(err, fmt.Errorf("error deleting vm, unparsing HTTP request "))
@@ -74,24 +67,20 @@ func (i *InstHandler) DeleteVM(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	sources := map[instatus.SourceType]int{instatus.CPU: 0}
-	stat, err := i.DomainControl.DomainListStatus.GetDomStatus(domain.Domain, sources, i.Logger)
-	if err != nil {
-		ERR := virerr.ErrorJoin(err, fmt.Errorf("error getting domain status for deleteVM"))
-		resp.ResponseWriteErr(w, ERR, http.StatusInternalServerError)
-		i.Logger.Error("failed to get domain status for deleteVM", zap.String("uuid", param.UUID), zap.Error(ERR))
-		return
-	}
-	i.Logger.Info("Domain status retrieved", zap.Any("status", stat))
-
-	DomainDeleter := termination.DomainDeleterFactory(domain.Domain, param.DeletionType, param.UUID)
+	DomainDeleter := termination.DomainDeleterFactory(domain, param.DeletionType, param.UUID)
 	if err := DomainDeleter.DeleteDomain(); err != nil {
 		ERR := virerr.ErrorJoin(err, fmt.Errorf("error deleting vm, retreving Get domin error "))
 		resp.ResponseWriteErr(w, ERR, http.StatusInternalServerError)
 		i.Logger.Error("failed to delete domain", zap.String("uuid", param.UUID), zap.Error(ERR))
 		return
 	}
-	i.DomainControl.DeleteDomain(domain.Domain, param.UUID, stat[instatus.CPU])
+
+	if err := i.DomainControl.RemoveDomain(domain, param.UUID, i.Logger); err != nil {
+		ERR := virerr.ErrorJoin(err, fmt.Errorf("error removing domain from list"))
+		resp.ResponseWriteErr(w, ERR, http.StatusInternalServerError)
+		i.Logger.Error("failed to remove domain", zap.String("uuid", param.UUID), zap.Error(ERR))
+		return
+	}
 
 	resp.ResponseWriteOK(w, nil)
 }
