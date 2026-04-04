@@ -9,11 +9,10 @@ import (
 	httputil "github.com/easy-cloud-Knet/KWS_Core/pkg/httputil"
 	"github.com/easy-cloud-Knet/KWS_Core/services/creation"
 	"go.uber.org/zap"
-	"libvirt.org/go/libvirt"
 )
 
 func (h *Handler) BootVM(w http.ResponseWriter, r *http.Request) {
-	resp := httputil.ResponseGen[libvirt.DomainInfo]("BootVM")
+	resp := httputil.ResponseGen[any]("BootVM")
 	param := &DomainBootRequest{}
 
 	if err := httputil.HttpDecoder(r, param); err != nil {
@@ -55,7 +54,7 @@ func (h *Handler) BootVM(w http.ResponseWriter, r *http.Request) {
 
 func (h *Handler) CreateVMFromBase(w http.ResponseWriter, r *http.Request) {
 
-	resp := httputil.ResponseGen[libvirt.DomainInfo]("CreateVm")
+	resp := httputil.ResponseGen[any]("CreateVm")
 	param := &CreateVMRequest{}
 
 	if err := httputil.HttpDecoder(r, param); err != nil {
