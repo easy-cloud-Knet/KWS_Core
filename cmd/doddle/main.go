@@ -26,7 +26,6 @@ func main() {
 	}
 
 	// TODO: 모든 Handler의 생성자에서 DomainControl과 LibvirtConnect를 주입받도록 수정
-	createHandler := create.NewHandler(domListCon, libvirtInst.LibvirtInst, logger)
 
 	libvirtInst.LibvirtConnection()
 	libvirtInst.DomainControl.SetLibvirt(libvirtInst.LibvirtInst)
@@ -34,6 +33,7 @@ func main() {
 	if err := libvirtInst.DomainControl.RetrieveAllDomain(logger); err != nil {
 		logger.Fatal("failed to retrieve domains on startup", zap.Error(err))
 	}
+	createHandler := create.NewHandler(domListCon, libvirtInst.LibvirtInst, logger)
 
 	go server.InitServer(config.ServerPort, &libvirtInst, createHandler, logger)
 	defer func() {
