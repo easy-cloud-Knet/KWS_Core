@@ -71,37 +71,29 @@ func (DC *DomListControl) GetDomain(uuid string) (*Domain, error) {
 	return domain, nil
 }
 
-func (DC *DomListControl) DeleteDomain(Domain *libvirt.Domain, uuid string, vcpu int) {
-	DC.domainListMutex.Lock()
-	delete(DC.DomainList, uuid)
-	Domain.Free()
-	DC.domainListMutex.Unlock()
-	DC.DomainListStatus.TakeAllocatedCPU(vcpu)
+func (DC *DomListControl) SleepDomain(domain *Domain, logger *zap.Logger) error {
+	sources := map[instatus.SourceType]int{instatus.CPU: 0}
+	stat, err := DC.DomainListStatus.GetDomStatus(domain.Domain, sources, logger)
+	if err != nil {
+		return err
+	}
+	DC.DomainListStatus.AddSleepingCPU(stat[instatus.CPU])
+	return nil
 }
 
-func (DC *DomListControl) FindAndDeleteDomain(uuid string) error {
-	//아직 활용처가 없어서, vcpu 삭제를 추가하지 않았음/
-	// DeleteDomain 함수의 TakeAllocatedCPU 호출을 참고..
-	DC.domainListMutex.Lock()
-	domain, Exist := DC.DomainList[uuid]
-	DC.domainListMutex.Unlock()
-
-	if !Exist {
-		DomainSeeker := DomSeekUUIDFactory(DC.libvirtInst, uuid)
-		dom, err := DomainSeeker.ReturnDomain()
-		if err != nil {
-			return virerr.ErrorGen(virerr.NoSuchDomain, fmt.Errorf("domain trying to delete already empty, uuid of %s, %w", uuid, err))
-		}
-		dom.Domain.Free()
-		return nil
+func (DC *DomListControl) RemoveDomain(domain *Domain, uuid string, logger *zap.Logger) error {
+	sources := map[instatus.SourceType]int{instatus.CPU: 0}
+	stat, err := DC.DomainListStatus.GetDomStatus(domain.Domain, sources, logger)
+	if err != nil {
+		return err
 	}
-
-	domain.Domain.Free()
+	vcpu := stat[instatus.CPU]
 
 	DC.domainListMutex.Lock()
 	delete(DC.DomainList, uuid)
+	domain.Domain.Free()
 	DC.domainListMutex.Unlock()
-
+	DC.DomainListStatus.TakeAllocatedCPU(vcpu)
 	return nil
 }
 
