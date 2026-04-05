@@ -160,6 +160,15 @@ func (DC *DomListControl) RetrieveAllDomain(logger *zap.Logger) error {
 
 ////////////////////////////////////////////////
 
+func (DC *DomListControl) BootSleepingCPU(domain *Domain) error {
+	vcpu, err := domain.Domain.GetMaxVcpus()
+	if err != nil {
+		return err
+	}
+	DC.DomainListStatus.TakeSleepingCPU(int(vcpu))
+	return nil
+}
+
 func (DC *DomListControl) GetAllUUIDs() []string {
 	DC.domainListMutex.Lock()
 	defer DC.domainListMutex.Unlock()
