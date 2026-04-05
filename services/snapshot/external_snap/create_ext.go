@@ -18,7 +18,7 @@ func CreateExternalSnapshot(domain *domCon.Domain, name string, opts *ExternalSn
 	return createExternalSnapshot(newExternalSnapshotDomain(domain.Domain), name, opts)
 }
 
-func createExternalSnapshot(domain externalSnapshotDomain, name string, opts *ExternalSnapshotOptions) (string, error) {
+func createExternalSnapshot(domain SnapshotDomain, name string, opts *ExternalSnapshotOptions) (string, error) {
 	if domain == nil {
 		return "", virerr.ErrorGen(virerr.InvalidParameter, fmt.Errorf("nil domain"))
 	}

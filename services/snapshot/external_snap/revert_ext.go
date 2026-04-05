@@ -15,7 +15,7 @@ func RevertExternalSnapshot(domain *domCon.Domain, snapName string) error {
 	return revertExternalSnapshot(newExternalSnapshotDomain(domain.Domain), snapName)
 }
 
-func revertExternalSnapshot(domain externalSnapshotDomain, snapName string) error {
+func revertExternalSnapshot(domain SnapshotDomain, snapName string) error {
 	if domain == nil {
 		return virerr.ErrorGen(virerr.InvalidParameter, fmt.Errorf("nil domain"))
 	}

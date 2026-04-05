@@ -10,7 +10,7 @@ import (
 	virerr "github.com/easy-cloud-Knet/KWS_Core/internal/error"
 )
 
-func waitBlockJobReady(domain externalSnapshotDomain, disk string, timeout time.Duration) error {
+func waitBlockJobReady(domain SnapshotDomain, disk string, timeout time.Duration) error {
 	if domain == nil {
 		return virerr.ErrorGen(virerr.InvalidParameter, fmt.Errorf("nil domain"))
 	}
@@ -37,7 +37,7 @@ func waitBlockJobReady(domain externalSnapshotDomain, disk string, timeout time.
 	}
 }
 
-func listFileDisks(domain externalSnapshotDomain) ([]diskInfo, error) {
+func listFileDisks(domain SnapshotDomain) ([]diskInfo, error) {
 	if domain == nil {
 		return nil, virerr.ErrorGen(virerr.InvalidParameter, fmt.Errorf("nil domain"))
 	}

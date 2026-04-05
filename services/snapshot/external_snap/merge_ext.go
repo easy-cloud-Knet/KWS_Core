@@ -16,7 +16,7 @@ func MergeExternalSnapshot(domain *domCon.Domain, targetDisk string) ([]string, 
 	return mergeExternalSnapshot(newExternalSnapshotDomain(domain.Domain), targetDisk)
 }
 
-func mergeExternalSnapshot(domain externalSnapshotDomain, targetDisk string) ([]string, error) {
+func mergeExternalSnapshot(domain SnapshotDomain, targetDisk string) ([]string, error) {
 	if domain == nil {
 		return nil, virerr.ErrorGen(virerr.InvalidParameter, fmt.Errorf("nil domain"))
 	}

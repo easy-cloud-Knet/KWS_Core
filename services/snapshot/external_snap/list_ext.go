@@ -15,7 +15,7 @@ func ListExternalSnapshots(domain *domCon.Domain) ([]string, error) {
 	return listExternalSnapshots(newExternalSnapshotDomain(domain.Domain))
 }
 
-func listExternalSnapshots(domain externalSnapshotDomain) ([]string, error) {
+func listExternalSnapshots(domain SnapshotDomain) ([]string, error) {
 	if domain == nil {
 		return nil, virerr.ErrorGen(virerr.InvalidParameter, fmt.Errorf("nil domain"))
 	}

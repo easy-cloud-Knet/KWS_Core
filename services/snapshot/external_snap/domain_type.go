@@ -6,7 +6,7 @@ import (
 	"libvirt.org/go/libvirt"
 )
 
-type externalSnapshotDomain interface {
+type SnapshotDomain interface {
 	IsActive() (bool, error)
 	CreateExternalSnapshot(snapshotXML string, opts externalSnapshotCreateExecOptions) (externalSnapshotHandle, error)
 	ListAllSnapshots() ([]externalSnapshotHandle, error)
@@ -40,7 +40,7 @@ type libvirtExternalSnapshotDomain struct {
 	domain *libvirt.Domain
 }
 
-func newExternalSnapshotDomain(domain *libvirt.Domain) externalSnapshotDomain {
+func newExternalSnapshotDomain(domain *libvirt.Domain) SnapshotDomain {
 	return &libvirtExternalSnapshotDomain{domain: domain}
 }
 
