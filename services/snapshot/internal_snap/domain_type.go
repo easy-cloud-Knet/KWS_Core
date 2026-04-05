@@ -6,31 +6,31 @@ import (
 	"libvirt.org/go/libvirt"
 )
 
-type internalSnapshotDomain interface {
-	CreateSnapshot(snapshotXML string, opts internalSnapshotCreateExecOptions) (internalSnapshotHandle, error)
-	ListAllSnapshots() ([]internalSnapshotHandle, error)
+type snapshotDomain interface {
+	CreateSnapshot(snapshotXML string, opts snapshotCreateOptions) (snapshotHandle, error)
+	ListAllSnapshots() ([]snapshotHandle, error)
 }
 
-type internalSnapshotCreateExecOptions struct {
+type snapshotCreateOptions struct {
 	Quiesce bool
 }
 
-type internalSnapshotHandle interface {
+type snapshotHandle interface {
 	Name() (string, error)
 	Delete() error
 	Revert() error
 	Free() error
 }
 
-type libvirtInternalSnapshotDomain struct {
+type libvirtSnapshotDomain struct {
 	domain *libvirt.Domain
 }
 
-func newInternalSnapshotDomain(domain *libvirt.Domain) internalSnapshotDomain {
-	return &libvirtInternalSnapshotDomain{domain: domain}
+func newInternalSnapshotDomain(domain *libvirt.Domain) snapshotDomain {
+	return &libvirtSnapshotDomain{domain: domain}
 }
 
-func (d *libvirtInternalSnapshotDomain) CreateSnapshot(snapshotXML string, opts internalSnapshotCreateExecOptions) (internalSnapshotHandle, error) {
+func (d *libvirtSnapshotDomain) CreateSnapshot(snapshotXML string, opts snapshotCreateOptions) (snapshotHandle, error) {
 	if d == nil || d.domain == nil {
 		return nil, fmt.Errorf("nil domain")
 	}
@@ -45,10 +45,10 @@ func (d *libvirtInternalSnapshotDomain) CreateSnapshot(snapshotXML string, opts 
 		return nil, err
 	}
 
-	return &libvirtInternalSnapshotHandle{snapshot: snap}, nil
+	return &libvirtSnapshotHandle{snapshot: snap}, nil
 }
 
-func (d *libvirtInternalSnapshotDomain) ListAllSnapshots() ([]internalSnapshotHandle, error) {
+func (d *libvirtSnapshotDomain) ListAllSnapshots() ([]snapshotHandle, error) {
 	if d == nil || d.domain == nil {
 		return nil, fmt.Errorf("nil domain")
 	}
@@ -58,40 +58,40 @@ func (d *libvirtInternalSnapshotDomain) ListAllSnapshots() ([]internalSnapshotHa
 		return nil, err
 	}
 
-	handles := make([]internalSnapshotHandle, 0, len(snaps))
+	handles := make([]snapshotHandle, 0, len(snaps))
 	for i := range snaps {
-		handles = append(handles, &libvirtInternalSnapshotHandle{snapshot: &snaps[i]})
+		handles = append(handles, &libvirtSnapshotHandle{snapshot: &snaps[i]})
 	}
 
 	return handles, nil
 }
 
-type libvirtInternalSnapshotHandle struct {
+type libvirtSnapshotHandle struct {
 	snapshot *libvirt.DomainSnapshot
 }
 
-func (s *libvirtInternalSnapshotHandle) Name() (string, error) {
+func (s *libvirtSnapshotHandle) Name() (string, error) {
 	if s == nil || s.snapshot == nil {
 		return "", fmt.Errorf("nil snapshot")
 	}
 	return s.snapshot.GetName()
 }
 
-func (s *libvirtInternalSnapshotHandle) Delete() error {
+func (s *libvirtSnapshotHandle) Delete() error {
 	if s == nil || s.snapshot == nil {
 		return fmt.Errorf("nil snapshot")
 	}
 	return s.snapshot.Delete(0)
 }
 
-func (s *libvirtInternalSnapshotHandle) Revert() error {
+func (s *libvirtSnapshotHandle) Revert() error {
 	if s == nil || s.snapshot == nil {
 		return fmt.Errorf("nil snapshot")
 	}
 	return s.snapshot.RevertToSnapshot(0)
 }
 
-func (s *libvirtInternalSnapshotHandle) Free() error {
+func (s *libvirtSnapshotHandle) Free() error {
 	if s == nil || s.snapshot == nil {
 		return nil
 	}

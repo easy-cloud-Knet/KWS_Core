@@ -15,7 +15,7 @@ func ListSnapshots(domain *domCon.Domain) ([]string, error) {
 	return listSnapshots(newInternalSnapshotDomain(domain.Domain))
 }
 
-func listSnapshots(domain internalSnapshotDomain) ([]string, error) {
+func listSnapshots(domain snapshotDomain) ([]string, error) {
 	if domain == nil {
 		return nil, virerr.ErrorGen(virerr.InvalidParameter, fmt.Errorf("nil domain"))
 	}

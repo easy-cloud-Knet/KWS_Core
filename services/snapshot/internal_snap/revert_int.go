@@ -15,7 +15,7 @@ func RevertToSnapshot(domain *domCon.Domain, snapName string) error {
 	return revertToSnapshot(newInternalSnapshotDomain(domain.Domain), snapName)
 }
 
-func revertToSnapshot(domain internalSnapshotDomain, snapName string) error {
+func revertToSnapshot(domain snapshotDomain, snapName string) error {
 	if domain == nil {
 		return virerr.ErrorGen(virerr.InvalidParameter, fmt.Errorf("nil domain"))
 	}
@@ -30,7 +30,7 @@ func revertToSnapshot(domain internalSnapshotDomain, snapName string) error {
 		}
 	}()
 
-	var target internalSnapshotHandle
+	var target snapshotHandle
 	for i := range snaps {
 		n, err := snaps[i].Name()
 		if err != nil {

@@ -15,7 +15,7 @@ func DeleteSnapshot(domain *domCon.Domain, snapName string) error {
 	return deleteSnapshot(newInternalSnapshotDomain(domain.Domain), snapName)
 }
 
-func deleteSnapshot(domain internalSnapshotDomain, snapName string) error {
+func deleteSnapshot(domain snapshotDomain, snapName string) error {
 	if domain == nil {
 		return virerr.ErrorGen(virerr.InvalidParameter, fmt.Errorf("nil domain"))
 	}

@@ -15,7 +15,7 @@ func CreateSnapshot(domain *domCon.Domain, name string, opts *SnapshotOptions) (
 	return createSnapshot(newInternalSnapshotDomain(domain.Domain), name, opts)
 }
 
-func createSnapshot(domain internalSnapshotDomain, name string, opts *SnapshotOptions) (string, error) {
+func createSnapshot(domain snapshotDomain, name string, opts *SnapshotOptions) (string, error) {
 	if domain == nil {
 		return "", virerr.ErrorGen(virerr.InvalidParameter, fmt.Errorf("nil domain"))
 	}
@@ -27,7 +27,7 @@ func createSnapshot(domain internalSnapshotDomain, name string, opts *SnapshotOp
 
 	snapXML := fmt.Sprintf(`<domainsnapshot><name>%s</name><description>%s</description></domainsnapshot>`, name, description)
 
-	createOpts := internalSnapshotCreateExecOptions{
+	createOpts := snapshotCreateOptions{
 		Quiesce: opts != nil && opts.Quiesce,
 	}
 

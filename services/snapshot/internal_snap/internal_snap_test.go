@@ -10,14 +10,14 @@ import (
 
 type mockInternalSnapshotDomain struct {
 	createErr    error
-	createHandle internalSnapshotHandle
+	createHandle snapshotHandle
 	listErr      error
-	snapshots    []internalSnapshotHandle
+	snapshots    []snapshotHandle
 
-	lastCreateOpts internalSnapshotCreateExecOptions
+	lastCreateOpts snapshotCreateOptions
 }
 
-func (m *mockInternalSnapshotDomain) CreateSnapshot(_ string, opts internalSnapshotCreateExecOptions) (internalSnapshotHandle, error) {
+func (m *mockInternalSnapshotDomain) CreateSnapshot(_ string, opts snapshotCreateOptions) (snapshotHandle, error) {
 	m.lastCreateOpts = opts
 	if m.createErr != nil {
 		return nil, m.createErr
@@ -28,7 +28,7 @@ func (m *mockInternalSnapshotDomain) CreateSnapshot(_ string, opts internalSnaps
 	return &mockInternalSnapshotHandle{name: "snap-created"}, nil
 }
 
-func (m *mockInternalSnapshotDomain) ListAllSnapshots() ([]internalSnapshotHandle, error) {
+func (m *mockInternalSnapshotDomain) ListAllSnapshots() ([]snapshotHandle, error) {
 	if m.listErr != nil {
 		return nil, m.listErr
 	}
@@ -86,7 +86,7 @@ func TestCreateSnapshot_QuiesceOption(t *testing.T) {
 }
 
 func TestDeleteSnapshot_NotFound(t *testing.T) {
-	domain := &mockInternalSnapshotDomain{snapshots: []internalSnapshotHandle{}}
+	domain := &mockInternalSnapshotDomain{snapshots: []snapshotHandle{}}
 	err := deleteSnapshot(domain, "missing")
 	if err == nil {
 		t.Fatal("expected error, got nil")
@@ -97,7 +97,7 @@ func TestDeleteSnapshot_NotFound(t *testing.T) {
 }
 
 func TestListSnapshots_CollectsNames(t *testing.T) {
-	domain := &mockInternalSnapshotDomain{snapshots: []internalSnapshotHandle{
+	domain := &mockInternalSnapshotDomain{snapshots: []snapshotHandle{
 		&mockInternalSnapshotHandle{name: "snap-a"},
 		&mockInternalSnapshotHandle{name: "snap-b"},
 	}}
@@ -111,7 +111,7 @@ func TestListSnapshots_CollectsNames(t *testing.T) {
 }
 
 func TestRevertToSnapshot_SnapshotNotFound(t *testing.T) {
-	domain := &mockInternalSnapshotDomain{snapshots: []internalSnapshotHandle{
+	domain := &mockInternalSnapshotDomain{snapshots: []snapshotHandle{
 		&mockInternalSnapshotHandle{name: "other"},
 	}}
 	err := revertToSnapshot(domain, "target")
@@ -124,7 +124,7 @@ func TestRevertToSnapshot_SnapshotNotFound(t *testing.T) {
 }
 
 func TestRevertToSnapshot_RevertFailure(t *testing.T) {
-	domain := &mockInternalSnapshotDomain{snapshots: []internalSnapshotHandle{
+	domain := &mockInternalSnapshotDomain{snapshots: []snapshotHandle{
 		&mockInternalSnapshotHandle{name: "target", revertErr: fmt.Errorf("revert failed")},
 	}}
 	err := revertToSnapshot(domain, "target")
