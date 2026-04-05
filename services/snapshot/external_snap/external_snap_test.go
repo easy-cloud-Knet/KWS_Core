@@ -2,34 +2,23 @@ package external
 
 import (
 	"errors"
-	"fmt"
 	"testing"
 
 	virerr "github.com/easy-cloud-Knet/KWS_Core/internal/error"
 )
 
 type mockExternalSnapshotDomain struct {
-	isActive        bool
-	isActiveErr     error
-	uuid            string
-	uuidErr         error
-	xmlDesc         string
-	xmlDescErr      error
 	createErr       error
-	createHandle    externalSnapshotHandle
+	createHandle    SnapshotHandle
 	listErr         error
-	snapshots       []externalSnapshotHandle
+	snapshots       []SnapshotHandle
 	blockJobInfo    externalBlockJobInfo
 	blockJobInfoErr error
 
 	lastCreateOpts externalSnapshotCreateExecOptions
 }
 
-func (m *mockExternalSnapshotDomain) IsActive() (bool, error) {
-	return m.isActive, m.isActiveErr
-}
-
-func (m *mockExternalSnapshotDomain) CreateExternalSnapshot(_ string, opts externalSnapshotCreateExecOptions) (externalSnapshotHandle, error) {
+func (m *mockExternalSnapshotDomain) CreateExternalSnapshot(_ string, opts externalSnapshotCreateExecOptions) (SnapshotHandle, error) {
 	m.lastCreateOpts = opts
 	if m.createErr != nil {
 		return nil, m.createErr
@@ -40,7 +29,7 @@ func (m *mockExternalSnapshotDomain) CreateExternalSnapshot(_ string, opts exter
 	return &mockExternalSnapshotHandle{name: "created-snap"}, nil
 }
 
-func (m *mockExternalSnapshotDomain) ListAllSnapshots() ([]externalSnapshotHandle, error) {
+func (m *mockExternalSnapshotDomain) ListAllSnapshots() ([]SnapshotHandle, error) {
 	if m.listErr != nil {
 		return nil, m.listErr
 	}
@@ -67,23 +56,6 @@ func (m *mockExternalSnapshotDomain) AbortBlockJobPivot(_ string) error {
 
 func (m *mockExternalSnapshotDomain) UpdateDeviceConfig(_ string) error {
 	return nil
-}
-
-func (m *mockExternalSnapshotDomain) UUIDString() (string, error) {
-	if m.uuidErr != nil {
-		return "", m.uuidErr
-	}
-	if m.uuid != "" {
-		return m.uuid, nil
-	}
-	return "test-uuid", nil
-}
-
-func (m *mockExternalSnapshotDomain) XMLDesc() (string, error) {
-	if m.xmlDescErr != nil {
-		return "", m.xmlDescErr
-	}
-	return m.xmlDesc, nil
 }
 
 type mockExternalSnapshotHandle struct {
@@ -118,7 +90,7 @@ func (m *mockExternalSnapshotHandle) Free() error {
 
 func TestCreateExternalSnapshot_InvalidName(t *testing.T) {
 	domain := &mockExternalSnapshotDomain{}
-	_, err := createExternalSnapshot(domain, "", nil)
+	_, err := createExternalSnapshot(domain, false, "test-uuid", `<domain><devices></devices></domain>`, "", nil)
 	if err == nil {
 		t.Fatal("expected error, got nil")
 	}
@@ -130,15 +102,14 @@ func TestCreateExternalSnapshot_InvalidName(t *testing.T) {
 func TestCreateExternalSnapshot_MapsCreateOptions(t *testing.T) {
 	tmp := t.TempDir()
 	domain := &mockExternalSnapshotDomain{
-		isActive: true,
-		xmlDesc: `<domain><devices>
-			<disk device='disk' type='file'><driver type='qcow2'/><source file='/vm/vda.qcow2'/><target dev='vda' bus='virtio'/></disk>
-			<disk device='disk' type='file'><driver type='qcow2'/><source file='/vm/vdb.qcow2'/><target dev='vdb' bus='virtio'/></disk>
-		</devices></domain>`,
 		createHandle: &mockExternalSnapshotHandle{name: "snap-a"},
 	}
+	xmlDesc := `<domain><devices>
+			<disk device='disk' type='file'><driver type='qcow2'/><source file='/vm/vda.qcow2'/><target dev='vda' bus='virtio'/></disk>
+			<disk device='disk' type='file'><driver type='qcow2'/><source file='/vm/vdb.qcow2'/><target dev='vdb' bus='virtio'/></disk>
+		</devices></domain>`
 
-	name, err := createExternalSnapshot(domain, "snap-a", &ExternalSnapshotOptions{BaseDir: tmp, Live: true, Quiesce: true})
+	name, err := createExternalSnapshot(domain, true, "test-uuid", xmlDesc, "snap-a", &ExternalSnapshotOptions{BaseDir: tmp, Live: true, Quiesce: true})
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -151,8 +122,8 @@ func TestCreateExternalSnapshot_MapsCreateOptions(t *testing.T) {
 }
 
 func TestCreateExternalSnapshot_XMLDescError(t *testing.T) {
-	domain := &mockExternalSnapshotDomain{xmlDescErr: fmt.Errorf("xml fail")}
-	_, err := createExternalSnapshot(domain, "snap", nil)
+	domain := &mockExternalSnapshotDomain{}
+	_, err := createExternalSnapshot(domain, false, "test-uuid", "<invalid", "snap", nil)
 	if err == nil {
 		t.Fatal("expected error, got nil")
 	}
@@ -163,7 +134,7 @@ func TestCreateExternalSnapshot_XMLDescError(t *testing.T) {
 
 func TestDeleteExternalSnapshot_NotFound(t *testing.T) {
 	domain := &mockExternalSnapshotDomain{
-		snapshots: []externalSnapshotHandle{},
+		snapshots: []SnapshotHandle{},
 	}
 
 	err := deleteExternalSnapshot(domain, "missing")
@@ -177,7 +148,7 @@ func TestDeleteExternalSnapshot_NotFound(t *testing.T) {
 
 func TestListExternalSnapshots_FiltersExternalOnly(t *testing.T) {
 	domain := &mockExternalSnapshotDomain{
-		snapshots: []externalSnapshotHandle{
+		snapshots: []SnapshotHandle{
 			&mockExternalSnapshotHandle{
 				name:    "ext-1",
 				xmlDesc: `<domainsnapshot><name>ext-1</name><disks><disk name='vda' snapshot='external'><source file='/snap/vda.qcow2'/></disk></disks></domainsnapshot>`,
@@ -199,23 +170,20 @@ func TestListExternalSnapshots_FiltersExternalOnly(t *testing.T) {
 }
 
 func TestMergeExternalSnapshot_InactiveDomain(t *testing.T) {
-	domain := &mockExternalSnapshotDomain{
-		isActive: false,
-		xmlDesc:  `<domain><devices></devices></domain>`,
-	}
+	domain := &mockExternalSnapshotDomain{}
 
-	_, err := mergeExternalSnapshot(domain, "")
+	_, err := mergeExternalSnapshot(domain, `<invalid`, "")
 	if err == nil {
 		t.Fatal("expected error, got nil")
 	}
-	if !errors.Is(err, virerr.InvalidParameter) {
-		t.Fatalf("expected InvalidParameter, got %v", err)
+	if !errors.Is(err, virerr.SnapshotError) {
+		t.Fatalf("expected SnapshotError, got %v", err)
 	}
 }
 
 func TestRevertExternalSnapshot_RequiresName(t *testing.T) {
 	domain := &mockExternalSnapshotDomain{}
-	err := revertExternalSnapshot(domain, "")
+	err := revertExternalSnapshot(domain, `<domain><devices></devices></domain>`, "")
 	if err == nil {
 		t.Fatal("expected error, got nil")
 	}

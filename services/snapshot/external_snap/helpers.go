@@ -37,19 +37,6 @@ func waitBlockJobReady(domain SnapshotDomain, disk string, timeout time.Duration
 	}
 }
 
-func listFileDisks(domain SnapshotDomain) ([]diskInfo, error) {
-	if domain == nil {
-		return nil, virerr.ErrorGen(virerr.InvalidParameter, fmt.Errorf("nil domain"))
-	}
-
-	xmlDesc, err := domain.XMLDesc()
-	if err != nil {
-		return nil, virerr.ErrorGen(virerr.SnapshotError, fmt.Errorf("failed to get domain xml: %w", err))
-	}
-
-	return listFileDisksFromXMLDesc(xmlDesc)
-}
-
 func listFileDisksFromXMLDesc(xmlDesc string) ([]diskInfo, error) {
 
 	var doc domainXML
@@ -110,7 +97,7 @@ func buildDiskDeviceXML(info diskInfo, source string) string {
 	return fmt.Sprintf("<disk type='file' device='disk'>%s<source file='%s'/>%s</disk>", driverXML, source, targetXML)
 }
 
-func isExternalSnapshot(snapshot externalSnapshotHandle) (bool, error) {
+func isExternalSnapshot(snapshot SnapshotHandle) (bool, error) {
 	if snapshot == nil {
 		return false, virerr.ErrorGen(virerr.InvalidParameter, fmt.Errorf("nil snapshot"))
 	}
@@ -151,7 +138,7 @@ func isSafeSnapshotName(name string) bool {
 	return true
 }
 
-func extractExternalSnapshotSources(snapshot externalSnapshotHandle) (map[string]string, error) {
+func extractExternalSnapshotSources(snapshot SnapshotHandle) (map[string]string, error) {
 	if snapshot == nil {
 		return nil, virerr.ErrorGen(virerr.InvalidParameter, fmt.Errorf("nil snapshot"))
 	}

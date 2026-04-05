@@ -15,10 +15,23 @@ func CreateExternalSnapshot(domain *domCon.Domain, name string, opts *ExternalSn
 		return "", virerr.ErrorGen(virerr.InvalidParameter, fmt.Errorf("nil domain"))
 	}
 
-	return createExternalSnapshot(newExternalSnapshotDomain(domain.Domain), name, opts)
+	active, err := domain.Domain.IsActive()
+	domainActive := err == nil && active
+
+	xmlDesc, err := domain.Domain.GetXMLDesc(0)
+	if err != nil {
+		return "", virerr.ErrorGen(virerr.SnapshotError, fmt.Errorf("failed to get domain xml: %w", err))
+	}
+
+	domainUUID, err := domain.Domain.GetUUIDString()
+	if err != nil {
+		return "", virerr.ErrorGen(virerr.SnapshotError, fmt.Errorf("failed to resolve domain uuid: %w", err))
+	}
+
+	return createExternalSnapshot(newExternalSnapshotDomain(domain.Domain), domainActive, domainUUID, xmlDesc, name, opts)
 }
 
-func createExternalSnapshot(domain SnapshotDomain, name string, opts *ExternalSnapshotOptions) (string, error) {
+func createExternalSnapshot(domain SnapshotDomain, domainActive bool, domainUUID, xmlDesc, name string, opts *ExternalSnapshotOptions) (string, error) {
 	if domain == nil {
 		return "", virerr.ErrorGen(virerr.InvalidParameter, fmt.Errorf("nil domain"))
 	}
@@ -27,11 +40,6 @@ func createExternalSnapshot(domain SnapshotDomain, name string, opts *ExternalSn
 	}
 	if !isSafeSnapshotName(name) {
 		return "", virerr.ErrorGen(virerr.InvalidParameter, fmt.Errorf("invalid snapshot name"))
-	}
-
-	xmlDesc, err := domain.XMLDesc()
-	if err != nil {
-		return "", virerr.ErrorGen(virerr.SnapshotError, fmt.Errorf("failed to get domain xml: %w", err))
 	}
 
 	disks, err := listFileDisksFromXMLDesc(xmlDesc)
@@ -46,11 +54,6 @@ func createExternalSnapshot(domain SnapshotDomain, name string, opts *ExternalSn
 	if err != nil {
 		return "", virerr.ErrorGen(virerr.InvalidParameter, fmt.Errorf("failed to resolve snapshot root: %w", err))
 	}
-	domainUUID, err := domain.UUIDString()
-	if err != nil {
-		return "", virerr.ErrorGen(virerr.SnapshotError, fmt.Errorf("failed to resolve domain uuid: %w", err))
-	}
-
 	snapshotDir := filepath.Join(snapshotRoot, domainUUID, "snapshots", name)
 	if err := os.MkdirAll(snapshotDir, 0755); err != nil {
 		return "", virerr.ErrorGen(virerr.SnapshotError, fmt.Errorf("failed to create snapshot directory: %w", err))
@@ -88,8 +91,7 @@ func createExternalSnapshot(domain SnapshotDomain, name string, opts *ExternalSn
 		return "", virerr.ErrorGen(virerr.SnapshotError, fmt.Errorf("failed to build snapshot xml: %w", err))
 	}
 
-	active, err := domain.IsActive()
-	live := opts != nil && opts.Live && err == nil && active
+	live := opts != nil && opts.Live && domainActive
 
 	createOpts := externalSnapshotCreateExecOptions{
 		Live:    live,

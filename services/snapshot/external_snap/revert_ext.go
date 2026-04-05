@@ -12,20 +12,25 @@ func RevertExternalSnapshot(domain *domCon.Domain, snapName string) error {
 		return virerr.ErrorGen(virerr.InvalidParameter, fmt.Errorf("nil domain"))
 	}
 
-	return revertExternalSnapshot(newExternalSnapshotDomain(domain.Domain), snapName)
+	active, err := domain.Domain.IsActive()
+	if err == nil && active {
+		return virerr.ErrorGen(virerr.InvalidParameter, fmt.Errorf("external snapshot revert requires the domain to be shut down"))
+	}
+
+	xmlDesc, err := domain.Domain.GetXMLDesc(0)
+	if err != nil {
+		return virerr.ErrorGen(virerr.SnapshotError, fmt.Errorf("failed to get domain xml: %w", err))
+	}
+
+	return revertExternalSnapshot(newExternalSnapshotDomain(domain.Domain), xmlDesc, snapName)
 }
 
-func revertExternalSnapshot(domain SnapshotDomain, snapName string) error {
+func revertExternalSnapshot(domain SnapshotDomain, domainXMLDesc, snapName string) error {
 	if domain == nil {
 		return virerr.ErrorGen(virerr.InvalidParameter, fmt.Errorf("nil domain"))
 	}
 	if snapName == "" {
 		return virerr.ErrorGen(virerr.InvalidParameter, fmt.Errorf("snapshot name required"))
-	}
-
-	active, err := domain.IsActive()
-	if err == nil && active {
-		return virerr.ErrorGen(virerr.InvalidParameter, fmt.Errorf("external snapshot revert requires the domain to be shut down"))
 	}
 
 	snaps, err := domain.ListAllSnapshots()
@@ -38,7 +43,7 @@ func revertExternalSnapshot(domain SnapshotDomain, snapName string) error {
 		}
 	}()
 
-	var target externalSnapshotHandle
+	var target SnapshotHandle
 	for i := range snaps {
 		name, err := snaps[i].Name()
 		if err != nil || name != snapName {
@@ -67,7 +72,7 @@ func revertExternalSnapshot(domain SnapshotDomain, snapName string) error {
 		return virerr.ErrorGen(virerr.SnapshotError, fmt.Errorf("snapshot %s has no external disk sources", snapName))
 	}
 
-	disks, err := listFileDisks(domain)
+	disks, err := listFileDisksFromXMLDesc(domainXMLDesc)
 	if err != nil {
 		return virerr.ErrorGen(virerr.SnapshotError, fmt.Errorf("failed to list file disks: %w", err))
 	}

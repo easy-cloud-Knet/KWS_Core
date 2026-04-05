@@ -3,19 +3,17 @@ package external
 import (
 	"fmt"
 
+	"github.com/easy-cloud-Knet/KWS_Core/internal/snapshotlibvirt"
 	"libvirt.org/go/libvirt"
 )
 
 type SnapshotDomain interface {
-	IsActive() (bool, error)
-	CreateExternalSnapshot(snapshotXML string, opts externalSnapshotCreateExecOptions) (externalSnapshotHandle, error)
-	ListAllSnapshots() ([]externalSnapshotHandle, error)
+	CreateExternalSnapshot(snapshotXML string, opts externalSnapshotCreateExecOptions) (SnapshotHandle, error)
+	ListAllSnapshots() ([]SnapshotHandle, error)
 	StartBlockCommit(disk, base, top string) error
 	BlockJobInfo(disk string) (externalBlockJobInfo, error)
 	AbortBlockJobPivot(disk string) error
 	UpdateDeviceConfig(deviceXML string) error
-	UUIDString() (string, error)
-	XMLDesc() (string, error)
 }
 
 type externalBlockJobInfo struct {
@@ -29,7 +27,7 @@ type externalSnapshotCreateExecOptions struct {
 	Atomic  bool
 }
 
-type externalSnapshotHandle interface {
+type SnapshotHandle interface {
 	Name() (string, error)
 	XMLDesc() (string, error)
 	Delete() error
@@ -44,45 +42,24 @@ func newExternalSnapshotDomain(domain *libvirt.Domain) SnapshotDomain {
 	return &libvirtExternalSnapshotDomain{domain: domain}
 }
 
-func (d *libvirtExternalSnapshotDomain) IsActive() (bool, error) {
-	if d == nil || d.domain == nil {
-		return false, fmt.Errorf("nil domain")
-	}
-	return d.domain.IsActive()
-}
-
-func (d *libvirtExternalSnapshotDomain) CreateExternalSnapshot(snapshotXML string, opts externalSnapshotCreateExecOptions) (externalSnapshotHandle, error) {
+func (d *libvirtExternalSnapshotDomain) CreateExternalSnapshot(snapshotXML string, opts externalSnapshotCreateExecOptions) (SnapshotHandle, error) {
 	if d == nil || d.domain == nil {
 		return nil, fmt.Errorf("nil domain")
 	}
 
-	flags := libvirt.DOMAIN_SNAPSHOT_CREATE_DISK_ONLY
-	if opts.Live {
-		flags |= libvirt.DOMAIN_SNAPSHOT_CREATE_LIVE
-	}
-	if opts.Quiesce {
-		flags |= libvirt.DOMAIN_SNAPSHOT_CREATE_QUIESCE
-	}
-	if opts.Atomic {
-		flags |= libvirt.DOMAIN_SNAPSHOT_CREATE_ATOMIC
-	}
-
-	snapshot, err := d.domain.CreateSnapshotXML(snapshotXML, flags)
+	snapshot, err := snapshotlibvirt.CreateExternalSnapshot(d.domain, snapshotXML, snapshotlibvirt.ExternalSnapshotCreateOptions{
+		Live:    opts.Live,
+		Quiesce: opts.Quiesce,
+		Atomic:  opts.Atomic,
+	})
 	if err != nil {
 		return nil, err
 	}
 
-	return &libvirtExternalSnapshotHandle{snapshot: snapshot}, nil
+	return &libvirtSnapshotHandle{snapshot: snapshot}, nil
 }
 
-func (d *libvirtExternalSnapshotDomain) UUIDString() (string, error) {
-	if d == nil || d.domain == nil {
-		return "", fmt.Errorf("nil domain")
-	}
-	return d.domain.GetUUIDString()
-}
-
-func (d *libvirtExternalSnapshotDomain) ListAllSnapshots() ([]externalSnapshotHandle, error) {
+func (d *libvirtExternalSnapshotDomain) ListAllSnapshots() ([]SnapshotHandle, error) {
 	if d == nil || d.domain == nil {
 		return nil, fmt.Errorf("nil domain")
 	}
@@ -92,9 +69,9 @@ func (d *libvirtExternalSnapshotDomain) ListAllSnapshots() ([]externalSnapshotHa
 		return nil, err
 	}
 
-	handles := make([]externalSnapshotHandle, 0, len(snaps))
+	handles := make([]SnapshotHandle, 0, len(snaps))
 	for i := range snaps {
-		handles = append(handles, &libvirtExternalSnapshotHandle{snapshot: &snaps[i]})
+		handles = append(handles, &libvirtSnapshotHandle{snapshot: &snaps[i]})
 	}
 
 	return handles, nil
@@ -105,8 +82,7 @@ func (d *libvirtExternalSnapshotDomain) StartBlockCommit(disk, base, top string)
 		return fmt.Errorf("nil domain")
 	}
 
-	flags := libvirt.DOMAIN_BLOCK_COMMIT_ACTIVE | libvirt.DOMAIN_BLOCK_COMMIT_DELETE
-	return d.domain.BlockCommit(disk, base, top, 0, flags)
+	return snapshotlibvirt.StartBlockCommit(d.domain, disk, base, top)
 }
 
 func (d *libvirtExternalSnapshotDomain) BlockJobInfo(disk string) (externalBlockJobInfo, error) {
@@ -127,7 +103,7 @@ func (d *libvirtExternalSnapshotDomain) AbortBlockJobPivot(disk string) error {
 		return fmt.Errorf("nil domain")
 	}
 
-	return d.domain.BlockJobAbort(disk, libvirt.DOMAIN_BLOCK_JOB_ABORT_PIVOT)
+	return snapshotlibvirt.AbortBlockJobPivot(d.domain, disk)
 }
 
 func (d *libvirtExternalSnapshotDomain) UpdateDeviceConfig(deviceXML string) error {
@@ -135,42 +111,35 @@ func (d *libvirtExternalSnapshotDomain) UpdateDeviceConfig(deviceXML string) err
 		return fmt.Errorf("nil domain")
 	}
 
-	return d.domain.UpdateDeviceFlags(deviceXML, libvirt.DOMAIN_DEVICE_MODIFY_CONFIG)
+	return snapshotlibvirt.UpdateDeviceConfig(d.domain, deviceXML)
 }
 
-func (d *libvirtExternalSnapshotDomain) XMLDesc() (string, error) {
-	if d == nil || d.domain == nil {
-		return "", fmt.Errorf("nil domain")
-	}
-	return d.domain.GetXMLDesc(0)
-}
-
-type libvirtExternalSnapshotHandle struct {
+type libvirtSnapshotHandle struct {
 	snapshot *libvirt.DomainSnapshot
 }
 
-func (s *libvirtExternalSnapshotHandle) Name() (string, error) {
+func (s *libvirtSnapshotHandle) Name() (string, error) {
 	if s == nil || s.snapshot == nil {
 		return "", fmt.Errorf("nil snapshot")
 	}
 	return s.snapshot.GetName()
 }
 
-func (s *libvirtExternalSnapshotHandle) XMLDesc() (string, error) {
+func (s *libvirtSnapshotHandle) XMLDesc() (string, error) {
 	if s == nil || s.snapshot == nil {
 		return "", fmt.Errorf("nil snapshot")
 	}
 	return s.snapshot.GetXMLDesc(0)
 }
 
-func (s *libvirtExternalSnapshotHandle) Delete() error {
+func (s *libvirtSnapshotHandle) Delete() error {
 	if s == nil || s.snapshot == nil {
 		return fmt.Errorf("nil snapshot")
 	}
 	return s.snapshot.Delete(0)
 }
 
-func (s *libvirtExternalSnapshotHandle) Free() error {
+func (s *libvirtSnapshotHandle) Free() error {
 	if s == nil || s.snapshot == nil {
 		return nil
 	}

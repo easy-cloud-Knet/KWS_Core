@@ -33,7 +33,7 @@ func deleteExternalSnapshot(domain SnapshotDomain, snapName string) error {
 		}
 	}()
 
-	var target externalSnapshotHandle
+	var target SnapshotHandle
 	for i := range snaps {
 		name, err := snaps[i].Name()
 		if err != nil || name != snapName {
