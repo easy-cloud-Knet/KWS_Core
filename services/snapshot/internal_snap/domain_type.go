@@ -3,6 +3,7 @@ package internal
 import (
 	"fmt"
 
+	"github.com/easy-cloud-Knet/KWS_Core/internal/snapshotlibvirt"
 	"libvirt.org/go/libvirt"
 )
 
@@ -15,12 +16,7 @@ type snapshotCreateOptions struct {
 	Quiesce bool
 }
 
-type snapshotHandle interface {
-	Name() (string, error)
-	Delete() error
-	Revert() error
-	Free() error
-}
+type snapshotHandle = snapshotlibvirt.SnapshotHandle
 
 type libvirtSnapshotDomain struct {
 	domain *libvirt.Domain
@@ -45,7 +41,7 @@ func (d *libvirtSnapshotDomain) CreateSnapshot(snapshotXML string, opts snapshot
 		return nil, err
 	}
 
-	return &libvirtSnapshotHandle{snapshot: snap}, nil
+	return snapshotlibvirt.NewSnapshotHandle(snap), nil
 }
 
 func (d *libvirtSnapshotDomain) ListAllSnapshots() ([]snapshotHandle, error) {
@@ -60,40 +56,8 @@ func (d *libvirtSnapshotDomain) ListAllSnapshots() ([]snapshotHandle, error) {
 
 	handles := make([]snapshotHandle, 0, len(snaps))
 	for i := range snaps {
-		handles = append(handles, &libvirtSnapshotHandle{snapshot: &snaps[i]})
+		handles = append(handles, snapshotlibvirt.NewSnapshotHandle(&snaps[i]))
 	}
 
 	return handles, nil
-}
-
-type libvirtSnapshotHandle struct {
-	snapshot *libvirt.DomainSnapshot
-}
-
-func (s *libvirtSnapshotHandle) Name() (string, error) {
-	if s == nil || s.snapshot == nil {
-		return "", fmt.Errorf("nil snapshot")
-	}
-	return s.snapshot.GetName()
-}
-
-func (s *libvirtSnapshotHandle) Delete() error {
-	if s == nil || s.snapshot == nil {
-		return fmt.Errorf("nil snapshot")
-	}
-	return s.snapshot.Delete(0)
-}
-
-func (s *libvirtSnapshotHandle) Revert() error {
-	if s == nil || s.snapshot == nil {
-		return fmt.Errorf("nil snapshot")
-	}
-	return s.snapshot.RevertToSnapshot(0)
-}
-
-func (s *libvirtSnapshotHandle) Free() error {
-	if s == nil || s.snapshot == nil {
-		return nil
-	}
-	return s.snapshot.Free()
 }

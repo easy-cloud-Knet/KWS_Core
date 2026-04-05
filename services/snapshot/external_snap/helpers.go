@@ -10,6 +10,33 @@ import (
 	virerr "github.com/easy-cloud-Knet/KWS_Core/internal/error"
 )
 
+func freeSnapshotHandles(snaps []SnapshotHandle) {
+	for _, s := range snaps {
+		s.Free()
+	}
+}
+
+func findExternalSnapshotByName(snaps []SnapshotHandle, snapName string) (SnapshotHandle, error) {
+	for i := range snaps {
+		name, err := snaps[i].Name()
+		if err != nil || name != snapName {
+			continue
+		}
+
+		isExternal, err := isExternalSnapshot(snaps[i])
+		if err != nil {
+			return nil, virerr.ErrorGen(virerr.SnapshotError, fmt.Errorf("failed to inspect snapshot %s: %w", snapName, err))
+		}
+		if !isExternal {
+			return nil, virerr.ErrorGen(virerr.InvalidParameter, fmt.Errorf("snapshot %s is not external", snapName))
+		}
+
+		return snaps[i], nil
+	}
+
+	return nil, nil
+}
+
 func waitBlockJobReady(domain SnapshotDomain, disk string, timeout time.Duration) error {
 	if domain == nil {
 		return virerr.ErrorGen(virerr.InvalidParameter, fmt.Errorf("nil domain"))

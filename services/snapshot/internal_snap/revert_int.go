@@ -24,23 +24,9 @@ func revertToSnapshot(domain snapshotDomain, snapName string) error {
 	if err != nil {
 		return virerr.ErrorGen(virerr.SnapshotError, fmt.Errorf("failed to list snapshots: %w", err))
 	}
-	defer func() {
-		for _, s := range snaps {
-			s.Free()
-		}
-	}()
+	defer freeSnapshotHandles(snaps)
 
-	var target snapshotHandle
-	for i := range snaps {
-		n, err := snaps[i].Name()
-		if err != nil {
-			continue
-		}
-		if n == snapName {
-			target = snaps[i]
-			break
-		}
-	}
+	target := findSnapshotByName(snaps, snapName)
 
 	if target == nil {
 		return virerr.ErrorGen(virerr.SnapshotError, fmt.Errorf("snapshot %s not found", snapName))

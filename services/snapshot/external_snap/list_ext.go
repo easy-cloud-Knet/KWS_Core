@@ -24,6 +24,7 @@ func listExternalSnapshots(domain SnapshotDomain) ([]string, error) {
 	if err != nil {
 		return nil, virerr.ErrorGen(virerr.SnapshotError, fmt.Errorf("failed to list snapshots: %w", err))
 	}
+	defer freeSnapshotHandles(snaps)
 
 	names := make([]string, 0, len(snaps))
 	for _, s := range snaps {
@@ -34,7 +35,6 @@ func listExternalSnapshots(domain SnapshotDomain) ([]string, error) {
 				names = append(names, name)
 			}
 		}
-		s.Free()
 	}
 
 	return names, nil

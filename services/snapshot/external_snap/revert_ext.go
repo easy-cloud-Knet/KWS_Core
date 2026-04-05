@@ -37,27 +37,11 @@ func revertExternalSnapshot(domain SnapshotDomain, domainXMLDesc, snapName strin
 	if err != nil {
 		return virerr.ErrorGen(virerr.SnapshotError, fmt.Errorf("failed to list snapshots: %w", err))
 	}
-	defer func() {
-		for _, s := range snaps {
-			s.Free()
-		}
-	}()
+	defer freeSnapshotHandles(snaps)
 
-	var target SnapshotHandle
-	for i := range snaps {
-		name, err := snaps[i].Name()
-		if err != nil || name != snapName {
-			continue
-		}
-		isExternal, err := isExternalSnapshot(snaps[i])
-		if err != nil {
-			return virerr.ErrorGen(virerr.SnapshotError, fmt.Errorf("failed to inspect snapshot %s: %w", snapName, err))
-		}
-		if !isExternal {
-			return virerr.ErrorGen(virerr.InvalidParameter, fmt.Errorf("snapshot %s is not external", snapName))
-		}
-		target = snaps[i]
-		break
+	target, err := findExternalSnapshotByName(snaps, snapName)
+	if err != nil {
+		return err
 	}
 
 	if target == nil {
