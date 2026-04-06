@@ -16,7 +16,12 @@ type snapshotCreateOptions struct {
 	Quiesce bool
 }
 
-type snapshotHandle = snapshotlibvirt.SnapshotHandle
+type snapshotHandle interface {
+	Name() (string, error)
+	Delete() error
+	Revert() error
+	Free() error
+}
 
 type libvirtSnapshotDomain struct {
 	domain *libvirt.Domain

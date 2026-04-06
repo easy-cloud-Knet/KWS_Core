@@ -56,7 +56,7 @@ func (d *libvirtExternalSnapshotDomain) CreateExternalSnapshot(snapshotXML strin
 		return nil, err
 	}
 
-	return &libvirtSnapshotHandle{snapshot: snapshot}, nil
+	return snapshotlibvirt.NewSnapshotHandle(snapshot), nil
 }
 
 func (d *libvirtExternalSnapshotDomain) ListAllSnapshots() ([]SnapshotHandle, error) {
@@ -71,7 +71,7 @@ func (d *libvirtExternalSnapshotDomain) ListAllSnapshots() ([]SnapshotHandle, er
 
 	handles := make([]SnapshotHandle, 0, len(snaps))
 	for i := range snaps {
-		handles = append(handles, &libvirtSnapshotHandle{snapshot: &snaps[i]})
+		handles = append(handles, snapshotlibvirt.NewSnapshotHandle(&snaps[i]))
 	}
 
 	return handles, nil
@@ -112,36 +112,4 @@ func (d *libvirtExternalSnapshotDomain) UpdateDeviceConfig(deviceXML string) err
 	}
 
 	return snapshotlibvirt.UpdateDeviceConfig(d.domain, deviceXML)
-}
-
-type libvirtSnapshotHandle struct {
-	snapshot *libvirt.DomainSnapshot
-}
-
-func (s *libvirtSnapshotHandle) Name() (string, error) {
-	if s == nil || s.snapshot == nil {
-		return "", fmt.Errorf("nil snapshot")
-	}
-	return s.snapshot.GetName()
-}
-
-func (s *libvirtSnapshotHandle) XMLDesc() (string, error) {
-	if s == nil || s.snapshot == nil {
-		return "", fmt.Errorf("nil snapshot")
-	}
-	return s.snapshot.GetXMLDesc(0)
-}
-
-func (s *libvirtSnapshotHandle) Delete() error {
-	if s == nil || s.snapshot == nil {
-		return fmt.Errorf("nil snapshot")
-	}
-	return s.snapshot.Delete(0)
-}
-
-func (s *libvirtSnapshotHandle) Free() error {
-	if s == nil || s.snapshot == nil {
-		return nil
-	}
-	return s.snapshot.Free()
 }
