@@ -5,15 +5,11 @@ import (
 
 	domCon "github.com/easy-cloud-Knet/KWS_Core/DomCon"
 	virerr "github.com/easy-cloud-Knet/KWS_Core/internal/error"
-	"libvirt.org/go/libvirt"
 )
 
 func RevertExternalSnapshot(domain *domCon.Domain, snapName string) error {
 	if domain == nil || domain.Domain == nil {
 		return virerr.ErrorGen(virerr.InvalidParameter, fmt.Errorf("nil domain"))
-	}
-	if snapName == "" {
-		return virerr.ErrorGen(virerr.InvalidParameter, fmt.Errorf("snapshot name required"))
 	}
 
 	active, err := domain.Domain.IsActive()
@@ -21,31 +17,31 @@ func RevertExternalSnapshot(domain *domCon.Domain, snapName string) error {
 		return virerr.ErrorGen(virerr.InvalidParameter, fmt.Errorf("external snapshot revert requires the domain to be shut down"))
 	}
 
-	snaps, err := domain.Domain.ListAllSnapshots(0)
+	xmlDesc, err := domain.Domain.GetXMLDesc(0)
+	if err != nil {
+		return virerr.ErrorGen(virerr.SnapshotError, fmt.Errorf("failed to get domain xml: %w", err))
+	}
+
+	return revertExternalSnapshot(newExternalSnapshotDomain(domain.Domain), xmlDesc, snapName)
+}
+
+func revertExternalSnapshot(domain SnapshotDomain, domainXMLDesc, snapName string) error {
+	if domain == nil {
+		return virerr.ErrorGen(virerr.InvalidParameter, fmt.Errorf("nil domain"))
+	}
+	if snapName == "" {
+		return virerr.ErrorGen(virerr.InvalidParameter, fmt.Errorf("snapshot name required"))
+	}
+
+	snaps, err := domain.ListAllSnapshots()
 	if err != nil {
 		return virerr.ErrorGen(virerr.SnapshotError, fmt.Errorf("failed to list snapshots: %w", err))
 	}
-	defer func() {
-		for _, s := range snaps {
-			s.Free()
-		}
-	}()
+	defer freeSnapshotHandles(snaps)
 
-	var target *libvirt.DomainSnapshot
-	for i := range snaps {
-		name, err := snaps[i].GetName()
-		if err != nil || name != snapName {
-			continue
-		}
-		isExternal, err := isExternalSnapshot(&snaps[i])
-		if err != nil {
-			return virerr.ErrorGen(virerr.SnapshotError, fmt.Errorf("failed to inspect snapshot %s: %w", snapName, err))
-		}
-		if !isExternal {
-			return virerr.ErrorGen(virerr.InvalidParameter, fmt.Errorf("snapshot %s is not external", snapName))
-		}
-		target = &snaps[i]
-		break
+	target, err := findExternalSnapshotByName(snaps, snapName)
+	if err != nil {
+		return err
 	}
 
 	if target == nil {
@@ -60,7 +56,7 @@ func RevertExternalSnapshot(domain *domCon.Domain, snapName string) error {
 		return virerr.ErrorGen(virerr.SnapshotError, fmt.Errorf("snapshot %s has no external disk sources", snapName))
 	}
 
-	disks, err := listFileDisks(domain)
+	disks, err := listFileDisksFromXMLDesc(domainXMLDesc)
 	if err != nil {
 		return virerr.ErrorGen(virerr.SnapshotError, fmt.Errorf("failed to list file disks: %w", err))
 	}
@@ -72,7 +68,7 @@ func RevertExternalSnapshot(domain *domCon.Domain, snapName string) error {
 			continue
 		}
 		diskXML := buildDiskDeviceXML(d, targetSource)
-		if err := domain.Domain.UpdateDeviceFlags(diskXML, libvirt.DOMAIN_DEVICE_MODIFY_CONFIG); err != nil {
+		if err := domain.UpdateDeviceConfig(diskXML); err != nil {
 			return virerr.ErrorGen(virerr.SnapshotError, fmt.Errorf("failed to update disk %s: %w", d.TargetDev, err))
 		}
 		updated = true
