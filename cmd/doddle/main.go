@@ -1,48 +1,24 @@
 package main
 
 import (
-	_ "context"
-	_ "log"
 	"runtime/debug"
 
-	domCon "github.com/easy-cloud-Knet/KWS_Core/DomCon"
-	"github.com/easy-cloud-Knet/KWS_Core/api"
-	control "github.com/easy-cloud-Knet/KWS_Core/api/Control"
-	create "github.com/easy-cloud-Knet/KWS_Core/api/Create"
 	"github.com/easy-cloud-Knet/KWS_Core/internal/config"
-	syslogger "github.com/easy-cloud-Knet/KWS_Core/internal/logger"
 	"github.com/easy-cloud-Knet/KWS_Core/internal/server"
-	"go.uber.org/zap"
 )
 
 func main() {
 	debug.SetTraceback("none")
-	logger := syslogger.InitialLogger()
 
-	domListCon := domCon.DomListConGen()
+	app := initApp()
+	defer app.Shutdown()
 
-	libvirtInst := api.InstHandler{
-		DomainControl: domListCon,
-		Logger:        logger,
-	}
+	go server.InitServer(
+		config.ServerPort,
+		app.InstHandler,
+		app.ControlHandler,
+		app.CreateHandler,
+		app.Logger)
 
-	// TODO: 모든 Handler의 생성자에서 DomainControl과 LibvirtConnect를 주입받도록 수정
-
-	libvirtInst.LibvirtConnection()
-	libvirtInst.DomainControl.SetLibvirt(libvirtInst.LibvirtInst)
-	libvirtInst.DomainControl.DomainListStatus.Update()
-	if err := libvirtInst.DomainControl.RetrieveAllDomain(logger); err != nil {
-		logger.Fatal("failed to retrieve domains on startup", zap.Error(err))
-	}
-	createHandler := create.NewHandler(domListCon, libvirtInst.LibvirtInst, logger)
-	controlHandler := control.NewHandler(domListCon, logger)
-
-	go server.InitServer(config.ServerPort, &libvirtInst, controlHandler, createHandler, logger)
-
-	defer func() {
-		logger.Info("Shutting down gracefully...") // 종료 시 로깅
-		logger.Sync()
-		libvirtInst.LibvirtInst.Close()
-	}()
 	select {}
 }
