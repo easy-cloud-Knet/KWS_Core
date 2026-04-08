@@ -16,13 +16,13 @@ func (h *Handler) CreateSnapshot(w http.ResponseWriter, r *http.Request) {
 	resp := httputil.ResponseGen[string]("Create Snapshot")
 
 	if err := httputil.HttpDecoder(r, param); err != nil {
-		resp.ResponseWriteErr(w, err, http.StatusInternalServerError)
+		resp.ResponseWriteErr(w, err, http.StatusBadRequest)
 		h.Logger.Error("snapshot create decode failed", zap.Error(err))
 		return
 	}
 
 	if param.Name == "" {
-		resp.ResponseWriteErr(w, fmt.Errorf("snapshot name required"), http.StatusBadRequest)
+		resp.ResponseWriteErr(w, virerr.ErrorGen(virerr.InvalidParameter, fmt.Errorf("snapshot name required")), http.StatusBadRequest)
 		return
 	}
 
@@ -54,13 +54,13 @@ func (h *Handler) CreateExternalSnapshot(w http.ResponseWriter, r *http.Request)
 	resp := httputil.ResponseGen[ExternalSnapshotResponse]("Create External Snapshot")
 
 	if err := httputil.HttpDecoder(r, param); err != nil {
-		resp.ResponseWriteErr(w, err, http.StatusInternalServerError)
+		resp.ResponseWriteErr(w, err, http.StatusBadRequest)
 		h.Logger.Error("external snapshot create decode failed", zap.Error(err))
 		return
 	}
 
 	if param.Name == "" {
-		resp.ResponseWriteErr(w, fmt.Errorf("snapshot name required"), http.StatusBadRequest)
+		resp.ResponseWriteErr(w, virerr.ErrorGen(virerr.InvalidParameter, fmt.Errorf("snapshot name required")), http.StatusBadRequest)
 		return
 	}
 
@@ -97,7 +97,7 @@ func (h *Handler) ListExternalSnapshots(w http.ResponseWriter, r *http.Request) 
 	resp := httputil.ResponseGen[ExternalSnapshotListResponse]("List External Snapshots")
 
 	if err := httputil.HttpDecoder(r, param); err != nil {
-		resp.ResponseWriteErr(w, err, http.StatusInternalServerError)
+		resp.ResponseWriteErr(w, err, http.StatusBadRequest)
 		h.Logger.Error("external snapshot list decode failed", zap.Error(err))
 		return
 	}
@@ -130,13 +130,13 @@ func (h *Handler) RevertExternalSnapshot(w http.ResponseWriter, r *http.Request)
 	resp := httputil.ResponseGen[ExternalSnapshotResponse]("Revert External Snapshot")
 
 	if err := httputil.HttpDecoder(r, param); err != nil {
-		resp.ResponseWriteErr(w, err, http.StatusInternalServerError)
+		resp.ResponseWriteErr(w, err, http.StatusBadRequest)
 		h.Logger.Error("external snapshot revert decode failed", zap.Error(err))
 		return
 	}
 
 	if param.Name == "" {
-		resp.ResponseWriteErr(w, fmt.Errorf("snapshot name required"), http.StatusBadRequest)
+		resp.ResponseWriteErr(w, virerr.ErrorGen(virerr.InvalidParameter, fmt.Errorf("snapshot name required")), http.StatusBadRequest)
 		return
 	}
 
@@ -167,7 +167,7 @@ func (h *Handler) MergeExternalSnapshot(w http.ResponseWriter, r *http.Request) 
 	resp := httputil.ResponseGen[ExternalSnapshotMergeResponse]("Merge External Snapshot")
 
 	if err := httputil.HttpDecoder(r, param); err != nil {
-		resp.ResponseWriteErr(w, err, http.StatusInternalServerError)
+		resp.ResponseWriteErr(w, err, http.StatusBadRequest)
 		h.Logger.Error("external snapshot merge decode failed", zap.Error(err))
 		return
 	}
@@ -200,7 +200,7 @@ func (h *Handler) ListSnapshots(w http.ResponseWriter, r *http.Request) {
 	resp := httputil.ResponseGen[[]string]("List Snapshots")
 
 	if err := httputil.HttpDecoder(r, param); err != nil {
-		resp.ResponseWriteErr(w, err, http.StatusInternalServerError)
+		resp.ResponseWriteErr(w, err, http.StatusBadRequest)
 		h.Logger.Error("snapshot list decode failed", zap.Error(err))
 		return
 	}
@@ -230,7 +230,7 @@ func (h *Handler) RevertSnapshot(w http.ResponseWriter, r *http.Request) {
 	resp := httputil.ResponseGen[any]("Revert Snapshot")
 
 	if err := httputil.HttpDecoder(r, param); err != nil {
-		resp.ResponseWriteErr(w, err, http.StatusInternalServerError)
+		resp.ResponseWriteErr(w, err, http.StatusBadRequest)
 		h.Logger.Error("snapshot revert decode failed", zap.Error(err))
 		return
 	}
@@ -264,7 +264,7 @@ func (h *Handler) DeleteSnapshot(w http.ResponseWriter, r *http.Request) {
 	resp := httputil.ResponseGen[any]("Delete Snapshot")
 
 	if err := httputil.HttpDecoder(r, param); err != nil {
-		resp.ResponseWriteErr(w, err, http.StatusInternalServerError)
+		resp.ResponseWriteErr(w, err, http.StatusBadRequest)
 		h.Logger.Error("snapshot delete decode failed", zap.Error(err))
 		return
 	}
