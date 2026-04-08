@@ -18,6 +18,7 @@ func main() {
 		app.InstHandler,
 		app.ControlHandler,
 		app.CreateHandler,
+		app.SnapshotHandler,
 		app.Logger)
 
 	select {}
