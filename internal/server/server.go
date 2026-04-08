@@ -7,11 +7,12 @@ import (
 	"github.com/easy-cloud-Knet/KWS_Core/api"
 	control "github.com/easy-cloud-Knet/KWS_Core/api/Control"
 	create "github.com/easy-cloud-Knet/KWS_Core/api/Create"
+	snapshot "github.com/easy-cloud-Knet/KWS_Core/api/Snapshot"
 	"github.com/easy-cloud-Knet/KWS_Core/internal/server/middleware"
 	"go.uber.org/zap"
 )
 
-func InitServer(portNum int, libvirtInst *api.InstHandler, controlHandler *control.Handler, createHandler *create.Handler, logger *zap.Logger) {
+func InitServer(portNum int, libvirtInst *api.InstHandler, controlHandler *control.Handler, createHandler *create.Handler, snapshotHandler *snapshot.Handler, logger *zap.Logger) {
 	logger.Sugar().Infof("Starting server on %d", portNum)
 	mux := http.NewServeMux()
 
@@ -26,14 +27,14 @@ func InitServer(portNum int, libvirtInst *api.InstHandler, controlHandler *contr
 	mux.HandleFunc("GET /getAll-uuidstatusList", libvirtInst.ReturnAllDomainStates)
 
 	// Snapshot operations
-	mux.HandleFunc("POST /CreateSnapshot", libvirtInst.CreateSnapshot)
-	mux.HandleFunc("POST /CreateExternalSnapshot", libvirtInst.CreateExternalSnapshot)
-	mux.HandleFunc("GET /ListSnapshots", libvirtInst.ListSnapshots)
-	mux.HandleFunc("GET /ListExternalSnapshots", libvirtInst.ListExternalSnapshots)
-	mux.HandleFunc("POST /RevertSnapshot", libvirtInst.RevertSnapshot)
-	mux.HandleFunc("POST /RevertExternalSnapshot", libvirtInst.RevertExternalSnapshot)
-	mux.HandleFunc("POST /MergeExternalSnapshot", libvirtInst.MergeExternalSnapshot)
-	mux.HandleFunc("POST /DeleteSnapshot", libvirtInst.DeleteSnapshot)
+	mux.HandleFunc("POST /CreateSnapshot", snapshotHandler.CreateSnapshot)
+	mux.HandleFunc("POST /CreateExternalSnapshot", snapshotHandler.CreateExternalSnapshot)
+	mux.HandleFunc("GET /ListSnapshots", snapshotHandler.ListSnapshots)
+	mux.HandleFunc("GET /ListExternalSnapshots", snapshotHandler.ListExternalSnapshots)
+	mux.HandleFunc("POST /RevertSnapshot", snapshotHandler.RevertSnapshot)
+	mux.HandleFunc("POST /RevertExternalSnapshot", snapshotHandler.RevertExternalSnapshot)
+	mux.HandleFunc("POST /MergeExternalSnapshot", snapshotHandler.MergeExternalSnapshot)
+	mux.HandleFunc("POST /DeleteSnapshot", snapshotHandler.DeleteSnapshot)
 
 	libvirtHandler := middleware.LibvirtMiddleware(libvirtInst.IsConnected, logger)(mux)
 	sysloggerHttp := middleware.LoggerMiddleware(libvirtHandler, logger)
