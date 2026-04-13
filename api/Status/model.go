@@ -1,21 +1,21 @@
-package api
+package status
 
 import (
-	"github.com/easy-cloud-Knet/KWS_Core/services/status"
+	svcstatus "github.com/easy-cloud-Knet/KWS_Core/services/status"
 	"libvirt.org/go/libvirt"
 )
 
 type DomainStatusRequest struct {
-	DataType status.DomainDataType `json:"dataType"`
-	UUID     string                `json:"UUID"`
+	DataType svcstatus.DomainDataType `json:"dataType"`
+	UUID     string                   `json:"UUID"`
 }
 
 type HostStatusRequest struct {
-	HostDataType status.HostDataType `json:"host_dataType"`
+	HostDataType svcstatus.HostDataType `json:"host_dataType"`
 }
 
 type InstInfoRequest struct {
-	InstDataType status.InstDataType `json:"dataType"`
+	InstDataType svcstatus.InstDataType `json:"dataType"`
 }
 
 type UUIDListResponse struct {

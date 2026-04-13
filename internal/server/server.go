@@ -7,24 +7,25 @@ import (
 	"github.com/easy-cloud-Knet/KWS_Core/api"
 	control "github.com/easy-cloud-Knet/KWS_Core/api/Control"
 	create "github.com/easy-cloud-Knet/KWS_Core/api/Create"
+	apistatus "github.com/easy-cloud-Knet/KWS_Core/api/Status"
 	snapshot "github.com/easy-cloud-Knet/KWS_Core/api/Snapshot"
 	"github.com/easy-cloud-Knet/KWS_Core/internal/server/middleware"
 	"go.uber.org/zap"
 )
 
-func InitServer(portNum int, libvirtInst *api.InstHandler, controlHandler *control.Handler, createHandler *create.Handler, snapshotHandler *snapshot.Handler, logger *zap.Logger) {
+func InitServer(portNum int, libvirtInst *api.InstHandler, controlHandler *control.Handler, createHandler *create.Handler, snapshotHandler *snapshot.Handler, statusHandler *apistatus.Handler, logger *zap.Logger) {
 	logger.Sugar().Infof("Starting server on %d", portNum)
 	mux := http.NewServeMux()
 
-	mux.HandleFunc("POST /BOOTVM", createHandler.BootVM)                      //post
-	mux.HandleFunc("POST /createVM", createHandler.CreateVMFromBase)          //post
-	mux.HandleFunc("GET /getStatusUUID", libvirtInst.ReturnStatusUUID)        //Get
-	mux.HandleFunc("POST /forceShutDownUUID", controlHandler.ForceShutDownVM) //POST
-	mux.HandleFunc("POST /DeleteVM", controlHandler.DeleteVM)                 //POST
-	mux.HandleFunc("GET /getStatusHost", libvirtInst.ReturnStatusHost)        //Get
-	mux.HandleFunc("GET /getInstAllInfo", libvirtInst.ReturnInstAllInfo)      //Get
-	mux.HandleFunc("GET /getAllUUIDs", libvirtInst.ReturnAllUUIDs)            //Get
-	mux.HandleFunc("GET /getAll-uuidstatusList", libvirtInst.ReturnAllDomainStates)
+	mux.HandleFunc("POST /BOOTVM", createHandler.BootVM)                         //post
+	mux.HandleFunc("POST /createVM", createHandler.CreateVMFromBase)             //post
+	mux.HandleFunc("GET /getStatusUUID", statusHandler.ReturnStatusUUID)         //Get
+	mux.HandleFunc("POST /forceShutDownUUID", controlHandler.ForceShutDownVM)    //POST
+	mux.HandleFunc("POST /DeleteVM", controlHandler.DeleteVM)                    //POST
+	mux.HandleFunc("GET /getStatusHost", statusHandler.ReturnStatusHost)         //Get
+	mux.HandleFunc("GET /getInstAllInfo", statusHandler.ReturnInstAllInfo)       //Get
+	mux.HandleFunc("GET /getAllUUIDs", statusHandler.ReturnAllUUIDs)             //Get
+	mux.HandleFunc("GET /getAll-uuidstatusList", statusHandler.ReturnAllDomainStates)
 
 	// Snapshot operations
 	mux.HandleFunc("POST /CreateSnapshot", snapshotHandler.CreateSnapshot)
