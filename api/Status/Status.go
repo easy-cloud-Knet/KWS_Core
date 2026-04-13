@@ -1,4 +1,4 @@
-package api
+package status
 
 import (
 	"errors"
@@ -6,32 +6,32 @@ import (
 
 	virerr "github.com/easy-cloud-Knet/KWS_Core/internal/error"
 	httputil "github.com/easy-cloud-Knet/KWS_Core/pkg/httputil"
-	"github.com/easy-cloud-Knet/KWS_Core/services/status"
+	svcstatus "github.com/easy-cloud-Knet/KWS_Core/services/status"
 	"go.uber.org/zap"
 )
 
-func (i *InstHandler) ReturnStatusUUID(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) ReturnStatusUUID(w http.ResponseWriter, r *http.Request) {
 	param := &DomainStatusRequest{}
-	resp := httputil.ResponseGen[status.DataTypeHandler]("domain Status UUID")
+	resp := httputil.ResponseGen[svcstatus.DataTypeHandler]("domain Status UUID")
 
 	if err := httputil.HttpDecoder(r, param); err != nil {
 		resp.ResponseWriteErr(w, err, http.StatusBadRequest)
 		return
 	}
-	i.Logger.Info("retreving domain status", zap.String("uuid", param.UUID))
+	h.Logger.Info("retreving domain status", zap.String("uuid", param.UUID))
 
-	outputStruct, err := status.DataTypeRouter(param.DataType)
+	outputStruct, err := svcstatus.DataTypeRouter(param.DataType)
 	if err != nil {
 		resp.ResponseWriteErr(w, err, http.StatusBadRequest)
 		return
-		// wrong parameter error 반환
 	}
-	dom, err := i.DomainControl.GetDomain(param.UUID)
+	dom, err := h.DomainControl.GetDomain(param.UUID)
 	if err != nil {
 		resp.ResponseWriteErr(w, virerr.ErrorJoin(err, errors.New("error returning status from uuid")), http.StatusInternalServerError)
+		return
 	}
 
-	DomainDetail := status.DomainDetailFactory(outputStruct, dom.Domain)
+	DomainDetail := svcstatus.DomainDetailFactory(outputStruct, dom.Domain)
 
 	if err := outputStruct.GetInfo(dom.Domain); err != nil {
 		resp.ResponseWriteErr(w, err, http.StatusInternalServerError)
@@ -39,81 +39,74 @@ func (i *InstHandler) ReturnStatusUUID(w http.ResponseWriter, r *http.Request) {
 	}
 	DomainDetail.DataHandle = outputStruct
 	resp.ResponseWriteOK(w, &DomainDetail.DataHandle)
-
 }
 
-func (i *InstHandler) ReturnStatusHost(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) ReturnStatusHost(w http.ResponseWriter, r *http.Request) {
 	param := &HostStatusRequest{}
-	resp := httputil.ResponseGen[status.HostDataTypeHandler]("Host Status Return")
+	resp := httputil.ResponseGen[svcstatus.HostDataTypeHandler]("Host Status Return")
 
 	if err := httputil.HttpDecoder(r, param); err != nil {
 		resp.ResponseWriteErr(w, err, http.StatusInternalServerError)
 		return
 	}
 
-	dataHandle, err := status.HostDataTypeRouter(param.HostDataType)
+	dataHandle, err := svcstatus.HostDataTypeRouter(param.HostDataType)
 	if err != nil {
 		resp.ResponseWriteErr(w, err, http.StatusInternalServerError)
 		return
 	}
 
-	host, err := status.HostInfoHandler(dataHandle, i.DomainControl.DomainListStatus)
+	host, err := svcstatus.HostInfoHandler(dataHandle, h.DomainControl.GetDomainListStatus())
 	if err != nil {
 		resp.ResponseWriteErr(w, err, http.StatusInternalServerError)
+		return
 	}
 
 	resp.ResponseWriteOK(w, &host.HostDataHandle)
 }
 
-func (i *InstHandler) ReturnInstAllInfo(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) ReturnInstAllInfo(w http.ResponseWriter, r *http.Request) {
 	param := &InstInfoRequest{}
-	resp := httputil.ResponseGen[status.InstDataTypeHandler]("Inst Hardware Return")
+	resp := httputil.ResponseGen[svcstatus.InstDataTypeHandler]("Inst Hardware Return")
 
 	if err := httputil.HttpDecoder(r, param); err != nil {
 		resp.ResponseWriteErr(w, err, http.StatusInternalServerError)
-		http.Error(w, "error decoding parameters", http.StatusBadRequest)
 		return
 	}
 
-	dataHandle, err := status.InstDataTypeRouter(param.InstDataType)
+	dataHandle, err := svcstatus.InstDataTypeRouter(param.InstDataType)
 	if err != nil {
 		resp.ResponseWriteErr(w, err, http.StatusInternalServerError)
 		return
 	}
-	inst, err := status.InstDetailFactory(dataHandle, i.LibvirtInst)
+	inst, err := svcstatus.InstDetailFactory(dataHandle, h.LibvirtInst)
 	if err != nil {
 		resp.ResponseWriteErr(w, err, http.StatusInternalServerError)
+		return
 	}
 
 	resp.ResponseWriteOK(w, &inst.AllInstDataHandle)
 }
 
-// host 상태 조회는 두가지 에러를 반환할 수 있음.
-// 1. Routing 등에서 일어나는 에러, (host data 타입등이 잘못 입력 된 경우) , InvalidParameter
-// 2. 정확히 파악할 수 없는 오류, 사용하는 호스트 반환 패키지에서 반환되는 오류, , HostStatusError
-// 이 두가지는 내부 함수에서 파악하여 올리기 때문에, 추가 없이  ResponseWirteErr 호출해도 괜찮을 듯
-
-func (i *InstHandler) ReturnAllUUIDs(w http.ResponseWriter, r *http.Request) {
-	i.Logger.Info("ReturnAllUUIDs handler entered")
+func (h *Handler) ReturnAllUUIDs(w http.ResponseWriter, r *http.Request) {
+	h.Logger.Info("ReturnAllUUIDs handler entered")
 
 	resp := httputil.ResponseGen[UUIDListResponse]("Get All UUIDs")
 
-	uuids := i.DomainControl.GetAllUUIDs()
+	uuids := h.DomainControl.GetAllUUIDs()
 	respData := UUIDListResponse{UUIDs: uuids}
 
 	resp.ResponseWriteOK(w, &respData)
 }
 
-//////////////////////////////////////////////////////////////////
-
-func (i *InstHandler) GetAllDomainStates() ([]DomainStateResponse, error) {
-	domains, err := i.LibvirtInst.ListAllDomains(0)
+func (h *Handler) getAllDomainStates() ([]DomainStateResponse, error) {
+	domains, err := h.LibvirtInst.ListAllDomains(0)
 	if err != nil {
 		return nil, err
 	}
 	defer func() {
 		for _, d := range domains {
-			d.Free() // libvirt의 도메인 객체 메모리 해제
+			d.Free()
 		}
 	}()
 
@@ -121,11 +114,11 @@ func (i *InstHandler) GetAllDomainStates() ([]DomainStateResponse, error) {
 	for _, domain := range domains {
 		uuid, err := domain.GetUUIDString()
 		if err != nil {
-			continue // UUID 조회 실패 시 건너뜀
+			continue
 		}
 		state, _, err := domain.GetState()
 		if err != nil {
-			continue // 상태 조회 실패 시 건너뜀
+			continue
 		}
 		result = append(result, DomainStateResponse{
 			UUID:        uuid,
@@ -135,12 +128,12 @@ func (i *InstHandler) GetAllDomainStates() ([]DomainStateResponse, error) {
 	return result, nil
 }
 
-func (i *InstHandler) ReturnAllDomainStates(w http.ResponseWriter, r *http.Request) {
-	i.Logger.Info("ReturnAllDomainStates handler entered")
+func (h *Handler) ReturnAllDomainStates(w http.ResponseWriter, r *http.Request) {
+	h.Logger.Info("ReturnAllDomainStates handler entered")
 
 	resp := httputil.ResponseGen[[]DomainStateResponse]("Get All Domain States")
 
-	states, err := i.GetAllDomainStates()
+	states, err := h.getAllDomainStates()
 	if err != nil {
 		resp.ResponseWriteErr(w, err, http.StatusInternalServerError)
 		return
