@@ -19,7 +19,9 @@ jobs:
           cache: false
 
       - name: Install system dependencies
-        run: sudo apt-get install -y libvirt-dev pkg-config
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libvirt-dev pkg-config
 
       - name: golangci-lint
         uses: golangci/golangci-lint-action@v6

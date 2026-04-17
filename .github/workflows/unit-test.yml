@@ -19,7 +19,9 @@ jobs:
           cache: true
 
       - name: Install system dependencies
-        run: sudo apt-get install -y libvirt-dev pkg-config whois
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libvirt-dev pkg-config whois
 
       - name: Build
         run: go build ./...
