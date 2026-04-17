@@ -19,6 +19,7 @@ func main() {
 		app.ControlHandler,
 		app.CreateHandler,
 		app.SnapshotHandler,
+		app.StatusHandler,
 		app.Logger)
 
 	select {}

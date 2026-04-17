@@ -5,6 +5,7 @@ import (
 	"github.com/easy-cloud-Knet/KWS_Core/api"
 	control "github.com/easy-cloud-Knet/KWS_Core/api/Control"
 	create "github.com/easy-cloud-Knet/KWS_Core/api/Create"
+	apistatus "github.com/easy-cloud-Knet/KWS_Core/api/Status"
 	snapshot "github.com/easy-cloud-Knet/KWS_Core/api/Snapshot"
 	syslogger "github.com/easy-cloud-Knet/KWS_Core/internal/logger"
 	"go.uber.org/zap"
@@ -15,6 +16,7 @@ type App struct {
 	ControlHandler  *control.Handler
 	CreateHandler   *create.Handler
 	SnapshotHandler *snapshot.Handler
+	StatusHandler   *apistatus.Handler
 	Logger          *zap.Logger
 }
 
@@ -41,6 +43,7 @@ func initApp() *App {
 		ControlHandler:  control.NewHandler(domListCon, logger),
 		CreateHandler:   create.NewHandler(domListCon, inst.LibvirtInst, logger),
 		SnapshotHandler: snapshot.NewHandler(domListCon, logger),
+		StatusHandler:   apistatus.NewHandler(inst.LibvirtInst, domListCon, logger),
 		Logger:          logger,
 	}
 }

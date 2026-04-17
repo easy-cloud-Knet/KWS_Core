@@ -150,6 +150,10 @@ func (DC *DomListControl) RetrieveAllDomain(logger *zap.Logger) error {
 	return nil
 }
 
+func (DC *DomListControl) GetDomainListStatus() *domStatus.DomainListStatus {
+	return DC.DomainListStatus
+}
+
 ////////////////////////////////////////////////
 
 func (DC *DomListControl) BootSleepingCPU(domain *Domain) error {
