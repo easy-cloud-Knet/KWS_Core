@@ -3,8 +3,8 @@ package status
 import (
 	domCon "github.com/easy-cloud-Knet/KWS_Core/DomCon"
 	domStatus "github.com/easy-cloud-Knet/KWS_Core/DomCon/domainList_status"
+	svcstatus "github.com/easy-cloud-Knet/KWS_Core/services/status"
 	"go.uber.org/zap"
-	"libvirt.org/go/libvirt"
 )
 
 type DomainController interface {
@@ -14,14 +14,14 @@ type DomainController interface {
 }
 
 type Handler struct {
-	LibvirtInst   *libvirt.Connect
+	LibvirtConn   svcstatus.Connect
 	DomainControl DomainController
 	Logger        *zap.Logger
 }
 
-func NewHandler(lv *libvirt.Connect, dc DomainController, logger *zap.Logger) *Handler {
+func NewHandler(lv svcstatus.Connect, dc DomainController, logger *zap.Logger) *Handler {
 	return &Handler{
-		LibvirtInst:   lv,
+		LibvirtConn:   lv,
 		DomainControl: dc,
 		Logger:        logger,
 	}

@@ -79,7 +79,7 @@ func (h *Handler) ReturnInstAllInfo(w http.ResponseWriter, r *http.Request) {
 		resp.ResponseWriteErr(w, err, http.StatusInternalServerError)
 		return
 	}
-	inst, err := svcstatus.InstDetailFactory(dataHandle, h.LibvirtInst)
+	inst, err := svcstatus.InstDetailFactory(dataHandle, h.LibvirtConn)
 	if err != nil {
 		resp.ResponseWriteErr(w, err, http.StatusInternalServerError)
 		return
@@ -100,7 +100,7 @@ func (h *Handler) ReturnAllUUIDs(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) getAllDomainStates() ([]DomainStateResponse, error) {
-	domains, err := h.LibvirtInst.ListAllDomains(0)
+	domains, err := h.LibvirtConn.ListAllDomains(0)
 	if err != nil {
 		return nil, err
 	}
