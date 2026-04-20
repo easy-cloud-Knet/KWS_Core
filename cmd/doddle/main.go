@@ -15,11 +15,13 @@ func main() {
 
 	go server.InitServer(
 		config.ServerPort,
-		app.InstHandler,
-		app.ControlHandler,
-		app.CreateHandler,
-		app.SnapshotHandler,
-		app.StatusHandler,
+		server.Handlers{
+			IsConnected: app.IsConnected,
+			Control:     app.ControlHandler,
+			Create:      app.CreateHandler,
+			Snapshot:    app.SnapshotHandler,
+			Status:      app.StatusHandler,
+		},
 		app.Logger)
 
 	select {}
