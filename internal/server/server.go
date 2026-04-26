@@ -4,7 +4,6 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/easy-cloud-Knet/KWS_Core/api"
 	control "github.com/easy-cloud-Knet/KWS_Core/api/Control"
 	create "github.com/easy-cloud-Knet/KWS_Core/api/Create"
 	apistatus "github.com/easy-cloud-Knet/KWS_Core/api/Status"
@@ -13,35 +12,41 @@ import (
 	"go.uber.org/zap"
 )
 
-func InitServer(portNum int, libvirtInst *api.InstHandler, controlHandler *control.Handler, createHandler *create.Handler, snapshotHandler *snapshot.Handler, statusHandler *apistatus.Handler, logger *zap.Logger) {
+type Handlers struct {
+	IsConnected func() bool
+	Control     *control.Handler
+	Create      *create.Handler
+	Snapshot    *snapshot.Handler
+	Status      *apistatus.Handler
+}
+
+func InitServer(portNum int, h Handlers, logger *zap.Logger) {
 	logger.Sugar().Infof("Starting server on %d", portNum)
 	mux := http.NewServeMux()
 
-	mux.HandleFunc("POST /BOOTVM", createHandler.BootVM)                         //post
-	mux.HandleFunc("POST /createVM", createHandler.CreateVMFromBase)             //post
-	mux.HandleFunc("GET /getStatusUUID", statusHandler.ReturnStatusUUID)         //Get
-	mux.HandleFunc("POST /forceShutDownUUID", controlHandler.ForceShutDownVM)    //POST
-	mux.HandleFunc("POST /DeleteVM", controlHandler.DeleteVM)                    //POST
-	mux.HandleFunc("GET /getStatusHost", statusHandler.ReturnStatusHost)         //Get
-	mux.HandleFunc("GET /getInstAllInfo", statusHandler.ReturnInstAllInfo)       //Get
-	mux.HandleFunc("GET /getAllUUIDs", statusHandler.ReturnAllUUIDs)             //Get
-	mux.HandleFunc("GET /getAll-uuidstatusList", statusHandler.ReturnAllDomainStates)
+	mux.HandleFunc("POST /BOOTVM", h.Create.BootVM)
+	mux.HandleFunc("POST /createVM", h.Create.CreateVMFromBase)
+	mux.HandleFunc("GET /getStatusUUID", h.Status.ReturnStatusUUID)
+	mux.HandleFunc("POST /forceShutDownUUID", h.Control.ForceShutDownVM)
+	mux.HandleFunc("POST /DeleteVM", h.Control.DeleteVM)
+	mux.HandleFunc("GET /getStatusHost", h.Status.ReturnStatusHost)
+	mux.HandleFunc("GET /getInstAllInfo", h.Status.ReturnInstAllInfo)
+	mux.HandleFunc("GET /getAllUUIDs", h.Status.ReturnAllUUIDs)
+	mux.HandleFunc("GET /getAll-uuidstatusList", h.Status.ReturnAllDomainStates)
 
-	// Snapshot operations
-	mux.HandleFunc("POST /CreateSnapshot", snapshotHandler.CreateSnapshot)
-	mux.HandleFunc("POST /CreateExternalSnapshot", snapshotHandler.CreateExternalSnapshot)
-	mux.HandleFunc("GET /ListSnapshots", snapshotHandler.ListSnapshots)
-	mux.HandleFunc("GET /ListExternalSnapshots", snapshotHandler.ListExternalSnapshots)
-	mux.HandleFunc("POST /RevertSnapshot", snapshotHandler.RevertSnapshot)
-	mux.HandleFunc("POST /RevertExternalSnapshot", snapshotHandler.RevertExternalSnapshot)
-	mux.HandleFunc("POST /MergeExternalSnapshot", snapshotHandler.MergeExternalSnapshot)
-	mux.HandleFunc("POST /DeleteSnapshot", snapshotHandler.DeleteSnapshot)
+	mux.HandleFunc("POST /CreateSnapshot", h.Snapshot.CreateSnapshot)
+	mux.HandleFunc("POST /CreateExternalSnapshot", h.Snapshot.CreateExternalSnapshot)
+	mux.HandleFunc("GET /ListSnapshots", h.Snapshot.ListSnapshots)
+	mux.HandleFunc("GET /ListExternalSnapshots", h.Snapshot.ListExternalSnapshots)
+	mux.HandleFunc("POST /RevertSnapshot", h.Snapshot.RevertSnapshot)
+	mux.HandleFunc("POST /RevertExternalSnapshot", h.Snapshot.RevertExternalSnapshot)
+	mux.HandleFunc("POST /MergeExternalSnapshot", h.Snapshot.MergeExternalSnapshot)
+	mux.HandleFunc("POST /DeleteSnapshot", h.Snapshot.DeleteSnapshot)
 
-	libvirtHandler := middleware.LibvirtMiddleware(libvirtInst.IsConnected, logger)(mux)
+	libvirtHandler := middleware.LibvirtMiddleware(h.IsConnected, logger)(mux)
 	sysloggerHttp := middleware.LoggerMiddleware(libvirtHandler, logger)
 
 	if err := http.ListenAndServe(":"+strconv.Itoa(portNum), sysloggerHttp); err != nil {
 		logger.Fatal("server failed", zap.Error(err))
 	}
-
 }
