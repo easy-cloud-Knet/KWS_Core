@@ -56,13 +56,13 @@ func (h *Handler) ReturnStatusHost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	host, err := svcstatus.HostInfoHandler(dataHandle, h.DomainControl.GetDomainListStatus())
+	hostDetail, err := svcstatus.HostInfoHandler(dataHandle, h.DomainControl.GetDomainListStatus())
 	if err != nil {
 		resp.ResponseWriteErr(w, err, http.StatusInternalServerError)
 		return
 	}
 
-	resp.ResponseWriteOK(w, &host.HostDataHandle)
+	resp.ResponseWriteOK(w, &hostDetail.DataHandle)
 }
 
 func (h *Handler) ReturnInstAllInfo(w http.ResponseWriter, r *http.Request) {
@@ -111,12 +111,12 @@ func (h *Handler) getAllDomainStates() ([]DomainStateResponse, error) {
 	}()
 
 	var result []DomainStateResponse
-	for _, domain := range domains {
-		uuid, err := domain.GetUUIDString()
+	for _, d := range domains {
+		uuid, err := d.GetUUIDString()
 		if err != nil {
 			continue
 		}
-		state, _, err := domain.GetState()
+		state, _, err := d.GetState()
 		if err != nil {
 			continue
 		}
