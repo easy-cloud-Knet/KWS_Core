@@ -4,14 +4,13 @@ import (
 	"encoding/xml"
 	"fmt"
 	"os"
-	"os/exec"
-	"path/filepath"
 
 	domCon "github.com/easy-cloud-Knet/KWS_Core/DomCon"
 	"github.com/easy-cloud-Knet/KWS_Core/internal/config"
 	virerr "github.com/easy-cloud-Knet/KWS_Core/internal/error"
 	uuid "github.com/easy-cloud-Knet/KWS_Core/pkg/UUID"
 	"github.com/easy-cloud-Knet/KWS_Core/pkg/parsor"
+	rollback "github.com/easy-cloud-Knet/KWS_Core/pkg/rollBack"
 	safepath "github.com/easy-cloud-Knet/KWS_Core/pkg/safePath"
 	vmtypes "github.com/easy-cloud-Knet/KWS_Core/pkg/types"
 	userconfig "github.com/easy-cloud-Knet/KWS_Core/pkg/yaml/cloud-init"
@@ -36,20 +35,30 @@ func LocalCreatorFactory(confige Configurer, libvirtInst LibvirtConnect, logger 
 }
 
 func (DCB *LocalCreator) CreateVM() (*domCon.Domain, error) {
-	output, err := DCB.DomainConfiger.GenerateXML(DCB.logger)
+	output, dirPath, err := DCB.DomainConfiger.GenerateXML(DCB.logger)
 	if err != nil {
 		DCB.logger.Error("error while generating VM config", zap.Error(err))
 		return nil, err
 	}
 
+	rbm := &rollback.RollBackManager{}
+	rbm.Add(func() error { return os.RemoveAll(dirPath) })
+
 	domain, err := DCB.libvirtInst.DomainDefineXML(string(output))
 	if err != nil {
+		if rbErr := rbm.Execute(); rbErr != nil {
+			DCB.logger.Error("rollback failed after DomainDefineXML error", zap.Error(rbErr))
+		}
 		errDesc := virerr.ErrorGen(virerr.DomainGenerationError, fmt.Errorf("in domain-Creator, error defining domain via libvirt: %w", err))
 		DCB.logger.Error(errDesc.Error())
 		return nil, errDesc
 	}
+	rbm.Add(func() error { return domain.Undefine() })
 
 	if err := domain.Create(); err != nil {
+		if rbErr := rbm.Execute(); rbErr != nil {
+			DCB.logger.Error("rollback failed after domain.Create error", zap.Error(rbErr))
+		}
 		errDesc := virerr.ErrorGen(virerr.DomainGenerationError, fmt.Errorf("in domain-Creator, error starting domain: %w", err))
 		DCB.logger.Error(errDesc.Error())
 		return nil, errDesc
@@ -58,15 +67,20 @@ func (DCB *LocalCreator) CreateVM() (*domCon.Domain, error) {
 	return domCon.NewDomainInstance(domain), nil
 }
 
-func (DB localConfigurer) GenerateXML(logger *zap.Logger) ([]byte, error) {
+func (DB localConfigurer) GenerateXML(logger *zap.Logger) ([]byte, string, error) {
+	dirPath, err := safepath.GetSafeFilePath(config.StorageBase, DB.VMDescription.UUID)
+	if err != nil {
+		return nil, "", virerr.ErrorGen(virerr.DomainGenerationError, err)
+	}
 	if err := DB.Generate(logger); err != nil {
-		return nil, err
+		return nil, "", err
 	}
 	output, err := xml.MarshalIndent(*DB.DeviceDefiner, "", "  ")
 	if err != nil {
-		return nil, virerr.ErrorGen(virerr.DomainGenerationError, fmt.Errorf("XML marshaling error: %w", err))
+		os.RemoveAll(dirPath)
+		return nil, "", virerr.ErrorGen(virerr.DomainGenerationError, fmt.Errorf("XML marshaling error: %w", err))
 	}
-	return output, nil
+	return output, dirPath, nil
 }
 
 func (DB localConfigurer) Generate(logger *zap.Logger) error {
@@ -87,29 +101,34 @@ func (DB localConfigurer) Generate(logger *zap.Logger) error {
 		return virerr.ErrorGen(virerr.DomainGenerationError, errDesc)
 	}
 
+	cleanup := func(err error) error {
+		os.RemoveAll(dirPath)
+		return err
+	}
+
 	// cloud-init 파일 처리
 	if err := DB.processCloudInitFiles(dirPath); err != nil {
 		errorEncapsed := virerr.ErrorJoin(err, fmt.Errorf("in domain-parsor,"))
 		logger.Error(errorEncapsed.Error())
-		return errorEncapsed
+		return cleanup(errorEncapsed)
 	}
 	logger.Info("generating configuration file successfully done", zap.String("filePath", dirPath))
 
 	if err := DB.CreateDiskImage(dirPath, DB.VMDescription.HardwardInfo.Disk); err != nil {
 		errorEncapsed := virerr.ErrorJoin(err, fmt.Errorf("in domain-parsor,"))
 		logger.Error(errorEncapsed.Error())
-		return errorEncapsed
+		return cleanup(errorEncapsed)
 	}
 
 	// ISO 파일 생성
 	if err := DB.CreateISOFile(dirPath); err != nil {
 		errorEncapsed := virerr.ErrorJoin(err, fmt.Errorf("in domain-parsor,"))
 		logger.Error(errorEncapsed.Error())
-		return err
+		return cleanup(errorEncapsed)
 	}
 
 	if err := DB.DeviceDefiner.XML_Parsor(DB.VMDescription); err != nil {
-		return virerr.ErrorGen(virerr.DomainGenerationError, fmt.Errorf("XML_Parsor error: %w", err))
+		return cleanup(virerr.ErrorGen(virerr.DomainGenerationError, fmt.Errorf("XML_Parsor error: %w", err)))
 	}
 	return nil
 }
@@ -136,25 +155,3 @@ func (DB localConfigurer) processCloudInitFiles(dirPath string) error {
 
 	return nil
 }
-
-func (DB localConfigurer) CreateISOFile(dirPath string) error {
-
-	isoOutput := filepath.Join(dirPath, "cidata.iso")
-	userDataPath := filepath.Join(dirPath, "user-data")
-	metaDataPath := filepath.Join(dirPath, "meta-data")
-
-	genisoCmd := exec.Command("genisoimage",
-		"--output", isoOutput,
-		"-V", "cidata",
-		"-r", "-J",
-		userDataPath, metaDataPath,
-	)
-
-	if err := genisoCmd.Run(); err != nil {
-		errorDescription := fmt.Errorf("generating ISO image error, may have duplicdated uuid or wrong format of yaml file %s, %v", dirPath, err)
-		return virerr.ErrorGen(virerr.DomainGenerationError, errorDescription)
-	}
-	return nil
-}
-
-// local 파일에서 vm을 생성할 경우 사용
