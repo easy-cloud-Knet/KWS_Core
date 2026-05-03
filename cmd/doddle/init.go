@@ -4,8 +4,9 @@ import (
 	domCon "github.com/easy-cloud-Knet/KWS_Core/DomCon"
 	control "github.com/easy-cloud-Knet/KWS_Core/api/Control"
 	create "github.com/easy-cloud-Knet/KWS_Core/api/Create"
-	apistatus "github.com/easy-cloud-Knet/KWS_Core/api/Status"
 	snapshot "github.com/easy-cloud-Knet/KWS_Core/api/Snapshot"
+	apistatus "github.com/easy-cloud-Knet/KWS_Core/api/Status"
+	"github.com/easy-cloud-Knet/KWS_Core/api/metric"
 	libvirtconn "github.com/easy-cloud-Knet/KWS_Core/internal/libvirt"
 	syslogger "github.com/easy-cloud-Knet/KWS_Core/internal/logger"
 	"go.uber.org/zap"
@@ -17,6 +18,7 @@ type App struct {
 	ControlHandler  *control.Handler
 	CreateHandler   *create.Handler
 	SnapshotHandler *snapshot.Handler
+	MetricHandler   *metric.Handler
 	StatusHandler   *apistatus.Handler
 	Logger          *zap.Logger
 }
@@ -46,6 +48,7 @@ func initApp() *App {
 		ControlHandler:  control.NewHandler(domListCon, logger),
 		CreateHandler:   create.NewHandler(domListCon, conn, logger),
 		SnapshotHandler: snapshot.NewHandler(domListCon, logger),
+		MetricHandler:   metric.NewHandler(),
 		StatusHandler:   apistatus.NewHandler(conn, domListCon, logger),
 		Logger:          logger,
 	}

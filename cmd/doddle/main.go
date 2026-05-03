@@ -19,6 +19,7 @@ func main() {
 			IsConnected: app.IsConnected,
 			Control:     app.ControlHandler,
 			Create:      app.CreateHandler,
+			Metric:      app.MetricHandler,
 			Snapshot:    app.SnapshotHandler,
 			Status:      app.StatusHandler,
 		},

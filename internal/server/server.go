@@ -6,8 +6,9 @@ import (
 
 	control "github.com/easy-cloud-Knet/KWS_Core/api/Control"
 	create "github.com/easy-cloud-Knet/KWS_Core/api/Create"
-	apistatus "github.com/easy-cloud-Knet/KWS_Core/api/Status"
 	snapshot "github.com/easy-cloud-Knet/KWS_Core/api/Snapshot"
+	apistatus "github.com/easy-cloud-Knet/KWS_Core/api/Status"
+	"github.com/easy-cloud-Knet/KWS_Core/api/metric"
 	"github.com/easy-cloud-Knet/KWS_Core/internal/server/middleware"
 	"go.uber.org/zap"
 )
@@ -15,6 +16,7 @@ import (
 type Handlers struct {
 	IsConnected func() bool
 	Control     *control.Handler
+	Metric      *metric.Handler
 	Create      *create.Handler
 	Snapshot    *snapshot.Handler
 	Status      *apistatus.Handler
@@ -42,6 +44,8 @@ func InitServer(portNum int, h Handlers, logger *zap.Logger) {
 	mux.HandleFunc("POST /RevertExternalSnapshot", h.Snapshot.RevertExternalSnapshot)
 	mux.HandleFunc("POST /MergeExternalSnapshot", h.Snapshot.MergeExternalSnapshot)
 	mux.HandleFunc("POST /DeleteSnapshot", h.Snapshot.DeleteSnapshot)
+
+	mux.HandleFunc("GET /metrics", h.Metric.DefaultMetric().ServeHTTP)
 
 	libvirtHandler := middleware.LibvirtMiddleware(h.IsConnected, logger)(mux)
 	sysloggerHttp := middleware.LoggerMiddleware(libvirtHandler, logger)
