@@ -25,3 +25,24 @@ func (DB localConfigurer) CreateDiskImage(dirPath string, diskSize int) error {
 
 	return nil
 }
+
+func (DB localConfigurer) CreateISOFile(dirPath string) error {
+
+	isoOutput := filepath.Join(dirPath, "cidata.iso")
+	userDataPath := filepath.Join(dirPath, "user-data")
+	metaDataPath := filepath.Join(dirPath, "meta-data")
+
+	genisoCmd := exec.Command("genisoimage",
+		"--output", isoOutput,
+		"-V", "cidata",
+		"-r", "-J",
+		userDataPath, metaDataPath,
+	)
+
+	if err := genisoCmd.Run(); err != nil {
+		errorDescription := fmt.Errorf("generating ISO image error, may have duplicdated uuid or wrong format of yaml file %s, %v", dirPath, err)
+		return virerr.ErrorGen(virerr.DomainGenerationError, errorDescription)
+	}
+	return nil
+}
+

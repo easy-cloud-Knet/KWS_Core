@@ -8,7 +8,7 @@ import (
 // Configurer generates the XML config bytes for a new VM.
 // localConfigurer satisfies this via structural typing.
 type Configurer interface {
-	GenerateXML(logger *zap.Logger) ([]byte, error)
+	GenerateXML(logger *zap.Logger) (xmlBytes []byte, dirPath string, err error)
 }
 
 // LibvirtConnect abstracts *libvirt.Connect for domain definition.

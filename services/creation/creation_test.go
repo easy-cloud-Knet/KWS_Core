@@ -11,12 +11,13 @@ import (
 )
 
 type mockConfigurer struct {
-	xml []byte
-	err error
+	xml     []byte
+	dirPath string
+	err     error
 }
 
-func (m *mockConfigurer) GenerateXML(_ *zap.Logger) ([]byte, error) {
-	return m.xml, m.err
+func (m *mockConfigurer) GenerateXML(_ *zap.Logger) ([]byte, string, error) {
+	return m.xml, m.dirPath, m.err
 }
 
 type mockLibvirtConnect struct {
