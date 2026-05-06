@@ -46,7 +46,8 @@ func (c *Collector) ping(target string) {
 	if err != nil {
 		return
 	}
-	pinger.Count = 3
+	pinger.Count = 10
+	pinger.Timeout = 5 * time.Second
 	if err := pinger.Run(); err != nil {
 		return
 	}
