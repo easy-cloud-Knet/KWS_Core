@@ -19,17 +19,20 @@ func (rw *responseWriter) WriteHeader(code int) {
 
 func LoggerMiddleware(next http.Handler, logger *zap.Logger) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		start := time.Now()
+		if r.URL.Path == "/metrics" {
+			next.ServeHTTP(w, r)
+			return
+		}
 
+		start := time.Now()
 		wrapped := &responseWriter{ResponseWriter: w, statusCode: http.StatusOK}
 		next.ServeHTTP(wrapped, r)
 
-		elapsed := time.Since(start)
 		logger.Info("http response sent",
 			zap.String("method", r.Method),
 			zap.String("path", r.URL.Path),
 			zap.Int("status", wrapped.statusCode),
-			zap.Duration("duration", elapsed),
+			zap.Duration("duration", time.Since(start)),
 		)
 	})
 }
