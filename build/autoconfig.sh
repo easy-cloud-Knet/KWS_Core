@@ -4,6 +4,9 @@ get_shell_type() {
     ps -p $$ -o cmd= | awk '{print $1}' | xargs basename
 }
 
+sudo sysctl -w net.ipv4.ping_group_range="0 2147483647"
+// this enables non-root users to ping without sudo, refer internal/metrics/ping.go for more details
+
 curr_dir=$(pwd)
 shell_type=$(get_shell_type)
 

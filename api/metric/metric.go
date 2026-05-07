@@ -3,8 +3,7 @@ package metric
 import (
 	"net/http"
 
-	"github.com/prometheus/client_golang/prometheus"
-	"github.com/prometheus/client_golang/prometheus/collectors"
+	"github.com/easy-cloud-Knet/KWS_Core/internal/metrics"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
@@ -16,11 +15,7 @@ func NewHandler() *Handler {
 }
 
 func (H *Handler) DefaultMetric() http.Handler {
-	reg := prometheus.NewRegistry()
+	metricRegister := metrics.Initialize()
 
-	reg.MustRegister(
-		collectors.NewGoCollector(),
-		collectors.NewProcessCollector(collectors.ProcessCollectorOpts{}),
-	)
-	return promhttp.HandlerFor(reg, promhttp.HandlerOpts{})
+	return promhttp.HandlerFor(metricRegister, promhttp.HandlerOpts{})
 }
