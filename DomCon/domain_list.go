@@ -146,7 +146,7 @@ func (DC *DomListControl) RetrieveAllDomain(logger *zap.Logger) error {
 		return err
 	}
 
-	logger.Info("retreiving intital vm", zap.Int("number", len(DC.DomainList)))
+	logger.Info("retrieving initial vm", zap.Int("number", len(DC.DomainList)))
 	return nil
 }
 

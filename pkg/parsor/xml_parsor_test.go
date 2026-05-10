@@ -13,7 +13,7 @@ var testSpec = &vmtypes.VM_Init_Info{
 	DomName: "test-vm",
 	UUID:    "123e4567-e89b-12d3-a456-426614174000",
 	OS:      "debian",
-	HardwardInfo: vmtypes.HardwareInfo{
+	HardwareInfo: vmtypes.HardwareInfo{
 		CPU:    2,
 		Memory: 4,
 		Disk:   20,
@@ -99,11 +99,11 @@ func TestXMLParsor(t *testing.T) {
 	if xp.UUID != testSpec.UUID {
 		t.Errorf("uuid: expected %s, got %s", testSpec.UUID, xp.UUID)
 	}
-	if xp.Memory.Size != testSpec.HardwardInfo.Memory {
-		t.Errorf("memory: expected %d, got %d", testSpec.HardwardInfo.Memory, xp.Memory.Size)
+	if xp.Memory.Size != testSpec.HardwareInfo.Memory {
+		t.Errorf("memory: expected %d, got %d", testSpec.HardwareInfo.Memory, xp.Memory.Size)
 	}
-	if xp.VCPU.Count != testSpec.HardwardInfo.CPU {
-		t.Errorf("vcpu: expected %d, got %d", testSpec.HardwardInfo.CPU, xp.VCPU.Count)
+	if xp.VCPU.Count != testSpec.HardwareInfo.CPU {
+		t.Errorf("vcpu: expected %d, got %d", testSpec.HardwareInfo.CPU, xp.VCPU.Count)
 	}
 	if len(xp.Devices.Disks) != 2 {
 		t.Errorf("disks: expected 2, got %d", len(xp.Devices.Disks))

@@ -103,7 +103,7 @@ func (DP *State) GetInfo(domain Domain) error {
 	DP.UUID = uuidParsed.String()
 	userInfo, err := domain.GetGuestInfo(libvirt.DOMAIN_GUEST_INFO_USERS, 0)
 	if err != nil {
-		return virerr.ErrorGen(virerr.DomainStatusError, fmt.Errorf("error retreving guest info: %w", err))
+		return virerr.ErrorGen(virerr.DomainStatusError, fmt.Errorf("error retrieving guest info: %w", err))
 	}
 	DP.Users = userInfo.Users
 	return nil

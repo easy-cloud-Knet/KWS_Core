@@ -9,7 +9,7 @@ type CreateVMRequest struct {
 	DomName      string                 `json:"domName"`
 	UUID         string                 `json:"uuid"`
 	OS           string                 `json:"os"`
-	HardwardInfo vmtypes.HardwareInfo   `json:"HWInfo"`
+	HardwareInfo vmtypes.HardwareInfo   `json:"HWInfo"`
 	NetConf      network.NetDefine      `json:"network"`
 	Users        []vmtypes.User_info_VM `json:"users"`
 	SDNUUID      string                 `json:"sdnUUID"`
@@ -21,7 +21,7 @@ func (r *CreateVMRequest) toVMInitInfo() *vmtypes.VM_Init_Info {
 		DomName:      r.DomName,
 		UUID:         r.UUID,
 		OS:           r.OS,
-		HardwardInfo: r.HardwardInfo,
+		HardwareInfo: r.HardwareInfo,
 		NetConf:      r.NetConf,
 		Users:        r.Users,
 		SDNUUID:      r.SDNUUID,

@@ -18,7 +18,7 @@ func (h *Handler) ReturnStatusUUID(w http.ResponseWriter, r *http.Request) {
 		resp.ResponseWriteErr(w, err, http.StatusBadRequest)
 		return
 	}
-	h.Logger.Info("retreving domain status", zap.String("uuid", param.UUID))
+	h.Logger.Info("retrieving domain status", zap.String("uuid", param.UUID))
 
 	outputStruct, err := svcstatus.DataTypeRouter(param.DataType)
 	if err != nil {
