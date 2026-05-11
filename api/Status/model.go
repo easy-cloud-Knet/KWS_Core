@@ -2,7 +2,6 @@ package status
 
 import (
 	svcstatus "github.com/easy-cloud-Knet/KWS_Core/services/status"
-	"libvirt.org/go/libvirt"
 )
 
 type DomainStatusRequest struct {
@@ -22,7 +21,3 @@ type UUIDListResponse struct {
 	UUIDs []string `json:"uuids"`
 }
 
-type DomainStateResponse struct {
-	DomainState libvirt.DomainState `json:"currentState"`
-	UUID        string              `json:"UUID"`
-}

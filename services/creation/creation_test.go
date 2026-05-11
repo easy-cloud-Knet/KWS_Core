@@ -58,3 +58,34 @@ func TestCreateVM_DomainDefineXMLError(t *testing.T) {
 
 // TODO: processCloudInitFiles, GenerateXML 내부 로직 테스트는
 // YamlParsor, XMLDefiner 인터페이스 + VM_CREATE_XML.MarshalXML() 추가 후 가능.
+
+type mockBootableDomain struct {
+	createErr error
+	called    bool
+}
+
+func (m *mockBootableDomain) Create() error {
+	m.called = true
+	return m.createErr
+}
+
+func TestBootExistingVM_Success(t *testing.T) {
+	mock := &mockBootableDomain{}
+	if err := BootExistingVM(mock); err != nil {
+		t.Errorf("expected nil, got %v", err)
+	}
+	if !mock.called {
+		t.Error("Create not called")
+	}
+}
+
+func TestBootExistingVM_Error(t *testing.T) {
+	mock := &mockBootableDomain{createErr: fmt.Errorf("libvirt error")}
+	err := BootExistingVM(mock)
+	if err == nil {
+		t.Fatal("expected error, got nil")
+	}
+	if !errors.Is(err, virerr.DomainGenerationError) {
+		t.Errorf("expected DomainGenerationError, got %v", err)
+	}
+}
