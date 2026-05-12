@@ -23,7 +23,7 @@ func (h *Handler) ForceShutDownVM(w http.ResponseWriter, r *http.Request) {
 
 	dom, err := h.DomainControl.GetDomain(param.UUID)
 	if err != nil {
-		ERR := virerr.ErrorJoin(err, fmt.Errorf("error shutting down vm, retreving Get domin error "))
+		ERR := virerr.ErrorJoin(err, fmt.Errorf("error shutting down vm, retrieving domain"))
 		resp.ResponseWriteErr(w, ERR, http.StatusInternalServerError)
 		h.Logger.Error("failed to get domain for forceShutdown", zap.String("uuid", param.UUID), zap.Error(ERR))
 		return
@@ -57,7 +57,7 @@ func (h *Handler) DeleteVM(w http.ResponseWriter, r *http.Request) {
 
 	domain, err := h.DomainControl.GetDomain(param.UUID)
 	if err != nil {
-		ERR := virerr.ErrorJoin(err, fmt.Errorf("error deleting vm, retreving Get domin error "))
+		ERR := virerr.ErrorJoin(err, fmt.Errorf("error deleting vm, retrieving domain"))
 		resp.ResponseWriteErr(w, ERR, http.StatusInternalServerError)
 		h.Logger.Error("failed to get domain for deleteVM", zap.String("uuid", param.UUID), zap.Error(ERR))
 		return

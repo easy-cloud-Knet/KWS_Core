@@ -8,7 +8,7 @@ import (
 type VirError string
 
 const (
-	FaildDeEncoding   VirError = "Error Not Found"
+	FailedDecoding    VirError = "Error Not Found"
 	DomainSearchError VirError = "Error Serching Domain"
 	NoSuchDomain      VirError = "Domain Not Found"
 
@@ -22,8 +22,8 @@ const (
 	InvalidParameter VirError = "Invalid parameter entered"
 	WrongParameter   VirError = "Not validated parameter In"
 
-	DomainStatusError VirError = "Error Retreving Domain Status"
-	HostStatusError   VirError = "Error Retreving Host Status"
+	DomainStatusError VirError = "Error Retrieving Domain Status"
+	HostStatusError   VirError = "Error Retrieving Host Status"
 
 	DeletionDomainError VirError = "Error Deleting Domain"
 	DomainShutdownError VirError = "failed in Deleting domain"

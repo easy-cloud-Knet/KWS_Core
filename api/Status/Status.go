@@ -18,7 +18,7 @@ func (h *Handler) ReturnStatusUUID(w http.ResponseWriter, r *http.Request) {
 		resp.ResponseWriteErr(w, err, http.StatusBadRequest)
 		return
 	}
-	h.Logger.Info("retreving domain status", zap.String("uuid", param.UUID))
+	h.Logger.Info("retrieving domain status", zap.String("uuid", param.UUID))
 
 	outputStruct, err := svcstatus.DataTypeRouter(param.DataType)
 	if err != nil {
@@ -99,41 +99,12 @@ func (h *Handler) ReturnAllUUIDs(w http.ResponseWriter, r *http.Request) {
 	resp.ResponseWriteOK(w, &respData)
 }
 
-func (h *Handler) getAllDomainStates() ([]DomainStateResponse, error) {
-	domains, err := h.LibvirtConn.ListAllDomains(0)
-	if err != nil {
-		return nil, err
-	}
-	defer func() {
-		for _, d := range domains {
-			d.Free()
-		}
-	}()
-
-	var result []DomainStateResponse
-	for _, d := range domains {
-		uuid, err := d.GetUUIDString()
-		if err != nil {
-			continue
-		}
-		state, _, err := d.GetState()
-		if err != nil {
-			continue
-		}
-		result = append(result, DomainStateResponse{
-			UUID:        uuid,
-			DomainState: state,
-		})
-	}
-	return result, nil
-}
-
 func (h *Handler) ReturnAllDomainStates(w http.ResponseWriter, r *http.Request) {
 	h.Logger.Info("ReturnAllDomainStates handler entered")
 
-	resp := httputil.ResponseGen[[]DomainStateResponse]("Get All Domain States")
+	resp := httputil.ResponseGen[[]svcstatus.DomainStateInfo]("Get All Domain States")
 
-	states, err := h.getAllDomainStates()
+	states, err := svcstatus.ListAllDomainStates(h.LibvirtConn)
 	if err != nil {
 		resp.ResponseWriteErr(w, err, http.StatusInternalServerError)
 		return

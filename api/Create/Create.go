@@ -35,11 +35,9 @@ func (h *Handler) BootVM(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err := DomainExisting.Domain.Create()
-	if err != nil {
-		newErr := virerr.ErrorGen(virerr.DomainGenerationError, fmt.Errorf(" %w error while booting domain, from BootVM", err))
-		h.Logger.Error("error from booting vm", zap.Error(newErr))
-		resp.ResponseWriteErr(w, newErr, http.StatusInternalServerError)
+	if err := creation.BootExistingVM(DomainExisting); err != nil {
+		h.Logger.Error("error booting vm", zap.Error(err))
+		resp.ResponseWriteErr(w, err, http.StatusInternalServerError)
 		return
 	}
 

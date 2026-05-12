@@ -17,3 +17,9 @@ type Configurer interface {
 type LibvirtConnect interface {
 	DomainDefineXML(xmlConfig string) (*libvirt.Domain, error)
 }
+
+// BootableDomain abstracts domain boot for testing.
+// *libvirt.Domain satisfies this via structural typing.
+type BootableDomain interface {
+	Create() error
+}

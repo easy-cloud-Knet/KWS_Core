@@ -113,13 +113,13 @@ func (HDI *DiskInfo) GetHostInfo(_ *domStatus.DomainListStatus) error {
 
 func (SI *GeneralInfo) GetHostInfo(status *domStatus.DomainListStatus) error {
 	if err := SI.CPU.GetHostInfo(status); err != nil {
-		return virerr.ErrorGen(virerr.HostStatusError, fmt.Errorf("general Status:error retreving host Status %w", err))
+		return virerr.ErrorGen(virerr.HostStatusError, fmt.Errorf("general Status:error retrieving host status %w", err))
 	}
 	if err := SI.Disk.GetHostInfo(status); err != nil {
-		return virerr.ErrorGen(virerr.HostStatusError, fmt.Errorf("general Status:error retreving host Status %w", err))
+		return virerr.ErrorGen(virerr.HostStatusError, fmt.Errorf("general Status:error retrieving host status %w", err))
 	}
 	if err := SI.Memory.GetHostInfo(status); err != nil {
-		return virerr.ErrorGen(virerr.HostStatusError, fmt.Errorf("general Status:error retreving host Status %w", err))
+		return virerr.ErrorGen(virerr.HostStatusError, fmt.Errorf("general Status:error retrieving host status %w", err))
 	}
 	return nil
 }

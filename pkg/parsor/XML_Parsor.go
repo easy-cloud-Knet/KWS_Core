@@ -40,11 +40,11 @@ func (XP *VM_CREATE_XML) XML_Parsor(spec *vmtypes.VM_Init_Info) error {
 		UUID: spec.UUID,
 		Memory: Memory{
 			Unit: "GiB",
-			Size: spec.HardwardInfo.Memory,
+			Size: spec.HardwareInfo.Memory,
 		},
 		VCPU: VCPU{
 			Placement: "static",
-			Count:     spec.HardwardInfo.CPU,
+			Count:     spec.HardwareInfo.CPU,
 		},
 		Features: Features{
 			ACPI: ACPI{},

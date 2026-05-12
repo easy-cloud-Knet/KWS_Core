@@ -3,7 +3,6 @@ package termination
 import (
 	"fmt"
 	"os"
-	"os/exec"
 	"path/filepath"
 
 	"github.com/easy-cloud-Knet/KWS_Core/internal/config"
@@ -30,11 +29,7 @@ func (DD *DomainDeleter) DeleteDomain() error {
 	}
 
 	FilePath := filepath.Join(config.StorageBase, DD.uuid)
-	deleteCmd := exec.Command("rm", "-rf", FilePath)
-	deleteCmd.Stdout = os.Stdout
-	deleteCmd.Stderr = os.Stderr
-
-	if err := deleteCmd.Run(); err != nil {
+	if err := os.RemoveAll(FilePath); err != nil {
 		return virerr.ErrorGen(virerr.DeletionDomainError, fmt.Errorf("failed deleting files in %s: %w", FilePath, err))
 	}
 

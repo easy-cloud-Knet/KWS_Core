@@ -114,7 +114,7 @@ func (DB localConfigurer) Generate(logger *zap.Logger) error {
 	}
 	logger.Info("generating configuration file successfully done", zap.String("filePath", dirPath))
 
-	if err := DB.CreateDiskImage(dirPath, DB.VMDescription.HardwardInfo.Disk); err != nil {
+	if err := DB.CreateDiskImage(dirPath, DB.VMDescription.HardwareInfo.Disk); err != nil {
 		errorEncapsed := virerr.ErrorJoin(err, fmt.Errorf("in domain-parsor,"))
 		logger.Error(errorEncapsed.Error())
 		return cleanup(errorEncapsed)

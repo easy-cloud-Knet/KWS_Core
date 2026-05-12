@@ -2,6 +2,7 @@ package status
 
 import (
 	"bytes"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -12,6 +13,7 @@ import (
 	svcstatus "github.com/easy-cloud-Knet/KWS_Core/services/status"
 	testutil "github.com/easy-cloud-Knet/KWS_Core/test"
 	"go.uber.org/zap"
+	"libvirt.org/go/libvirt"
 )
 
 // ─── mock ───────────────────────────────────────────────────────────────────
@@ -170,6 +172,49 @@ func TestReturnAllUUIDs_WithUUIDs(t *testing.T) {
 	w := httptest.NewRecorder()
 
 	h.ReturnAllUUIDs(w, r)
+
+	if w.Code != http.StatusOK {
+		t.Errorf("expected %d, got %d", http.StatusOK, w.Code)
+	}
+}
+
+// ─── ReturnAllDomainStates ───────────────────────────────────────────────────
+
+type mockConnect struct {
+	domains []libvirt.Domain
+	err     error
+}
+
+func (m *mockConnect) ListAllDomains(_ libvirt.ConnectListAllDomainsFlags) ([]libvirt.Domain, error) {
+	return m.domains, m.err
+}
+
+func TestReturnAllDomainStates_ConnectError(t *testing.T) {
+	h := &Handler{
+		LibvirtConn:   &mockConnect{err: fmt.Errorf("connect error")},
+		DomainControl: &mockDomainController{},
+		Logger:        zap.NewNop(),
+	}
+	r := httptest.NewRequest(http.MethodGet, "/getAll-uuidstatusList", nil)
+	w := httptest.NewRecorder()
+
+	h.ReturnAllDomainStates(w, r)
+
+	if w.Code != http.StatusInternalServerError {
+		t.Errorf("expected %d, got %d", http.StatusInternalServerError, w.Code)
+	}
+}
+
+func TestReturnAllDomainStates_Empty(t *testing.T) {
+	h := &Handler{
+		LibvirtConn:   &mockConnect{domains: []libvirt.Domain{}},
+		DomainControl: &mockDomainController{},
+		Logger:        zap.NewNop(),
+	}
+	r := httptest.NewRequest(http.MethodGet, "/getAll-uuidstatusList", nil)
+	w := httptest.NewRecorder()
+
+	h.ReturnAllDomainStates(w, r)
 
 	if w.Code != http.StatusOK {
 		t.Errorf("expected %d, got %d", http.StatusOK, w.Code)
