@@ -1,14 +1,71 @@
 package external
 
 import (
+	"encoding/json"
 	"encoding/xml"
 	"fmt"
+	"os/exec"
 	"path/filepath"
 	"strings"
-	"time"
 
 	virerr "github.com/easy-cloud-Knet/KWS_Core/internal/error"
 )
+
+// realQemuImg is the production implementation of QemuImg using exec.Command.
+type realQemuImg struct{}
+
+func newQemuImg() QemuImg {
+	return &realQemuImg{}
+}
+
+func (q *realQemuImg) Create(backingFile, backingFormat, overlayPath string) error {
+	args := []string{"create", "-f", "qcow2", "-b", backingFile}
+	if backingFormat != "" {
+		args = append(args, "-F", backingFormat)
+	}
+	args = append(args, overlayPath)
+
+	out, err := exec.Command("qemu-img", args...).CombinedOutput()
+	if err != nil {
+		return fmt.Errorf("qemu-img create failed: %w: %s", err, strings.TrimSpace(string(out)))
+	}
+	return nil
+}
+
+type qemuImgInfoResult struct {
+	BackingFilename   string `json:"backing-filename"`
+	BackingFileFormat string `json:"backing-filename-format"`
+}
+
+func (q *realQemuImg) Info(diskPath string) (backingFile, backingFormat string, err error) {
+	out, execErr := exec.Command("qemu-img", "info", "--output=json", diskPath).CombinedOutput()
+	if execErr != nil {
+		return "", "", fmt.Errorf("qemu-img info failed: %w: %s", execErr, strings.TrimSpace(string(out)))
+	}
+
+	var result qemuImgInfoResult
+	if jsonErr := json.Unmarshal(out, &result); jsonErr != nil {
+		return "", "", fmt.Errorf("failed to parse qemu-img info output: %w", jsonErr)
+	}
+
+	return result.BackingFilename, result.BackingFileFormat, nil
+}
+
+func (q *realQemuImg) Convert(src, dst string) error {
+	out, err := exec.Command("qemu-img", "convert", "-f", "qcow2", "-O", "qcow2", src, dst).CombinedOutput()
+	if err != nil {
+		return fmt.Errorf("qemu-img convert failed: %w: %s", err, strings.TrimSpace(string(out)))
+	}
+	return nil
+}
+
+func (q *realQemuImg) Commit(overlay, base string) error {
+	out, err := exec.Command("qemu-img", "commit", "-b", base, overlay).CombinedOutput()
+	if err != nil {
+		return fmt.Errorf("qemu-img commit failed: %w: %s", err, strings.TrimSpace(string(out)))
+	}
+	return nil
+}
 
 func freeSnapshotHandles(snaps []SnapshotHandle) {
 	for _, s := range snaps {
@@ -35,33 +92,6 @@ func findExternalSnapshotByName(snaps []SnapshotHandle, snapName string) (Snapsh
 	}
 
 	return nil, nil
-}
-
-func waitBlockJobReady(domain SnapshotDomain, disk string, timeout time.Duration) error {
-	if domain == nil {
-		return virerr.ErrorGen(virerr.InvalidParameter, fmt.Errorf("nil domain"))
-	}
-
-	deadline := time.Now().Add(timeout)
-	for {
-		job, err := domain.BlockJobInfo(disk)
-		if err != nil {
-			if time.Now().After(deadline) {
-				return virerr.ErrorGen(virerr.SnapshotError, fmt.Errorf("timeout waiting for block job on disk %s: %w", disk, err))
-			}
-			time.Sleep(500 * time.Millisecond)
-			continue
-		}
-
-		if job.End > 0 && job.Cur >= job.End {
-			return nil
-		}
-
-		if time.Now().After(deadline) {
-			return virerr.ErrorGen(virerr.SnapshotError, fmt.Errorf("timeout waiting for block commit to complete on disk %s", disk))
-		}
-		time.Sleep(500 * time.Millisecond)
-	}
 }
 
 func listFileDisksFromXMLDesc(xmlDesc string) ([]diskInfo, error) {
@@ -192,4 +222,52 @@ func extractExternalSnapshotSources(snapshot SnapshotHandle) (map[string]string,
 	}
 
 	return out, nil
+}
+
+// workingDiskPath derives the "working" overlay path from a snapshot overlay path.
+// Snapshot layout: <root>/<uuid>/snapshots/<snapName>/<disk>.qcow2
+// Working layout:  <root>/<uuid>/working/<disk>.qcow2
+func workingDiskPath(snapOverlay, diskName string) string {
+	snapNameDir := filepath.Dir(snapOverlay)
+	snapshotsDir := filepath.Dir(snapNameDir)
+	uuidDir := filepath.Dir(snapshotsDir)
+	return filepath.Join(uuidDir, "working", diskName+".qcow2")
+}
+
+// isSnapshotOverlay reports whether path is one of the overlay files managed
+// by this snapshot system (under snapshots/ or working/ directories).
+func isSnapshotOverlay(path string) bool {
+	return strings.Contains(path, "/snapshots/") || strings.Contains(path, "/working/")
+}
+
+// findOriginAndOverlays traverses the backing chain of topOverlay and returns
+// the origin disk (the VM's own qcow2 that sits directly on top of the base
+// image) together with the list of overlay paths above it.
+// Returns an error if the chain has no origin (overlays backed directly by base).
+func findOriginAndOverlays(qimg QemuImg, topOverlay string) (origin string, overlays []string, err error) {
+	current := topOverlay
+	for {
+		backing, _, infoErr := qimg.Info(current)
+		if infoErr != nil {
+			return "", nil, fmt.Errorf("failed to query disk info for %s: %w", current, infoErr)
+		}
+		if backing == "" {
+			return "", nil, fmt.Errorf("no VM origin disk found: chain root reached without an intermediate disk")
+		}
+		if !isSnapshotOverlay(backing) {
+			// backing is a non-overlay file — verify it is origin (has its own backing)
+			// rather than the base image itself (which would have no backing).
+			backingOfBacking, _, infoErr := qimg.Info(backing)
+			if infoErr != nil {
+				return "", nil, fmt.Errorf("failed to query disk info for %s: %w", backing, infoErr)
+			}
+			if backingOfBacking == "" {
+				return "", nil, fmt.Errorf("no VM origin disk found: overlays are backed directly by the base image")
+			}
+			overlays = append(overlays, current)
+			return backing, overlays, nil
+		}
+		overlays = append(overlays, current)
+		current = backing
+	}
 }

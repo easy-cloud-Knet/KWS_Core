@@ -76,8 +76,6 @@ func (h *Handler) CreateExternalSnapshot(w http.ResponseWriter, r *http.Request)
 	snapName, err := externalsnapshot.CreateExternalSnapshot(dom, param.Name, &externalsnapshot.ExternalSnapshotOptions{
 		BaseDir:     param.BaseDir,
 		Description: param.Description,
-		Quiesce:     param.Quiesce,
-		Live:        param.Live,
 	})
 	if err != nil {
 		resp.ResponseWriteErr(w, err, http.StatusInternalServerError)
@@ -256,6 +254,40 @@ func (h *Handler) RevertSnapshot(w http.ResponseWriter, r *http.Request) {
 	}
 
 	h.Logger.Info("snapshot revert success", zap.String("uuid", param.UUID), zap.String("snapshot_name", param.Name))
+	resp.ResponseWriteOK(w, nil)
+}
+
+func (h *Handler) DeleteExternalSnapshot(w http.ResponseWriter, r *http.Request) {
+	param := &ExternalSnapshotRequest{}
+	resp := httputil.ResponseGen[any]("Delete External Snapshot")
+
+	if err := httputil.HttpDecoder(r, param); err != nil {
+		resp.ResponseWriteErr(w, err, http.StatusBadRequest)
+		h.Logger.Error("external snapshot delete decode failed", zap.Error(err))
+		return
+	}
+
+	if param.Name == "" {
+		resp.ResponseWriteErr(w, virerr.ErrorGen(virerr.InvalidParameter, fmt.Errorf("snapshot name required")), http.StatusBadRequest)
+		return
+	}
+
+	h.Logger.Info("external snapshot delete start", zap.String("domain_uuid", param.UUID), zap.String("snapshot_name", param.Name))
+
+	dom, err := h.DomainControl.GetDomain(param.UUID)
+	if err != nil {
+		resp.ResponseWriteErr(w, err, http.StatusInternalServerError)
+		h.Logger.Error("external snapshot delete failed - domain not found", zap.String("domain_uuid", param.UUID), zap.Error(err))
+		return
+	}
+
+	if err := externalsnapshot.DeleteExternalSnapshot(dom, param.Name); err != nil {
+		resp.ResponseWriteErr(w, err, http.StatusInternalServerError)
+		h.Logger.Error("external snapshot delete failed", zap.String("domain_uuid", param.UUID), zap.String("snapshot_name", param.Name), zap.Error(err))
+		return
+	}
+
+	h.Logger.Info("external snapshot delete success", zap.String("domain_uuid", param.UUID), zap.String("snapshot_name", param.Name))
 	resp.ResponseWriteOK(w, nil)
 }
 
