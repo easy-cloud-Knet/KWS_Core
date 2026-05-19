@@ -8,23 +8,9 @@ import (
 )
 
 type SnapshotDomain interface {
-	CreateExternalSnapshot(snapshotXML string, opts externalSnapshotCreateExecOptions) (SnapshotHandle, error)
+	RegisterExternalSnapshot(snapshotXML string) (SnapshotHandle, error)
 	ListAllSnapshots() ([]SnapshotHandle, error)
-	StartBlockCommit(disk, base, top string) error
-	BlockJobInfo(disk string) (externalBlockJobInfo, error)
-	AbortBlockJobPivot(disk string) error
 	UpdateDeviceConfig(deviceXML string) error
-}
-
-type externalBlockJobInfo struct {
-	Cur uint64
-	End uint64
-}
-
-type externalSnapshotCreateExecOptions struct {
-	Live    bool
-	Quiesce bool
-	Atomic  bool
 }
 
 type SnapshotHandle interface {
@@ -42,16 +28,12 @@ func newExternalSnapshotDomain(domain *libvirt.Domain) SnapshotDomain {
 	return &libvirtExternalSnapshotDomain{domain: domain}
 }
 
-func (d *libvirtExternalSnapshotDomain) CreateExternalSnapshot(snapshotXML string, opts externalSnapshotCreateExecOptions) (SnapshotHandle, error) {
+func (d *libvirtExternalSnapshotDomain) RegisterExternalSnapshot(snapshotXML string) (SnapshotHandle, error) {
 	if d == nil || d.domain == nil {
 		return nil, fmt.Errorf("nil domain")
 	}
 
-	snapshot, err := snapshotlibvirt.CreateExternalSnapshot(d.domain, snapshotXML, snapshotlibvirt.ExternalSnapshotCreateOptions{
-		Live:    opts.Live,
-		Quiesce: opts.Quiesce,
-		Atomic:  opts.Atomic,
-	})
+	snapshot, err := snapshotlibvirt.RegisterExternalSnapshot(d.domain, snapshotXML)
 	if err != nil {
 		return nil, err
 	}
@@ -75,35 +57,6 @@ func (d *libvirtExternalSnapshotDomain) ListAllSnapshots() ([]SnapshotHandle, er
 	}
 
 	return handles, nil
-}
-
-func (d *libvirtExternalSnapshotDomain) StartBlockCommit(disk, base, top string) error {
-	if d == nil || d.domain == nil {
-		return fmt.Errorf("nil domain")
-	}
-
-	return snapshotlibvirt.StartBlockCommit(d.domain, disk, base, top)
-}
-
-func (d *libvirtExternalSnapshotDomain) BlockJobInfo(disk string) (externalBlockJobInfo, error) {
-	if d == nil || d.domain == nil {
-		return externalBlockJobInfo{}, fmt.Errorf("nil domain")
-	}
-
-	job, err := d.domain.GetBlockJobInfo(disk, 0)
-	if err != nil {
-		return externalBlockJobInfo{}, err
-	}
-
-	return externalBlockJobInfo{Cur: job.Cur, End: job.End}, nil
-}
-
-func (d *libvirtExternalSnapshotDomain) AbortBlockJobPivot(disk string) error {
-	if d == nil || d.domain == nil {
-		return fmt.Errorf("nil domain")
-	}
-
-	return snapshotlibvirt.AbortBlockJobPivot(d.domain, disk)
 }
 
 func (d *libvirtExternalSnapshotDomain) UpdateDeviceConfig(deviceXML string) error {

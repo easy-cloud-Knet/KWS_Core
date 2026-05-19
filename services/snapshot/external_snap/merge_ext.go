@@ -2,7 +2,7 @@ package external
 
 import (
 	"fmt"
-	"time"
+	"os"
 
 	domCon "github.com/easy-cloud-Knet/KWS_Core/DomCon"
 	virerr "github.com/easy-cloud-Knet/KWS_Core/internal/error"
@@ -14,11 +14,8 @@ func MergeExternalSnapshot(domain *domCon.Domain, targetDisk string) ([]string, 
 	}
 
 	active, err := domain.Domain.IsActive()
-	if err != nil {
-		return nil, virerr.ErrorGen(virerr.SnapshotError, fmt.Errorf("failed to check domain state: %w", err))
-	}
-	if !active {
-		return nil, virerr.ErrorGen(virerr.InvalidParameter, fmt.Errorf("external snapshot merge requires the domain to be running"))
+	if err == nil && active {
+		return nil, virerr.ErrorGen(virerr.InvalidParameter, fmt.Errorf("offline merge requires the domain to be shut down"))
 	}
 
 	xmlDesc, err := domain.Domain.GetXMLDesc(0)
@@ -26,10 +23,10 @@ func MergeExternalSnapshot(domain *domCon.Domain, targetDisk string) ([]string, 
 		return nil, virerr.ErrorGen(virerr.SnapshotError, fmt.Errorf("failed to get domain xml: %w", err))
 	}
 
-	return mergeExternalSnapshot(newExternalSnapshotDomain(domain.Domain), xmlDesc, targetDisk)
+	return mergeExternalSnapshot(newExternalSnapshotDomain(domain.Domain), newQemuImg(), xmlDesc, targetDisk)
 }
 
-func mergeExternalSnapshot(domain SnapshotDomain, domainXMLDesc, targetDisk string) ([]string, error) {
+func mergeExternalSnapshot(domain SnapshotDomain, qimg QemuImg, domainXMLDesc, targetDisk string) ([]string, error) {
 	if domain == nil {
 		return nil, virerr.ErrorGen(virerr.InvalidParameter, fmt.Errorf("nil domain"))
 	}
@@ -39,44 +36,103 @@ func mergeExternalSnapshot(domain SnapshotDomain, domainXMLDesc, targetDisk stri
 		return nil, virerr.ErrorGen(virerr.SnapshotError, fmt.Errorf("failed to list file disks: %w", err))
 	}
 
-	merged := make([]string, 0, len(disks))
+	snaps, err := domain.ListAllSnapshots()
+	if err != nil {
+		return nil, virerr.ErrorGen(virerr.SnapshotError, fmt.Errorf("failed to list snapshots: %w", err))
+	}
+	defer freeSnapshotHandles(snaps)
+
+	type mergeTarget struct {
+		disk       diskInfo
+		originPath string
+		overlays   []string
+	}
+	var targets []mergeTarget
+
+	// Phase 1: commit each overlay chain into the VM's origin disk.
+	// qemu-img commit -b <origin> <top_overlay> collapses all layers above origin
+	// into origin. Only origin needs a write lock; the base image is read-only.
 	for _, d := range disks {
 		if targetDisk != "" && d.TargetDev != targetDisk {
 			continue
 		}
 
-		backingSource := d.BackingSource
-
-		if backingSource == "" {
+		backingFile, _, err := qimg.Info(d.Source)
+		if err != nil {
+			return nil, virerr.ErrorGen(virerr.SnapshotError, fmt.Errorf("failed to query backing file for disk %s: %w", d.TargetDev, err))
+		}
+		if backingFile == "" {
+			// Disk has no backing chain — nothing to merge.
 			continue
 		}
 
-		if err := domain.StartBlockCommit(d.TargetDev, backingSource, d.Source); err != nil {
-			return nil, virerr.ErrorGen(virerr.SnapshotError, fmt.Errorf("failed to start block commit on disk %s: %w", d.TargetDev, err))
+		originPath, overlays, err := findOriginAndOverlays(qimg, d.Source)
+		if err != nil {
+			return nil, virerr.ErrorGen(virerr.SnapshotError, fmt.Errorf("failed to resolve disk chain for %s: %w", d.TargetDev, err))
 		}
 
-		if err := waitBlockJobReady(domain, d.TargetDev, 2*time.Minute); err != nil {
-			return nil, virerr.ErrorGen(virerr.SnapshotError, fmt.Errorf("block commit did not complete for disk %s: %w", d.TargetDev, err))
+		if err := qimg.Commit(d.Source, originPath); err != nil {
+			return nil, virerr.ErrorGen(virerr.SnapshotError, fmt.Errorf("failed to commit disk %s into origin: %w", d.TargetDev, err))
 		}
 
-		if err := domain.AbortBlockJobPivot(d.TargetDev); err != nil {
-			return nil, virerr.ErrorGen(virerr.SnapshotError, fmt.Errorf("failed to pivot disk %s after commit: %w", d.TargetDev, err))
-		}
+		targets = append(targets, mergeTarget{d, originPath, overlays})
+	}
 
-		diskXML := buildDiskDeviceXML(d, backingSource)
+	if targetDisk != "" && len(targets) == 0 {
+		return nil, virerr.ErrorGen(virerr.InvalidParameter, fmt.Errorf("disk %s has no backing store to merge", targetDisk))
+	}
+	if len(targets) == 0 {
+		return nil, virerr.ErrorGen(virerr.SnapshotError, fmt.Errorf("no mergeable disks found"))
+	}
+
+	// Phase 2: delete snapshot metadata while the domain still points to the
+	// overlay chain so libvirt's reachability validation passes.
+	deleteSnapshotMetadataLeafFirst(snaps)
+
+	// Phase 3: update domain config to origin and remove the overlay files.
+	merged := make([]string, 0, len(targets))
+	for _, t := range targets {
+		originDisk := diskInfo{
+			TargetDev:  t.disk.TargetDev,
+			TargetBus:  t.disk.TargetBus,
+			Driver:     t.disk.Driver,
+			DriverName: t.disk.DriverName,
+		}
+		diskXML := buildDiskDeviceXML(originDisk, t.originPath)
 		if err := domain.UpdateDeviceConfig(diskXML); err != nil {
-			return nil, virerr.ErrorGen(virerr.SnapshotError, fmt.Errorf("failed to update disk %s after merge: %w", d.TargetDev, err))
+			return nil, virerr.ErrorGen(virerr.SnapshotError, fmt.Errorf("failed to update disk %s after merge: %w", t.disk.TargetDev, err))
 		}
 
-		merged = append(merged, d.TargetDev)
-	}
+		for _, overlayPath := range t.overlays {
+			if err := os.Remove(overlayPath); err != nil && !os.IsNotExist(err) {
+				return nil, virerr.ErrorGen(virerr.SnapshotError, fmt.Errorf("failed to remove overlay %s: %w", overlayPath, err))
+			}
+		}
 
-	if targetDisk != "" && len(merged) == 0 {
-		return nil, virerr.ErrorGen(virerr.InvalidParameter, fmt.Errorf("disk %s is not mergeable or has no external backing chain", targetDisk))
-	}
-	if len(merged) == 0 {
-		return nil, virerr.ErrorGen(virerr.SnapshotError, fmt.Errorf("no mergeable external snapshot disks found"))
+		merged = append(merged, t.disk.TargetDev)
 	}
 
 	return merged, nil
+}
+
+// deleteSnapshotMetadataLeafFirst deletes libvirt snapshot records leaf-first so
+// that parent records become deletable once all their children are gone.
+// Errors are ignored per iteration; the loop stops when no further progress is made.
+func deleteSnapshotMetadataLeafFirst(snaps []SnapshotHandle) {
+	deleted := make([]bool, len(snaps))
+	for pass := 0; pass <= len(snaps); pass++ {
+		progress := false
+		for i, s := range snaps {
+			if deleted[i] {
+				continue
+			}
+			if s.Delete() == nil {
+				deleted[i] = true
+				progress = true
+			}
+		}
+		if !progress {
+			break
+		}
+	}
 }

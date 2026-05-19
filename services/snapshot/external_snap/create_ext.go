@@ -15,9 +15,6 @@ func CreateExternalSnapshot(domain *domCon.Domain, name string, opts *ExternalSn
 		return "", virerr.ErrorGen(virerr.InvalidParameter, fmt.Errorf("nil domain"))
 	}
 
-	active, err := domain.Domain.IsActive()
-	domainActive := err == nil && active
-
 	xmlDesc, err := domain.Domain.GetXMLDesc(0)
 	if err != nil {
 		return "", virerr.ErrorGen(virerr.SnapshotError, fmt.Errorf("failed to get domain xml: %w", err))
@@ -28,10 +25,10 @@ func CreateExternalSnapshot(domain *domCon.Domain, name string, opts *ExternalSn
 		return "", virerr.ErrorGen(virerr.SnapshotError, fmt.Errorf("failed to resolve domain uuid: %w", err))
 	}
 
-	return createExternalSnapshot(newExternalSnapshotDomain(domain.Domain), domainActive, domainUUID, xmlDesc, name, opts)
+	return createExternalSnapshot(newExternalSnapshotDomain(domain.Domain), newQemuImg(), domainUUID, xmlDesc, name, opts)
 }
 
-func createExternalSnapshot(domain SnapshotDomain, domainActive bool, domainUUID, xmlDesc, name string, opts *ExternalSnapshotOptions) (string, error) {
+func createExternalSnapshot(domain SnapshotDomain, qimg QemuImg, domainUUID, xmlDesc, name string, opts *ExternalSnapshotOptions) (string, error) {
 	if domain == nil {
 		return "", virerr.ErrorGen(virerr.InvalidParameter, fmt.Errorf("nil domain"))
 	}
@@ -61,17 +58,25 @@ func createExternalSnapshot(domain SnapshotDomain, domainActive bool, domainUUID
 
 	snapDisks := make([]snapshotDisk, 0, len(disks))
 	for _, d := range disks {
+		overlayPath := filepath.Join(snapshotDir, fmt.Sprintf("%s.qcow2", d.TargetDev))
+
+		backingFormat := d.Driver
+		if backingFormat == "" {
+			backingFormat = "qcow2"
+		}
+		if err := qimg.Create(d.Source, backingFormat, overlayPath); err != nil {
+			return "", virerr.ErrorGen(virerr.SnapshotError, fmt.Errorf("failed to create overlay for disk %s: %w", d.TargetDev, err))
+		}
+
 		var driver *snapshotDriver
 		if d.Driver != "" {
 			driver = &snapshotDriver{Type: d.Driver}
 		}
-
-		snapshotFile := filepath.Join(snapshotDir, fmt.Sprintf("%s.qcow2", d.TargetDev))
 		snapDisks = append(snapDisks, snapshotDisk{
 			Name:     d.TargetDev,
 			Snapshot: "external",
 			Driver:   driver,
-			Source:   &snapshotSource{File: snapshotFile},
+			Source:   &snapshotSource{File: overlayPath},
 		})
 	}
 
@@ -91,23 +96,15 @@ func createExternalSnapshot(domain SnapshotDomain, domainActive bool, domainUUID
 		return "", virerr.ErrorGen(virerr.SnapshotError, fmt.Errorf("failed to build snapshot xml: %w", err))
 	}
 
-	live := opts != nil && opts.Live && domainActive
-
-	createOpts := externalSnapshotCreateExecOptions{
-		Live:    live,
-		Quiesce: opts != nil && opts.Quiesce,
-		Atomic:  len(disks) > 1,
-	}
-
-	snap, err := domain.CreateExternalSnapshot(string(snapBytes), createOpts)
+	snap, err := domain.RegisterExternalSnapshot(string(snapBytes))
 	if err != nil {
-		return "", virerr.ErrorGen(virerr.SnapshotError, fmt.Errorf("failed to create external snapshot: %w", err))
+		return "", virerr.ErrorGen(virerr.SnapshotError, fmt.Errorf("failed to register external snapshot: %w", err))
 	}
 	defer snap.Free()
 
 	snapName, err := snap.Name()
 	if err != nil {
-		return "", virerr.ErrorGen(virerr.SnapshotError, fmt.Errorf("snapshot created but failed to read name: %w", err))
+		return "", virerr.ErrorGen(virerr.SnapshotError, fmt.Errorf("snapshot registered but failed to read name: %w", err))
 	}
 
 	return snapName, nil
