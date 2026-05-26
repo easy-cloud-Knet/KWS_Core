@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	virerr "github.com/easy-cloud-Knet/KWS_Core/internal/error"
+	safepath "github.com/easy-cloud-Knet/KWS_Core/pkg/safePath"
 )
 
 // realQemuImg is the production implementation of QemuImg using exec.Command.
@@ -227,11 +228,11 @@ func extractExternalSnapshotSources(snapshot SnapshotHandle) (map[string]string,
 // workingDiskPath derives the "working" overlay path from a snapshot overlay path.
 // Snapshot layout: <root>/<uuid>/snapshots/<snapName>/<disk>.qcow2
 // Working layout:  <root>/<uuid>/working/<disk>.qcow2
-func workingDiskPath(snapOverlay, diskName string) string {
+func workingDiskPath(snapOverlay, diskName string) (string, error) {
 	snapNameDir := filepath.Dir(snapOverlay)
 	snapshotsDir := filepath.Dir(snapNameDir)
 	uuidDir := filepath.Dir(snapshotsDir)
-	return filepath.Join(uuidDir, "working", diskName+".qcow2")
+	return safepath.GetSafeFilePath(uuidDir, filepath.Join("working", diskName+".qcow2"))
 }
 
 // isSnapshotOverlay reports whether path is one of the overlay files managed

@@ -10,9 +10,22 @@ import (
 	virerr "github.com/easy-cloud-Knet/KWS_Core/internal/error"
 )
 
-func CreateExternalSnapshot(domain *domCon.Domain, name string, opts *ExternalSnapshotOptions) (string, error) {
+func validateCreateParams(domain *domCon.Domain, name string) error {
 	if domain == nil || domain.Domain == nil {
-		return "", virerr.ErrorGen(virerr.InvalidParameter, fmt.Errorf("nil domain"))
+		return virerr.ErrorGen(virerr.InvalidParameter, fmt.Errorf("nil domain"))
+	}
+	if name == "" {
+		return virerr.ErrorGen(virerr.InvalidParameter, fmt.Errorf("snapshot name required"))
+	}
+	if !isSafeSnapshotName(name) {
+		return virerr.ErrorGen(virerr.InvalidParameter, fmt.Errorf("invalid snapshot name"))
+	}
+	return nil
+}
+
+func CreateExternalSnapshot(domain *domCon.Domain, name string, opts *ExternalSnapshotOptions) (string, error) {
+	if err := validateCreateParams(domain, name); err != nil {
+		return "", err
 	}
 
 	xmlDesc, err := domain.Domain.GetXMLDesc(0)
@@ -29,16 +42,6 @@ func CreateExternalSnapshot(domain *domCon.Domain, name string, opts *ExternalSn
 }
 
 func createExternalSnapshot(domain SnapshotDomain, qimg QemuImg, domainUUID, xmlDesc, name string, opts *ExternalSnapshotOptions) (string, error) {
-	if domain == nil {
-		return "", virerr.ErrorGen(virerr.InvalidParameter, fmt.Errorf("nil domain"))
-	}
-	if name == "" {
-		return "", virerr.ErrorGen(virerr.InvalidParameter, fmt.Errorf("snapshot name required"))
-	}
-	if !isSafeSnapshotName(name) {
-		return "", virerr.ErrorGen(virerr.InvalidParameter, fmt.Errorf("invalid snapshot name"))
-	}
-
 	disks, err := listFileDisksFromXMLDesc(xmlDesc)
 	if err != nil {
 		return "", virerr.ErrorGen(virerr.SnapshotError, fmt.Errorf("failed to list file disks: %w", err))

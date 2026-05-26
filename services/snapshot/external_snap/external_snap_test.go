@@ -106,10 +106,8 @@ func (q *mockQemuImg) Commit(_, _ string) error {
 
 // --- Create tests ---
 
-func TestCreateExternalSnapshot_InvalidName(t *testing.T) {
-	domain := &mockExternalSnapshotDomain{}
-	qimg := &mockQemuImg{}
-	_, err := createExternalSnapshot(domain, qimg, "test-uuid", `<domain><devices></devices></domain>`, "", nil)
+func TestValidateCreateParams_InvalidName(t *testing.T) {
+	err := validateCreateParams(nil, "")
 	if err == nil {
 		t.Fatal("expected error, got nil")
 	}

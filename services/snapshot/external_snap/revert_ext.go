@@ -84,7 +84,10 @@ func revertExternalSnapshot(domain SnapshotDomain, qimg QemuImg, domainXMLDesc, 
 
 		// Create a fresh writable overlay backed by the snapshot's backing file.
 		// Layout: <root>/<uuid>/working/<disk>.qcow2
-		workingPath := workingDiskPath(snapOverlay, d.TargetDev)
+		workingPath, err := workingDiskPath(snapOverlay, d.TargetDev)
+		if err != nil {
+			return virerr.ErrorGen(virerr.SnapshotError, fmt.Errorf("invalid working disk path for disk %s: %w", d.TargetDev, err))
+		}
 		if err := os.MkdirAll(filepath.Dir(workingPath), 0755); err != nil {
 			return virerr.ErrorGen(virerr.SnapshotError, fmt.Errorf("failed to create working directory for disk %s: %w", d.TargetDev, err))
 		}
