@@ -16,11 +16,6 @@ import (
 
 func (DB localConfigurer) CreateDiskImage(dirPath string, diskSize int) error {
 	baseImage := fmt.Sprintf("%s/baseimg/%s", config.StorageBase, DB.VMDescription.OS)
-
-	if err := ensureBaseImage(baseImage, DB.VMDescription.PresignedImageUrl); err != nil {
-		return virerr.ErrorGen(virerr.DomainGenerationError, err)
-	}
-
 	targetImage := filepath.Join(dirPath, fmt.Sprintf("%s.qcow2", DB.VMDescription.UUID))
 	qemuImgCmd := exec.Command("qemu-img", "create",
 		"-b", baseImage,

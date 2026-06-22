@@ -89,6 +89,12 @@ func (DB localConfigurer) Generate(logger *zap.Logger) error {
 		return virerr.ErrorGen(virerr.InvalidUUID, err)
 	}
 
+	baseImage := fmt.Sprintf("%s/baseimg/%s", config.StorageBase, DB.VMDescription.OS)
+	if err := ensureBaseImage(baseImage, DB.VMDescription.PresignedImageUrl); err != nil {
+		logger.Error("base image check failed", zap.String("os", DB.VMDescription.OS), zap.Error(err))
+		return virerr.ErrorGen(virerr.DomainGenerationError, err)
+	}
+
 	dirPath, err := safepath.GetSafeFilePath(config.StorageBase, DB.VMDescription.UUID)
 	if err != nil {
 		logger.Error("failed to generate safe file path", zap.String("uuid", DB.VMDescription.UUID), zap.Error(err))

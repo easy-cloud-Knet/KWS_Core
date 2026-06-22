@@ -266,6 +266,55 @@ func TestMergeExternalSnapshot_GetDomainError(t *testing.T) {
 	}
 }
 
+// TakeExternalSnapshot
+
+func TestTakeExternalSnapshot_BadRequest(t *testing.T) {
+	h := newTestHandler(&mockDomainController{})
+	r := httptest.NewRequest(http.MethodPost, "/TakeExternalSnapshot", bytes.NewBufferString("invalid json"))
+	w := httptest.NewRecorder()
+
+	h.TakeExternalSnapshot(w, r)
+
+	if w.Code != http.StatusBadRequest {
+		t.Errorf("expected %d, got %d", http.StatusBadRequest, w.Code)
+	}
+}
+
+func TestTakeExternalSnapshot_MissingFields(t *testing.T) {
+	h := newTestHandler(&mockDomainController{})
+
+	cases := []TakeExternalSnapshotRequest{
+		{SnapKey: "snap1", PresignedURL: "http://example.com"},
+		{UUID: "test-uuid", PresignedURL: "http://example.com"},
+		{UUID: "test-uuid", SnapKey: "snap1"},
+	}
+
+	for _, req := range cases {
+		r := testutil.MakeRequest(t, req)
+		w := httptest.NewRecorder()
+		h.TakeExternalSnapshot(w, r)
+		if w.Code != http.StatusBadRequest {
+			t.Errorf("expected %d, got %d for req %+v", http.StatusBadRequest, w.Code, req)
+		}
+	}
+}
+
+func TestTakeExternalSnapshot_GetDomainError(t *testing.T) {
+	h := newTestHandler(domainErrMock())
+	r := testutil.MakeRequest(t, TakeExternalSnapshotRequest{
+		UUID:         "test-uuid",
+		SnapKey:      "snap1",
+		PresignedURL: "http://example.com/presigned",
+	})
+	w := httptest.NewRecorder()
+
+	h.TakeExternalSnapshot(w, r)
+
+	if w.Code != http.StatusInternalServerError {
+		t.Errorf("expected %d, got %d", http.StatusInternalServerError, w.Code)
+	}
+}
+
 // DeleteSnapshot
 
 func TestDeleteSnapshot_BadRequest(t *testing.T) {
