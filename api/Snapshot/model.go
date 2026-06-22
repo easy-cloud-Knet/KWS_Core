@@ -35,3 +35,14 @@ type ExternalSnapshotMergeResponse struct {
 	UUID        string   `json:"UUID"`
 	MergedDisks []string `json:"MergedDisks"`
 }
+
+type TakeExternalSnapshotRequest struct {
+	UUID         string `json:"uuid"`
+	SnapKey      string `json:"snapKey"`
+	PresignedURL string `json:"presignedUrl"`
+}
+
+type TakeExternalSnapshotResponse struct {
+	UUID    string `json:"uuid"`
+	SnapKey string `json:"snapKey"`
+}
