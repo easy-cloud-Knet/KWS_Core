@@ -8,14 +8,11 @@ import (
 // 인터페이스 구현체
 
 func (vs *VCPUStatus) EmitStatus(dls *DomainListStatus) {
-	vs.Total = int(dls.VCPUTotal)
-	vs.Allocated = int(dls.VcpuAllocated)
-	vs.Sleeping = int(dls.VcpuSleeping)
+	vs.Total = int(atomic.LoadInt64(&dls.VCPUTotal))
+	vs.Allocated = int(atomic.LoadInt64(&dls.VcpuAllocated))
+	vs.Sleeping = int(atomic.LoadInt64(&dls.VcpuSleeping))
 
-	vs.Idle = vs.Total - vs.Allocated
-	if vs.Idle < 0 {
-		vs.Idle = 0
-	}
+	vs.Idle = max(vs.Total-vs.Allocated, 0)
 }
 
 func (dls *DomainListStatus) Update() {
@@ -23,8 +20,7 @@ func (dls *DomainListStatus) Update() {
 }
 
 func (dls *DomainListStatus) UpdateCPUTotal() {
-	totalCPU := runtime.NumCPU()
-	dls.VCPUTotal = int64(totalCPU)
+	atomic.StoreInt64(&dls.VCPUTotal, int64(runtime.NumCPU()))
 }
 
 func (dls *DomainListStatus) AddAllocatedCPU(vcpu int) {
