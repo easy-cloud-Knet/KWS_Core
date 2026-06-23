@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"strings"
 )
 
@@ -13,8 +14,9 @@ type Runner interface {
 	Create(backingFile, backingFormat, overlayPath string) error
 	// ReplaceOverlay removes an existing file at overlayPath if present, then creates a fresh overlay.
 	ReplaceOverlay(backingFile, backingFormat, overlayPath string) error
-	// RemoveOverlay deletes the overlay file at path. Returns nil if the file does not exist.
-	RemoveOverlay(path string) error
+	// RemoveOverlay deletes the overlay file at path after verifying it resides under baseDir.
+	// Returns nil if the file does not exist.
+	RemoveOverlay(baseDir, path string) error
 	Info(diskPath string) (backingFile, backingFormat string, err error)
 	// Convert flattens the full backing chain of src into a new standalone dst file.
 	// Unlike Commit, it never writes to any backing file so shared base images stay untouched.
@@ -45,8 +47,13 @@ func (q *real) Create(backingFile, backingFormat, overlayPath string) error {
 	return nil
 }
 
-func (q *real) RemoveOverlay(path string) error {
-	if err := os.Remove(path); err != nil && !os.IsNotExist(err) {
+func (q *real) RemoveOverlay(baseDir, path string) error {
+	cleanBase := filepath.Clean(baseDir)
+	cleanPath := filepath.Clean(path)
+	if !strings.HasPrefix(cleanPath, cleanBase+string(filepath.Separator)) {
+		return fmt.Errorf("path %s is outside base directory %s", path, baseDir)
+	}
+	if err := os.Remove(cleanPath); err != nil && !os.IsNotExist(err) {
 		return fmt.Errorf("failed to remove overlay %s: %w", path, err)
 	}
 	return nil

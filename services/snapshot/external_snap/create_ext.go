@@ -103,7 +103,7 @@ func createOverlays(qimg qemuimg.Runner, disks []diskInfo, snapshotDir string) (
 		if err := qimg.Create(d.Source, backingFormat, overlayPath); err != nil {
 			var rollbackErrs []string
 			for _, created := range snapDisks {
-				if removeErr := qimg.RemoveOverlay(created.Source.File); removeErr != nil {
+				if removeErr := qimg.RemoveOverlay(snapshotDir, created.Source.File); removeErr != nil {
 					rollbackErrs = append(rollbackErrs, fmt.Sprintf("%s: %v", created.Source.File, removeErr))
 				}
 			}

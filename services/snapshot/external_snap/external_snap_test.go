@@ -90,7 +90,7 @@ func (q *mockQemuImg) ReplaceOverlay(_, _, _ string) error {
 	return q.createErr
 }
 
-func (q *mockQemuImg) RemoveOverlay(_ string) error {
+func (q *mockQemuImg) RemoveOverlay(_, _ string) error {
 	return nil
 }
 
