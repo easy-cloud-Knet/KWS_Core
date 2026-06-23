@@ -2,13 +2,11 @@ package external
 
 import "encoding/xml"
 
-// ExternalSnapshotOptions defines options for creating external snapshots.
 type ExternalSnapshotOptions struct {
 	BaseDir     string
 	Description string
-	Quiesce     bool
-	Live        bool
 }
+
 
 type domainXML struct {
 	Devices domainDevices `xml:"devices"`
