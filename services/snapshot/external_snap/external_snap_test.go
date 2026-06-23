@@ -90,6 +90,10 @@ func (q *mockQemuImg) ReplaceOverlay(_, _, _ string) error {
 	return q.createErr
 }
 
+func (q *mockQemuImg) RemoveOverlay(_ string) error {
+	return nil
+}
+
 func (q *mockQemuImg) Info(path string) (string, string, error) {
 	if q.infoFunc != nil {
 		return q.infoFunc(path)

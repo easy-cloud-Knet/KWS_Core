@@ -13,6 +13,8 @@ type Runner interface {
 	Create(backingFile, backingFormat, overlayPath string) error
 	// ReplaceOverlay removes an existing file at overlayPath if present, then creates a fresh overlay.
 	ReplaceOverlay(backingFile, backingFormat, overlayPath string) error
+	// RemoveOverlay deletes the overlay file at path. Returns nil if the file does not exist.
+	RemoveOverlay(path string) error
 	Info(diskPath string) (backingFile, backingFormat string, err error)
 	// Convert flattens the full backing chain of src into a new standalone dst file.
 	// Unlike Commit, it never writes to any backing file so shared base images stay untouched.
@@ -39,6 +41,13 @@ func (q *real) Create(backingFile, backingFormat, overlayPath string) error {
 	out, err := exec.Command("qemu-img", args...).CombinedOutput()
 	if err != nil {
 		return fmt.Errorf("qemu-img create failed: %w: %s", err, strings.TrimSpace(string(out)))
+	}
+	return nil
+}
+
+func (q *real) RemoveOverlay(path string) error {
+	if err := os.Remove(path); err != nil && !os.IsNotExist(err) {
+		return fmt.Errorf("failed to remove overlay %s: %w", path, err)
 	}
 	return nil
 }
