@@ -6,6 +6,7 @@ import (
 
 	domCon "github.com/easy-cloud-Knet/KWS_Core/DomCon"
 	virerr "github.com/easy-cloud-Knet/KWS_Core/internal/error"
+	"github.com/easy-cloud-Knet/KWS_Core/internal/qemuimg"
 )
 
 func MergeExternalSnapshot(domain *domCon.Domain, targetDisk string) ([]string, error) {
@@ -23,10 +24,10 @@ func MergeExternalSnapshot(domain *domCon.Domain, targetDisk string) ([]string, 
 		return nil, virerr.ErrorGen(virerr.SnapshotError, fmt.Errorf("failed to get domain xml: %w", err))
 	}
 
-	return mergeExternalSnapshot(newExternalSnapshotDomain(domain.Domain), newQemuImg(), xmlDesc, targetDisk)
+	return mergeExternalSnapshot(newExternalSnapshotDomain(domain.Domain), qemuimg.New(), xmlDesc, targetDisk)
 }
 
-func mergeExternalSnapshot(domain SnapshotDomain, qimg QemuImg, domainXMLDesc, targetDisk string) ([]string, error) {
+func mergeExternalSnapshot(domain SnapshotDomain, qimg qemuimg.Runner, domainXMLDesc, targetDisk string) ([]string, error) {
 	if domain == nil {
 		return nil, virerr.ErrorGen(virerr.InvalidParameter, fmt.Errorf("nil domain"))
 	}

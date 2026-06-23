@@ -86,6 +86,10 @@ func (q *mockQemuImg) Create(_, _, _ string) error {
 	return q.createErr
 }
 
+func (q *mockQemuImg) ReplaceOverlay(_, _, _ string) error {
+	return q.createErr
+}
+
 func (q *mockQemuImg) Info(path string) (string, string, error) {
 	if q.infoFunc != nil {
 		return q.infoFunc(path)

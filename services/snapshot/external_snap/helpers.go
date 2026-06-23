@@ -1,72 +1,16 @@
 package external
 
 import (
-	"encoding/json"
 	"encoding/xml"
 	"fmt"
-	"os/exec"
 	"path/filepath"
 	"strings"
 
 	virerr "github.com/easy-cloud-Knet/KWS_Core/internal/error"
+	"github.com/easy-cloud-Knet/KWS_Core/internal/qemuimg"
 	safepath "github.com/easy-cloud-Knet/KWS_Core/pkg/safePath"
 )
 
-// realQemuImg is the production implementation of QemuImg using exec.Command.
-type realQemuImg struct{}
-
-func newQemuImg() QemuImg {
-	return &realQemuImg{}
-}
-
-func (q *realQemuImg) Create(backingFile, backingFormat, overlayPath string) error {
-	args := []string{"create", "-f", "qcow2", "-b", backingFile}
-	if backingFormat != "" {
-		args = append(args, "-F", backingFormat)
-	}
-	args = append(args, overlayPath)
-
-	out, err := exec.Command("qemu-img", args...).CombinedOutput()
-	if err != nil {
-		return fmt.Errorf("qemu-img create failed: %w: %s", err, strings.TrimSpace(string(out)))
-	}
-	return nil
-}
-
-type qemuImgInfoResult struct {
-	BackingFilename   string `json:"backing-filename"`
-	BackingFileFormat string `json:"backing-filename-format"`
-}
-
-func (q *realQemuImg) Info(diskPath string) (backingFile, backingFormat string, err error) {
-	out, execErr := exec.Command("qemu-img", "info", "--output=json", diskPath).CombinedOutput()
-	if execErr != nil {
-		return "", "", fmt.Errorf("qemu-img info failed: %w: %s", execErr, strings.TrimSpace(string(out)))
-	}
-
-	var result qemuImgInfoResult
-	if jsonErr := json.Unmarshal(out, &result); jsonErr != nil {
-		return "", "", fmt.Errorf("failed to parse qemu-img info output: %w", jsonErr)
-	}
-
-	return result.BackingFilename, result.BackingFileFormat, nil
-}
-
-func (q *realQemuImg) Convert(src, dst string) error {
-	out, err := exec.Command("qemu-img", "convert", "-f", "qcow2", "-O", "qcow2", src, dst).CombinedOutput()
-	if err != nil {
-		return fmt.Errorf("qemu-img convert failed: %w: %s", err, strings.TrimSpace(string(out)))
-	}
-	return nil
-}
-
-func (q *realQemuImg) Commit(overlay, base string) error {
-	out, err := exec.Command("qemu-img", "commit", "-b", base, overlay).CombinedOutput()
-	if err != nil {
-		return fmt.Errorf("qemu-img commit failed: %w: %s", err, strings.TrimSpace(string(out)))
-	}
-	return nil
-}
 
 func freeSnapshotHandles(snaps []SnapshotHandle) {
 	for _, s := range snaps {
@@ -245,7 +189,7 @@ func isSnapshotOverlay(path string) bool {
 // the origin disk (the VM's own qcow2 that sits directly on top of the base
 // image) together with the list of overlay paths above it.
 // Returns an error if the chain has no origin (overlays backed directly by base).
-func findOriginAndOverlays(qimg QemuImg, topOverlay string) (origin string, overlays []string, err error) {
+func findOriginAndOverlays(qimg qemuimg.Runner, topOverlay string) (origin string, overlays []string, err error) {
 	current := topOverlay
 	for {
 		backing, _, infoErr := qimg.Info(current)

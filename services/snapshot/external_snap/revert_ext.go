@@ -7,6 +7,7 @@ import (
 
 	domCon "github.com/easy-cloud-Knet/KWS_Core/DomCon"
 	virerr "github.com/easy-cloud-Knet/KWS_Core/internal/error"
+	"github.com/easy-cloud-Knet/KWS_Core/internal/qemuimg"
 )
 
 func RevertExternalSnapshot(domain *domCon.Domain, snapName string) error {
@@ -24,10 +25,10 @@ func RevertExternalSnapshot(domain *domCon.Domain, snapName string) error {
 		return virerr.ErrorGen(virerr.SnapshotError, fmt.Errorf("failed to get domain xml: %w", err))
 	}
 
-	return revertExternalSnapshot(newExternalSnapshotDomain(domain.Domain), newQemuImg(), xmlDesc, snapName)
+	return revertExternalSnapshot(newExternalSnapshotDomain(domain.Domain), qemuimg.New(), xmlDesc, snapName)
 }
 
-func revertExternalSnapshot(domain SnapshotDomain, qimg QemuImg, domainXMLDesc, snapName string) error {
+func revertExternalSnapshot(domain SnapshotDomain, qimg qemuimg.Runner, domainXMLDesc, snapName string) error {
 	if domain == nil {
 		return virerr.ErrorGen(virerr.InvalidParameter, fmt.Errorf("nil domain"))
 	}
@@ -92,11 +93,8 @@ func revertExternalSnapshot(domain SnapshotDomain, qimg QemuImg, domainXMLDesc, 
 			return virerr.ErrorGen(virerr.SnapshotError, fmt.Errorf("failed to create working directory for disk %s: %w", d.TargetDev, err))
 		}
 
-		// Remove stale working overlay from a previous revert if present.
-		_ = os.Remove(workingPath)
-
-		if err := qimg.Create(backingFile, backingFormat, workingPath); err != nil {
-			return virerr.ErrorGen(virerr.SnapshotError, fmt.Errorf("failed to create working overlay for disk %s: %w", d.TargetDev, err))
+		if err := qimg.ReplaceOverlay(backingFile, backingFormat, workingPath); err != nil {
+			return virerr.ErrorGen(virerr.SnapshotError, fmt.Errorf("failed to replace working overlay for disk %s: %w", d.TargetDev, err))
 		}
 
 		diskXML := buildDiskDeviceXML(d, workingPath)
