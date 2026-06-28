@@ -44,6 +44,7 @@ func InitServer(portNum int, h Handlers, logger *zap.Logger) {
 	mux.HandleFunc("POST /RevertExternalSnapshot", h.Snapshot.RevertExternalSnapshot)
 	mux.HandleFunc("POST /MergeExternalSnapshot", h.Snapshot.MergeExternalSnapshot)
 	mux.HandleFunc("POST /DeleteSnapshot", h.Snapshot.DeleteSnapshot)
+	mux.HandleFunc("POST /TakeExternalSnapshot", h.Snapshot.TakeExternalSnapshot)
 
 	mux.HandleFunc("GET /metrics", h.Metric.DefaultMetric().ServeHTTP)
 

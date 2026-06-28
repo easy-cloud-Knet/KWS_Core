@@ -1,9 +1,12 @@
 package snapshot
 
 import (
+	"context"
 	"fmt"
 	"net/http"
+	"time"
 
+	"github.com/easy-cloud-Knet/KWS_Core/internal/config"
 	virerr "github.com/easy-cloud-Knet/KWS_Core/internal/error"
 	httputil "github.com/easy-cloud-Knet/KWS_Core/pkg/httputil"
 	externalsnapshot "github.com/easy-cloud-Knet/KWS_Core/services/snapshot/external_snap"
@@ -291,4 +294,50 @@ func (h *Handler) DeleteSnapshot(w http.ResponseWriter, r *http.Request) {
 
 	h.Logger.Info("snapshot delete success", zap.String("uuid", param.UUID), zap.String("snapshot_name", param.Name))
 	resp.ResponseWriteOK(w, nil)
+}
+
+func (h *Handler) TakeExternalSnapshot(w http.ResponseWriter, r *http.Request) {
+	param := &TakeExternalSnapshotRequest{}
+	resp := httputil.ResponseGen[TakeExternalSnapshotResponse]("Take External Snapshot")
+
+	if err := httputil.HttpDecoder(r, param); err != nil {
+		resp.ResponseWriteErr(w, err, http.StatusBadRequest)
+		h.Logger.Error("take external snapshot decode failed", zap.Error(err))
+		return
+	}
+
+	if param.UUID == "" || param.SnapKey == "" || param.PresignedURL == "" {
+		resp.ResponseWriteErr(w, virerr.ErrorGen(virerr.InvalidParameter, fmt.Errorf("uuid, snapKey and presignedUrl are required")), http.StatusBadRequest)
+		return
+	}
+
+	h.Logger.Info("take external snapshot start", zap.String("uuid", param.UUID), zap.String("snap_key", param.SnapKey))
+
+	dom, err := h.DomainControl.GetDomain(param.UUID)
+	if err != nil {
+		resp.ResponseWriteErr(w, err, http.StatusInternalServerError)
+		h.Logger.Error("take external snapshot failed - domain not found", zap.String("uuid", param.UUID), zap.Error(err))
+		return
+	}
+
+	snapName, err := externalsnapshot.CreateExternalSnapshot(dom, param.SnapKey, &externalsnapshot.ExternalSnapshotOptions{})
+	if err != nil {
+		resp.ResponseWriteErr(w, err, http.StatusInternalServerError)
+		h.Logger.Error("take external snapshot failed - create snapshot", zap.String("uuid", param.UUID), zap.Error(err))
+		return
+	}
+
+	filePath := externalsnapshot.SnapshotFilePath(config.StorageBase, param.UUID, snapName, "vda")
+
+	ctx, cancel := context.WithTimeout(r.Context(), 10*time.Minute)
+	defer cancel()
+
+	if err := externalsnapshot.UploadToPresignedURL(ctx, filePath, param.PresignedURL); err != nil {
+		resp.ResponseWriteErr(w, virerr.ErrorGen(virerr.SnapshotError, err), http.StatusInternalServerError)
+		h.Logger.Error("take external snapshot failed - upload", zap.String("uuid", param.UUID), zap.String("file", filePath), zap.Error(err))
+		return
+	}
+
+	h.Logger.Info("take external snapshot success", zap.String("uuid", param.UUID), zap.String("snap_key", snapName))
+	resp.ResponseWriteOK(w, &TakeExternalSnapshotResponse{UUID: param.UUID, SnapKey: snapName})
 }

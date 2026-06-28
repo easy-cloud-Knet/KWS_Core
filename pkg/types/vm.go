@@ -3,14 +3,15 @@ package vmtypes
 import network "github.com/easy-cloud-Knet/KWS_Core/internal/net"
 
 type VM_Init_Info struct {
-	DomName      string            `json:"domName"`
-	UUID         string            `json:"uuid"`
-	OS           string            `json:"os"`
-	HardwareInfo HardwareInfo      `json:"HWInfo"`
-	NetConf      network.NetDefine `json:"network"`
-	Users        []User_info_VM    `json:"users"`
-	SDNUUID      string            `json:"sdnUUID"`
-	MacAddr      string            `json:"macAddr"`
+	DomName           string            `json:"domName"`
+	UUID              string            `json:"uuid"`
+	OS                string            `json:"os"`
+	PresignedImageUrl string            `json:"presignedImageUrl,omitempty"`
+	HardwareInfo      HardwareInfo      `json:"HWInfo"`
+	NetConf           network.NetDefine `json:"network"`
+	Users             []User_info_VM    `json:"users"`
+	SDNUUID           string            `json:"sdnUUID"`
+	MacAddr           string            `json:"macAddr"`
 }
 
 type HardwareInfo struct {

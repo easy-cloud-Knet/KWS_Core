@@ -6,26 +6,28 @@ import (
 )
 
 type CreateVMRequest struct {
-	DomName      string                 `json:"domName"`
-	UUID         string                 `json:"uuid"`
-	OS           string                 `json:"os"`
-	HardwareInfo vmtypes.HardwareInfo   `json:"HWInfo"`
-	NetConf      network.NetDefine      `json:"network"`
-	Users        []vmtypes.User_info_VM `json:"users"`
-	SDNUUID      string                 `json:"sdnUUID"`
-	MacAddr      string                 `json:"macAddr"`
+	DomName           string                 `json:"domName"`
+	UUID              string                 `json:"uuid"`
+	OS                string                 `json:"os"`
+	PresignedImageUrl string                 `json:"presignedImageUrl,omitempty"`
+	HardwareInfo      vmtypes.HardwareInfo   `json:"HWInfo"`
+	NetConf           network.NetDefine      `json:"network"`
+	Users             []vmtypes.User_info_VM `json:"users"`
+	SDNUUID           string                 `json:"sdnUUID"`
+	MacAddr           string                 `json:"macAddr"`
 }
 
 func (r *CreateVMRequest) toVMInitInfo() *vmtypes.VM_Init_Info {
 	return &vmtypes.VM_Init_Info{
-		DomName:      r.DomName,
-		UUID:         r.UUID,
-		OS:           r.OS,
-		HardwareInfo: r.HardwareInfo,
-		NetConf:      r.NetConf,
-		Users:        r.Users,
-		SDNUUID:      r.SDNUUID,
-		MacAddr:      r.MacAddr,
+		DomName:           r.DomName,
+		UUID:              r.UUID,
+		OS:                r.OS,
+		PresignedImageUrl: r.PresignedImageUrl,
+		HardwareInfo:      r.HardwareInfo,
+		NetConf:           r.NetConf,
+		Users:             r.Users,
+		SDNUUID:           r.SDNUUID,
+		MacAddr:           r.MacAddr,
 	}
 }
 
